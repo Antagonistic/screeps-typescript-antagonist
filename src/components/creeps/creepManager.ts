@@ -12,10 +12,10 @@ import { log } from "../../lib/logger/log";
  */
 export function run(room: Room): void {
   const creeps = room.find<Creep>(FIND_MY_CREEPS);
-  const creepCount = _.size(creeps);
+  // const creepCount = _.size(creeps);
 
   if (Config.ENABLE_DEBUG_MODE) {
-    log.info(creepCount + " creeps found in the playground.");
+    // log.info(creepCount + " creeps found in the playground.");
   }
 
   _buildMissingCreeps(room, creeps);
@@ -46,11 +46,11 @@ function _buildMissingCreeps(room: Room, creeps: Creep[]) {
 
   if (Config.ENABLE_DEBUG_MODE) {
     if (spawns[0]) {
-      log.info("Spawn: " + spawns[0].name);
+      // log.info("Spawn: " + spawns[0].name);
     }
   }
 
-  if (harvesters.length < 2) {
+  if (harvesters.length < 4) {
     if (harvesters.length < 1 || room.energyCapacityAvailable <= 800) {
       bodyParts = [WORK, WORK, CARRY, MOVE];
     } else if (room.energyCapacityAvailable > 800) {
@@ -58,7 +58,9 @@ function _buildMissingCreeps(room: Room, creeps: Creep[]) {
     }
 
     _.each(spawns, (spawn: Spawn) => {
-      _spawnCreep(spawn, bodyParts, "harvester");
+      if (spawn.canCreateCreep(bodyParts) === 0) {
+        _spawnCreep(spawn, bodyParts, "harvester");
+      }
     });
   }
 }
@@ -78,6 +80,7 @@ function _spawnCreep(spawn: Spawn, bodyParts: string[], role: string) {
   const properties: { [key: string]: any } = {
     role,
     room: spawn.room.name,
+    working: false
   };
 
   status = _.isString(status) ? OK : status;

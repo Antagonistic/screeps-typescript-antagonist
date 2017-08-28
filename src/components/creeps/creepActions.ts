@@ -33,7 +33,8 @@ export function needsRenew(creep: Creep): boolean {
  * @returns {number}
  */
 export function tryRenew(creep: Creep, spawn: Spawn): number {
-  return spawn.renewCreep(creep);
+  const  ret = spawn.renewCreep(creep);
+  return ret;
 }
 
 /**
@@ -78,7 +79,6 @@ export function getEnergy(creep: Creep, roomObject: RoomObject): void {
  */
 export function canWork(creep: Creep): boolean {
   const working = creep.memory.working;
-
   if (working && _.sum(creep.carry) === 0) {
     creep.memory.working = false;
     return false;
@@ -87,5 +87,37 @@ export function canWork(creep: Creep): boolean {
     return true;
   } else {
     return creep.memory.working;
+  }
+}
+
+export function getAnyEnergy(creep: Creep): void {
+  const droppedRes: Resource[] = creep.room.find<Resource>(FIND_DROPPED_RESOURCES,
+    {filter: (x: Resource) => x.resourceType === RESOURCE_ENERGY
+      && x.amount >= creep.carryCapacity});
+  if (droppedRes && droppedRes.length > 0) {
+    if (creep.pickup(droppedRes[0]) === ERR_NOT_IN_RANGE) {
+      creep.moveTo(droppedRes[0]);
+    }
+  }
+  const energyCont: Container[] = creep.pos.findClosestByRange(FIND_STRUCTURES,
+    {filter: (x: Container) => x.structureType === STRUCTURE_CONTAINER
+      && x.store[RESOURCE_ENERGY] >= creep.carryCapacity});
+  if (energyCont && energyCont.length > 0) {
+    if (creep.withdraw(energyCont[0], RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
+      creep.moveTo(energyCont[0]);
+    }
+  }
+}
+
+export function moveToUpgrade(creep: Creep): void {
+  const controller: Controller =  creep.room.controller;
+  if (creep.upgradeController(controller) === ERR_NOT_IN_RANGE) {
+    moveTo(creep, controller.pos);
+  }
+}
+
+export function moveToBuild(creep: Creep, target: ConstructionSite): void {
+  if (creep.build(target) === ERR_NOT_IN_RANGE) {
+    moveTo(creep, target.pos);
   }
 }

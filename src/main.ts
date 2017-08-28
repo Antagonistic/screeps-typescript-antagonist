@@ -18,7 +18,7 @@ if (Config.USE_PROFILER) {
   Profiler.enable();
 }
 
-log.info(`Scripts bootstrapped`);
+// log.info(`Scripts bootstrapped`);
 if (__REVISION__) {
   log.info(`Revision ID: ${__REVISION__}`);
 }
