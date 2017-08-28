@@ -90,7 +90,8 @@ export function canWork(creep: Creep): boolean {
   }
 }
 
-export function getAnyEnergy(creep: Creep): void {
+export function getAnyEnergy(creep: Creep): boolean {
+  // Find dropped resources
   const droppedRes: Resource[] = creep.room.find<Resource>(FIND_DROPPED_RESOURCES,
     {filter: (x: Resource) => x.resourceType === RESOURCE_ENERGY
       && x.amount >= creep.carryCapacity});
@@ -98,26 +99,40 @@ export function getAnyEnergy(creep: Creep): void {
     if (creep.pickup(droppedRes[0]) === ERR_NOT_IN_RANGE) {
       creep.moveTo(droppedRes[0]);
     }
-  }
-  const energyCont: Container[] = creep.pos.findClosestByRange(FIND_STRUCTURES,
-    {filter: (x: Container) => x.structureType === STRUCTURE_CONTAINER
-      && x.store[RESOURCE_ENERGY] >= creep.carryCapacity});
-  if (energyCont && energyCont.length > 0) {
-    if (creep.withdraw(energyCont[0], RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
-      creep.moveTo(energyCont[0]);
+    return true;
+  } else {
+    // Find in a container
+    const energyCont: Container[] = creep.pos.findClosestByRange(FIND_STRUCTURES,
+      {filter: (x: Container) => x.structureType === STRUCTURE_CONTAINER
+        && x.store[RESOURCE_ENERGY] >= creep.carryCapacity});
+    if (energyCont && energyCont.length > 0) {
+      if (creep.withdraw(energyCont[0], RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
+        creep.moveTo(energyCont[0]);
+      }
+      return true;
     }
   }
+  return false;
 }
 
 export function moveToUpgrade(creep: Creep): void {
-  const controller: Controller =  creep.room.controller;
-  if (creep.upgradeController(controller) === ERR_NOT_IN_RANGE) {
+  const controller: Controller | void = creep.room.controller;
+  if (controller && creep.upgradeController(controller) === ERR_NOT_IN_RANGE) {
     moveTo(creep, controller.pos);
   }
 }
 
-export function moveToBuild(creep: Creep, target: ConstructionSite): void {
+export function moveToBuildSite(creep: Creep, target: ConstructionSite): void {
   if (creep.build(target) === ERR_NOT_IN_RANGE) {
     moveTo(creep, target.pos);
+  }
+}
+
+export function moveToBuild(creep: Creep): void {
+  const target: ConstructionSite[] = creep.room.find<ConstructionSite>(FIND_MY_CONSTRUCTION_SITES);
+  if (target && target.length > 0) {
+    if (creep.build(target[0]) === ERR_NOT_IN_RANGE) {
+      moveTo(creep, target[0].pos);
+    }
   }
 }

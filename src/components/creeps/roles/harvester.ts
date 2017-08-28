@@ -17,7 +17,7 @@ export function run(creep: Creep): void {
     if (spawn.energy < spawn.energyCapacity) {
       _moveToDropEnergy(creep, spawn);
     } else {
-      if (creep.room.controller.ticksToDowngrade < 2000) {
+      if (creep.room.controller && creep.room.controller.ticksToDowngrade < 2000) {
         // Reset controller timer if it risks downgrading
         creepActions.moveToUpgrade(creep);
       } else {
@@ -31,7 +31,7 @@ export function run(creep: Creep): void {
           // Feed construction sites
           const build: ConstructionSite[] = creep.room.find(FIND_MY_CONSTRUCTION_SITES);
           if (build && build.length > 0) {
-            creepActions.moveToBuild(creep, build[0]);
+            creepActions.moveToBuildSite(creep, build[0]);
           } else {
             // Last resort, feed controller
             creepActions.moveToUpgrade(creep);
@@ -40,8 +40,12 @@ export function run(creep: Creep): void {
       }
     }
   } else {
-    const energySource = creep.room.find<Source>(FIND_SOURCES_ACTIVE)[0];
-    _moveToHarvest(creep, energySource);
+    if (!creepActions.getAnyEnergy(creep)) {
+      const energySource = creep.room.find<Source>(FIND_SOURCES_ACTIVE);
+      if (energySource) {
+        _moveToHarvest(creep, energySource[0]);
+      }
+    }
   }
 }
 

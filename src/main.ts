@@ -1,5 +1,7 @@
-import * as CreepManager from "./components/creeps/creepManager";
 import * as Config from "./config/config";
+
+import * as CreepManager from "./components/creeps/creepManager";
+import * as StateManager from "./components/state/stateManager";
 
 import * as Profiler from "screeps-profiler";
 import { log } from "./lib/logger/log";
@@ -33,6 +35,9 @@ function mloop() {
     const room: Room = Game.rooms[i];
 
     CreepManager.run(room);
+    if (Game.time % 10 === 0) {
+      StateManager.run(room);
+    }
 
     // Clears any non-existing creep memory.
     for (const name in Memory.creeps) {
