@@ -155,16 +155,41 @@ export function actionUpgrade(creep: Creep, action: boolean): boolean {
 
 export function actionBuild(creep: Creep, action: boolean): boolean {
   if (action === false) {
-    const targets: ConstructionSite[] = creep.room.find(FIND_MY_CONSTRUCTION_SITES);
-    if (targets && targets.length > 0) {
-      if (creep.build(targets[0]) === ERR_NOT_IN_RANGE) {
-        creep.moveTo(targets[0]);
+    const target: ConstructionSite = creep.pos.findClosestByRange(FIND_MY_CONSTRUCTION_SITES);
+    if (target) {
+      if (creep.build(target) === ERR_NOT_IN_RANGE) {
+        creep.moveTo(target);
       }
       // console.log(creep.name + " building!");
       return true;
     }
   }
   return action;
+}
+
+export function actionRepair(creep: Creep, action: boolean): boolean {
+  if (action === false) {
+    // Find critically damaged
+    const critical: Structure = creep.pos.findClosestByRange<Structure>(FIND_STRUCTURES, {filter:
+      (x: Structure) => x.structureType !== STRUCTURE_WALL && x.structureType !== STRUCTURE_RAMPART &&
+      x.hits < x.hitsMax / 10});
+    if (critical) {
+      if (creep.repair(critical) === ERR_NOT_IN_RANGE) {
+        creep.moveTo(critical);
+        return true;
+      }
+    }
+    const damaged: Structure = creep.pos.findClosestByRange<Structure>(FIND_STRUCTURES, {filter:
+      (x: Structure) => x.structureType !== STRUCTURE_WALL && x.structureType !== STRUCTURE_RAMPART &&
+      x.hits < x.hitsMax / 3});
+    if (damaged) {
+      if (creep.repair(damaged) === ERR_NOT_IN_RANGE) {
+        creep.moveTo(damaged);
+        return true;
+      }
+    }
+  }
+  return false;
 }
 
 export function actionFillEnergy(creep: Creep, action: boolean): boolean {

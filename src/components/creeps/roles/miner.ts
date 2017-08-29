@@ -13,22 +13,11 @@ export function run(creep: Creep): void {
     if (source) {
       const ret: number = creep.harvest(source);
       if (ret === ERR_NOT_IN_RANGE) {
-        creep.moveTo(source);
+        _findBox(creep, source);
       } else {
-        if (ret === 0 && !creep.memory.container) {
-          const basket: Container[] | null = creep.pos.findInRange<Container>(FIND_STRUCTURES, 0,
-            {filter: (x: Structure) => x.structureType === STRUCTURE_CONTAINER});
-          if (basket && basket.length > 0) {
-            creep.memory.container = true;
-          } else {
-            const basketBuild: ConstructionSite[] | null = creep.pos.findInRange<ConstructionSite>(FIND_STRUCTURES, 0,
-              {filter: (x: ConstructionSite) => x.structureType === STRUCTURE_CONTAINER});
-            if (basketBuild && basketBuild.length > 0) {
-              creep.memory.container = true;
-            } else {
-              creep.room.createConstructionSite(creep.pos, STRUCTURE_CONTAINER);
-            }
-          }
+        // In case its not on box cos of obstruction
+        if (creep.ticksToLive % 50 === 0) {
+          _findBox(creep, source);
         }
       }
     } else {
@@ -42,4 +31,21 @@ export function run(creep: Creep): void {
     const sources: Source[] = creep.room.find(FIND_SOURCES);
     creep.memory.sourceID = sources[0].id;
   }
+}
+
+function _findBox(creep: Creep, source: Source) {
+  const box: Container[] = source.pos.findInRange<Container>(FIND_MY_STRUCTURES, 1,
+    {filter: (x) => x.structureType === STRUCTURE_CONTAINER});
+  if (box && box.length > 0) {
+    creep.moveTo(box[0]);
+    return;
+  }
+  const boxSite: ConstructionSite[] = source.pos.findInRange(FIND_MY_CONSTRUCTION_SITES, 2,
+    {filter: (x) => x.structureType === STRUCTURE_CONTAINER});
+  if (boxSite && boxSite.length > 0) {
+    creep.moveTo(boxSite[0]);
+    return;
+  }
+  console.log(creep.name + " could not find its box!");
+  creep.moveTo(source);
 }
