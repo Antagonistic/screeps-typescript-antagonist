@@ -136,3 +136,50 @@ export function moveToBuild(creep: Creep): void {
     }
   }
 }
+
+export function actionUpgrade(creep: Creep, action: boolean): boolean {
+  if (action === false) {
+    if (creep.room.controller) {
+      const target: Controller = creep.room.controller;
+      if (creep.upgradeController(target) ===  ERR_NOT_IN_RANGE) {
+        creep.moveTo(target);
+      }
+      return true;
+    }
+  }
+  return false;
+}
+
+export function actionBuild(creep: Creep, action: boolean): boolean {
+  if (action === false) {
+    const targets: ConstructionSite[] = creep.room.find(FIND_MY_CONSTRUCTION_SITES);
+    if (targets && targets.length > 0) {
+      if (creep.build(targets[0]) === ERR_NOT_IN_RANGE) {
+        creep.moveTo(targets[0]);
+      }
+      return true;
+    }
+  }
+  return false;
+}
+
+export function actionFillEnergy(creep: Creep, action: boolean): boolean {
+  if (action === false) {
+    const spawn: Structure[] = creep.room.find(FIND_MY_SPAWNS, {filter:
+       (x: Spawn) => x.energy > x.energyCapacity});
+    const extentions: Structure[] = creep.room.find(FIND_MY_STRUCTURES, {filter:
+      (x: Structure) => x.structureType === STRUCTURE_EXTENSION &&
+      (x as Extension).energy < (x as Extension).energyCapacity});
+    const targets: Structure[] = [].concat(spawn, extentions);
+    if (targets.length > 0) {
+      const target: Structure = creep.pos.findClosestByRange(targets);
+      if (target) {
+        if (creep.transfer(target, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
+          creep.moveTo(target);
+        }
+        return true;
+      }
+    }
+  }
+  return false;
+}
