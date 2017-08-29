@@ -1,5 +1,7 @@
 import * as Config from "../../config/config";
 
+// import { log } from "../../lib/logger/log";
+
 /**
  * Shorthand method for `Creep.moveTo()`.
  *
@@ -144,10 +146,11 @@ export function actionUpgrade(creep: Creep, action: boolean): boolean {
       if (creep.upgradeController(target) ===  ERR_NOT_IN_RANGE) {
         creep.moveTo(target);
       }
+      // console.log(creep.name + " upgrading!");
       return true;
     }
   }
-  return false;
+  return action;
 }
 
 export function actionBuild(creep: Creep, action: boolean): boolean {
@@ -157,16 +160,17 @@ export function actionBuild(creep: Creep, action: boolean): boolean {
       if (creep.build(targets[0]) === ERR_NOT_IN_RANGE) {
         creep.moveTo(targets[0]);
       }
+      // console.log(creep.name + " building!");
       return true;
     }
   }
-  return false;
+  return action;
 }
 
 export function actionFillEnergy(creep: Creep, action: boolean): boolean {
   if (action === false) {
     const spawn: Structure[] = creep.room.find(FIND_MY_SPAWNS, {filter:
-       (x: Spawn) => x.energy > x.energyCapacity});
+       (x: Spawn) => x.energy < x.energyCapacity});
     const extentions: Structure[] = creep.room.find(FIND_MY_STRUCTURES, {filter:
       (x: Structure) => x.structureType === STRUCTURE_EXTENSION &&
       (x as Extension).energy < (x as Extension).energyCapacity});
@@ -177,9 +181,10 @@ export function actionFillEnergy(creep: Creep, action: boolean): boolean {
         if (creep.transfer(target, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
           creep.moveTo(target);
         }
+        // console.log(creep.name + " filling energy!");
         return true;
       }
     }
   }
-  return false;
+  return action;
 }

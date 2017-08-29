@@ -6,6 +6,8 @@ import * as StateManager from "./components/state/stateManager";
 import * as Profiler from "screeps-profiler";
 import { log } from "./lib/logger/log";
 
+import * as StructureManager from "./components/structures/structureManager";
+
 // Any code written outside the `loop()` method is executed only when the
 // Screeps system reloads your script.
 // Use this bootstrap wisely. You can cache some of your stuff to save CPU.
@@ -38,6 +40,7 @@ function mloop() {
     if (Game.time % 10 === 0) {
       StateManager.run(room);
     }
+    StructureManager.run(room);
 
     // Clears any non-existing creep memory.
     for (const name in Memory.creeps) {
