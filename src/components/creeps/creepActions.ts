@@ -134,10 +134,10 @@ export function moveToBuildSite(creep: Creep, target: ConstructionSite): void {
 }
 
 export function moveToBuild(creep: Creep): void {
-  const target: ConstructionSite[] = creep.room.find<ConstructionSite>(FIND_MY_CONSTRUCTION_SITES);
-  if (target && target.length > 0) {
-    if (creep.build(target[0]) === ERR_NOT_IN_RANGE) {
-      moveTo(creep, target[0].pos);
+  const target: ConstructionSite = creep.pos.findClosestByRange<ConstructionSite>(FIND_MY_CONSTRUCTION_SITES);
+  if (target) {
+    if (creep.build(target) === ERR_NOT_IN_RANGE) {
+      moveTo(creep, target.pos);
     }
   }
 }
