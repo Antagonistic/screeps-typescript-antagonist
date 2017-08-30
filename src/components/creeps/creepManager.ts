@@ -63,8 +63,8 @@ export function run(room: Room): void {
 const harvesterParts: string[] = [WORK, WORK, CARRY, MOVE];
 const minerParts: string[] = [WORK, WORK, WORK, WORK, WORK, MOVE];
 const haulerParts: string[] = [MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY];
-const builderParts: string[] = [WORK, WORK, CARRY, MOVE];
-const repairParts: string[] = [WORK, WORK, CARRY, MOVE];
+const builderParts: string[] = [WORK, WORK, WORK, WORK, CARRY, CARRY, MOVE, MOVE];
+const repairParts: string[] = [MOVE, MOVE, MOVE, WORK, WORK, WORK, CARRY, CARRY];
 const upgraderParts: string[] = [WORK, WORK, WORK, WORK, CARRY, CARRY, MOVE, MOVE];
 
 function _buildMiners(room: Room, creeps: Creep[]): boolean {
@@ -185,7 +185,7 @@ function _buildRepair(room: Room, creeps: Creep[]): boolean {
       const walls: StructureWall[] = room.find(FIND_STRUCTURES, {filter: (x: Structure) =>
         x.structureType === STRUCTURE_WALL});
       if (walls.length > 0) {
-        numReps++;
+        numReps = 3;
       }
       if (_reps.length < numReps) {
         return _createCreep(spawn, repairParts, "repair");
@@ -200,17 +200,19 @@ function _buildUpgraders(room: Room, creeps: Creep[]): boolean {
   const _upgraders = _.filter(creeps, (creep) => creep.memory.role === "upgrader");
   const spawn = room.find<Spawn>(FIND_MY_SPAWNS)[0];
   if (room.storage) {
-    const energy: number = room.storage.store[RESOURCE_ENERGY];
-    if (energy > 100000) {
-      numUpgraders = 6;
-    } else if (energy > 50000) {
-      numUpgraders = 5;
-    } else if (energy > 30000) {
-      numUpgraders = 4;
-    } else if (energy > 20000) {
-      numUpgraders = 3;
-    } else if (energy > 10000) {
-      numUpgraders = 2;
+    const energy: number | undefined = room.storage.store.energy;
+    if (energy) {
+      if (energy > 100000) {
+        numUpgraders = 6;
+      } else if (energy > 50000) {
+        numUpgraders = 5;
+      } else if (energy > 30000) {
+        numUpgraders = 4;
+      } else if (energy > 20000) {
+        numUpgraders = 3;
+      } else if (energy > 10000) {
+        numUpgraders = 2;
+      }
     }
   }
   if (_upgraders.length < numUpgraders) {

@@ -37,11 +37,15 @@ export function run(creep: Creep): void {
     if (!targets || targets.length === 0) {
         targets = creep.room.find<Storage>(FIND_STRUCTURES, {
             filter: (structure: Structure) => {
-                return (structure.structureType === STRUCTURE_STORAGE) &&
-                    (structure as Storage) !== undefined &&
-                    (structure as Storage).store &&
-                    (structure as Storage).store[RESOURCE_ENERGY] &&
-                    (structure as Storage).store[RESOURCE_ENERGY] < (structure as Storage).storeCapacity;
+                if (structure.structureType === STRUCTURE_STORAGE) {
+                    const storage: Storage = structure as Storage;
+                    if (storage) {
+                        if (storage.store.energy) {
+                            return storage.store.energy < storage.storeCapacity;
+                        }
+                    }
+                }
+                return false;
             }
         });
     }

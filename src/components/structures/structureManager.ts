@@ -9,7 +9,7 @@ export function run(room: Room): void {
   const towerIDs = room.memory.towers;
   if (towerIDs) {
     for (const towerID in towerIDs) {
-      const tower: Tower = Game.getObjectById(towerID);
+      const tower: Tower | null = Game.getObjectById(towerID);
       if (tower) {
         TowerHandler.run(tower);
       }
@@ -85,7 +85,9 @@ function _buildRoad(from: RoomPosition, goal: RoomPosition, rangeOne: boolean = 
   }
   if (placeContainer) {
     const contPos = foundpath.path.pop();
-    contPos.createConstructionSite(STRUCTURE_CONTAINER);
+    if (contPos) {
+      contPos.createConstructionSite(STRUCTURE_CONTAINER);
+    }
   }
   for (const step of foundpath.path) {
     step.createConstructionSite(STRUCTURE_ROAD);
