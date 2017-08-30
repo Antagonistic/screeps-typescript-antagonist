@@ -4,6 +4,7 @@ import * as builder from "./roles/builder";
 import * as harvester from "./roles/harvester";
 import * as hauler from "./roles/hauler";
 import * as miner from "./roles/miner";
+import * as repair from "./roles/repair";
 import * as upgrader from "./roles/upgrader";
 
 import { log } from "../../lib/logger/log";
@@ -27,9 +28,11 @@ export function run(room: Room): void {
   const spawn: Spawn | null = room.find<Spawn>(FIND_MY_SPAWNS)[0];
   if (spawn && !spawn.spawning) {
     if (!_buildMiners(room, creeps)) {
-      // if (!_buildMissingCreeps(room, creeps)) {
-
-      // }
+      if (!_buildBuilders(room, creeps)) {
+        if (!_buildRepair(room, creeps)) {
+          _buildUpgraders(room, creeps);
+        }
+      }
     }
   }
 
@@ -50,55 +53,19 @@ export function run(room: Room): void {
     case "hauler":
       hauler.run(creep);
       break;
+    case "repair":
+      repair.run(creep);
+      break;
     }
   });
 }
 
-/**
- * Creates a new creep if we still have enough space.
- *
- * @param {Room} room
- */
-/*function _buildMissingCreeps(room: Room, creeps: Creep[]): boolean {
-  let bodyParts: string[];
-
-  let isBuilding: boolean = false;
-
-  // Iterate through each creep and push them into the role array.
-  const harvesters = _.filter(creeps, (creep) => creep.memory.role === "harvester");
-
-  const spawns: Spawn[] = room.find<Spawn>(FIND_MY_SPAWNS, {
-    filter: (spawn: Spawn) => {
-      return spawn.spawning === null;
-    },
-  });
-
-  if (Config.ENABLE_DEBUG_MODE) {
-    if (spawns[0]) {
-      // log.info("Spawn: " + spawns[0].name);
-    }
-  }
-
-  if (harvesters.length < 4) {
-    if (harvesters.length < 1 || room.energyCapacityAvailable <= 800) {
-      bodyParts = [WORK, WORK, CARRY, MOVE];
-    } else if (room.energyCapacityAvailable > 800) {
-      bodyParts = [WORK, WORK, WORK, WORK, CARRY, CARRY, MOVE, MOVE];
-    }
-
-    _.each(spawns, (spawn: Spawn) => {
-      if (spawn.canCreateCreep(bodyParts) === 0) {
-        _spawnCreep(spawn, bodyParts, "harvester");
-        isBuilding = true;
-      }
-    });
-  }
-  return isBuilding;
-}*/
-
 const harvesterParts: string[] = [WORK, WORK, CARRY, MOVE];
 const minerParts: string[] = [WORK, WORK, WORK, WORK, WORK, MOVE];
-const haulerParts: string[] = [CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE];
+const haulerParts: string[] = [MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY];
+const builderParts: string[] = [WORK, WORK, CARRY, MOVE];
+const repairParts: string[] = [WORK, WORK, CARRY, MOVE];
+const upgraderParts: string[] = [WORK, WORK, WORK, WORK, CARRY, CARRY, MOVE, MOVE];
 
 function _buildMiners(room: Room, creeps: Creep[]): boolean {
   const isBuilding: boolean = false;
@@ -106,12 +73,13 @@ function _buildMiners(room: Room, creeps: Creep[]): boolean {
 
   const spawn = room.find<Spawn>(FIND_MY_SPAWNS)[0];
 
+  // Harvesters
   switch (State) {
     case RoomStates.BOOTSTRAP: {
       const harvesters = _.filter(creeps, (creep) => creep.memory.role === "harvester");
       if (harvesters.length < 4) {
         if (spawn.canCreateCreep(harvesterParts) === 0) {
-          _spawnCreep(spawn, harvesterParts, "harvester");
+          _createCreep(spawn, harvesterParts, "harvester");
           return true;
         }
       }
@@ -121,91 +89,154 @@ function _buildMiners(room: Room, creeps: Creep[]): boolean {
       const harvesters = _.filter(creeps, (creep) => creep.memory.role === "harvester");
       if (harvesters.length < 2) {
         if (spawn.canCreateCreep(harvesterParts) === 0) {
-          _spawnCreep(spawn, harvesterParts, "harvester");
+          _createCreep(spawn, harvesterParts, "harvester");
           return true;
-        }
-      }
-      const sources: Source[] = room.find(FIND_SOURCES);
-      // for(let i: number = 0; i<sources.length; i++) {
-        // const source: Source = sources[i];
-      for (const source of sources) {
-        if (_spawnMiner(creeps, spawn, source)) {
-          return true;
-        }
-      }
-      const _haulers = _.filter(creeps, (creep) => creep.memory.role === "hauler");
-      if (_haulers.length < 2) {
-        if (spawn.canCreateCreep(haulerParts) === 0) {
-          if (_spawnCreep(spawn, haulerParts, "hauler") === 0) {
-            return true;
-          }
         }
       }
       break;
     }
   }
 
+  // Miners
+  switch (State) {
+    case RoomStates.TRANSITION:
+    case RoomStates.STABLE:
+      const sources: Source[] = room.find(FIND_SOURCES);
+      // for(let i: number = 0; i<sources.length; i++) {
+        // const source: Source = sources[i];
+      for (const source of sources) {
+        // if (_spawnMiner(creeps, spawn, source)) {
+        const _miner = _.filter(creeps, (creep) =>
+          creep.memory.role === "miner" &&
+          creep.memory.sourceID === source.id);
+        if (!_miner || _miner.length === 0) {
+          if (_createCreep(spawn, minerParts, "miner", {sourceID: source.id})) {
+            return true;
+          }
+        }
+      }
+      break;
+  }
+
+  switch (State) {
+    case RoomStates.TRANSITION:
+    case RoomStates.STABLE:
+      const _haulers = _.filter(creeps, (creep) => creep.memory.role === "hauler");
+      if (_haulers.length < 2) {
+        if (spawn.canCreateCreep(haulerParts) === 0) {
+          if (_createCreep(spawn, haulerParts, "hauler")) {
+            return true;
+          }
+        }
+      }
+      break;
+  }
   return isBuilding;
 }
 
-function _spawnMiner(creeps: Creep[], spawn: Spawn, source: Source): boolean {
-  const _miner = _.filter(creeps, (creep) => creep.memory.role === "miner" && creep.memory.sourceID === source.id);
-  if (!_miner || _miner.length === 0) {
-    if (spawn.canCreateCreep(minerParts) === 0) {
-      const uuid: number = Memory.uuid;
-      Memory.uuid = uuid + 1;
-      const role: string = "miner";
-      const creepName: string = spawn.room.name + " - " + role + uuid;
-      const properties: { [key: string]: any } = {
-        cont: false,
-        role,
-        room: spawn.room.name,
-        sourceID: source.id,
-        working: false
-      };
-      spawn.createCreep(minerParts, creepName, properties);
-      return true;
+function _buildBuilders(room: Room, creeps: Creep[]): boolean {
+  const _constructions: ConstructionSite[] = room.find(FIND_MY_CONSTRUCTION_SITES);
+  if (_constructions.length > 0) {
+    const State: RoomStates = room.memory.state as RoomStates;
+    const spawn = room.find<Spawn>(FIND_MY_SPAWNS)[0];
+    const _builders = _.filter(creeps, (creep) => creep.memory.role === "builder");
+    const buildSum = _.sum(_constructions, (x: ConstructionSite) => (x.progressTotal - x.progress));
+
+    switch (State) {
+      case RoomStates.BOOTSTRAP:
+      case RoomStates.TRANSITION:
+        if (_builders.length < 1) {
+          return _createCreep(spawn, builderParts, "builder");
+        }
+        break;
+      case RoomStates.STABLE:
+        let numBuilders = 1;
+        if (buildSum > 40000) {
+          numBuilders = 3;
+        } else if (buildSum > 10000) {
+          numBuilders = 2;
+        }
+        if (_builders.length < numBuilders) {
+          return _createCreep(spawn, builderParts, "builder");
+        }
+        break;
     }
   }
   return false;
 }
 
-/**
- * Spawns a new creep.
- *
- * @param {Spawn} spawn
- * @param {string[]} bodyParts
- * @param {string} role
- * @returns
- */
-function _spawnCreep(spawn: Spawn, bodyParts: string[], role: string) {
-  const uuid: number = Memory.uuid;
-  let status: number | string = spawn.canCreateCreep(bodyParts, undefined);
+function _buildRepair(room: Room, creeps: Creep[]): boolean {
+  const State: RoomStates = room.memory.state as RoomStates;
+  switch (State) {
+    case RoomStates.STABLE:
+      const spawn = room.find<Spawn>(FIND_MY_SPAWNS)[0];
+      const _reps = _.filter(creeps, (creep) => creep.memory.role === "repair");
+      let numReps = 1;
+      const walls: StructureWall[] = room.find(FIND_STRUCTURES, {filter: (x: Structure) =>
+        x.structureType === STRUCTURE_WALL});
+      if (walls.length > 0) {
+        numReps++;
+      }
+      if (_reps.length < numReps) {
+        return _createCreep(spawn, repairParts, "repair");
+      }
+      break;
+  }
+  return false;
+}
 
-  const properties: { [key: string]: any } = {
-    role,
-    room: spawn.room.name,
-    working: false
-  };
+function _buildUpgraders(room: Room, creeps: Creep[]): boolean {
+  let numUpgraders: number = 1;
+  const _upgraders = _.filter(creeps, (creep) => creep.memory.role === "upgrader");
+  const spawn = room.find<Spawn>(FIND_MY_SPAWNS)[0];
+  if (room.storage) {
+    const energy: number = room.storage[RESOURCE_ENERGY];
+    if (energy > 50000) {
+      numUpgraders = 5;
+    } else if (energy > 30000) {
+      numUpgraders = 4;
+    } else if (energy > 20000) {
+      numUpgraders = 3;
+    } else if (energy > 10000) {
+      numUpgraders = 2;
+    }
+  }
+  if (_upgraders.length < numUpgraders) {
+    return _createCreep(spawn, upgraderParts, "upgrader");
+  }
+  return false;
+}
 
-  status = _.isString(status) ? OK : status;
+function _createCreep(spawn: Spawn, bodyParts: string[], role: string, memory?: any): boolean {
+  const status: number = spawn.canCreateCreep(bodyParts, undefined);
   if (status === OK) {
+
+    const uuid: number = Memory.uuid;
     Memory.uuid = uuid + 1;
     const creepName: string = spawn.room.name + " - " + role + uuid;
+
+    const properties: { [key: string]: any } = {
+      role,
+      room: spawn.room.name,
+      working: false
+    };
+    if (memory) {
+      _.assign(properties, memory);
+    }
 
     log.info("Started creating new creep: " + creepName);
     if (Config.ENABLE_DEBUG_MODE) {
       log.info("Body: " + bodyParts);
     }
 
-    status = spawn.createCreep(bodyParts, creepName, properties);
-
-    return _.isString(status) ? OK : status;
+    spawn.createCreep(bodyParts, creepName, properties);
+  }
+  if (status !== OK) {
+    // if (Config.ENABLE_DEBUG_MODE) {
+      // log.info("Failed creating new creep: " + status);
+    // }
+    return false;
   } else {
-    if (Config.ENABLE_DEBUG_MODE) {
-      log.info("Failed creating new creep: " + status);
-    }
-
-    return status;
+    return true;
   }
 }

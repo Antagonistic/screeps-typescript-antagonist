@@ -15,7 +15,9 @@ export function run(creep: Creep): void {
   }
 
   if (creepActions.canWork(creep)) {
-    creepActions.moveToUpgrade(creep);
+    let action: boolean = false;
+    action = creepActions.actionRepair(creep, action);
+    action = creepActions.actionRepairWall(creep, action);
   } else {
     creepActions.getAnyEnergy(creep);
   }

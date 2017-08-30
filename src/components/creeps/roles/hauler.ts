@@ -7,12 +7,13 @@ import * as creepActions from "../creepActions";
  * @param {Creep} creep
  */
 export function run(creep: Creep): void {
-  // const spawn = creep.room.find<Spawn>(FIND_MY_SPAWNS)[0];
 
-  // if (creepActions.needsRenew(creep)) {
-  //  creepActions.moveToRenew(creep, spawn);
-  //  return;
-  // }
+  if (creepActions.needsRenew(creep)) {
+    const spawn = creep.room.find<Spawn>(FIND_MY_SPAWNS)[0];
+    creepActions.moveToRenew(creep, spawn);
+    return;
+  }
+
   if (creepActions.canWork(creep)) {
     let targets: Structure[] = creep.room.find<Spawn>(FIND_STRUCTURES, {
       filter: (structure: Structure) => {
@@ -53,6 +54,8 @@ export function run(creep: Creep): void {
       }
     }
   } else {
-    creepActions.getAnyEnergy(creep);
+    let action: boolean = false;
+    action = creepActions.actionGetDroppedEnergy(creep, action, true);
+    action = creepActions.actionGetContainerEnergy(creep, action, 4);
   }
 }

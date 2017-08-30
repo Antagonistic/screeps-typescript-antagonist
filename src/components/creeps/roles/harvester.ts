@@ -7,12 +7,13 @@ import * as creepActions from "../creepActions";
  * @param {Creep} creep
  */
 export function run(creep: Creep): void {
-  // const spawn = creep.room.find<Spawn>(FIND_MY_SPAWNS)[0];
 
   // if (creepActions.needsRenew(creep)) {
+  //  const spawn = creep.room.find<Spawn>(FIND_MY_SPAWNS)[0];
   //  creepActions.moveToRenew(creep, spawn);
   //  return;
   // }
+
   if (creepActions.canWork(creep)) {
     let action: boolean = false;
     action = creepActions.actionFillEnergy(creep, action);
@@ -22,21 +23,9 @@ export function run(creep: Creep): void {
     action = creepActions.actionBuild(creep, action);
     action = creepActions.actionUpgrade(creep, action);
   } else {
-    if (!creepActions.getAnyEnergy(creep)) {
-      const energySource = creep.room.find<Source>(FIND_SOURCES_ACTIVE);
-      if (energySource) {
-        _moveToHarvest(creep, energySource[0]);
-      }
-    }
-  }
-}
-
-function _tryHarvest(creep: Creep, target: Source): number {
-  return creep.harvest(target);
-}
-
-function _moveToHarvest(creep: Creep, target: Source): void {
-  if (_tryHarvest(creep, target) === ERR_NOT_IN_RANGE) {
-    creepActions.moveTo(creep, target.pos);
+    let action: boolean = false;
+    action = creepActions.actionGetDroppedEnergy(creep, action, true);
+    action = creepActions.actionGetContainerEnergy(creep, action, 4);
+    action = creepActions.actionGetSourceEnergy(creep, action, 2);
   }
 }

@@ -34,7 +34,7 @@ export function run(creep: Creep): void {
 }
 
 function _findBox(creep: Creep, source: Source) {
-  const box: Container[] = source.pos.findInRange<Container>(FIND_MY_STRUCTURES, 1,
+  const box: Container[] = source.pos.findInRange<Container>(FIND_STRUCTURES, 2,
     {filter: (x) => x.structureType === STRUCTURE_CONTAINER});
   if (box && box.length > 0) {
     creep.moveTo(box[0]);
