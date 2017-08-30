@@ -1,6 +1,39 @@
 import RoomStates from "../state/roomStates";
 
+import * as SpawnHandler from "./structure/spawn";
+import * as TowerHandler from "./structure/tower";
+
 export function run(room: Room): void {
+
+  // Handle Towers
+  const towerIDs = room.memory.towers;
+  if (towerIDs) {
+    for (const towerID in towerIDs) {
+      const tower: Tower = Game.getObjectById(towerID);
+      if (tower) {
+        TowerHandler.run(tower);
+      }
+    }
+  }
+
+  // Handle spawns
+  const spawns: Spawn[] = room.find(FIND_MY_SPAWNS);
+  for (const spawn of spawns) {
+    SpawnHandler.run(spawn);
+  }
+
+  // Check to build structures
+  if (Game.time % 50 === 5) {
+    _buildStructures(room);
+  }
+
+  // Regen room's tower list
+  if (Game.time % 50 === 10) {
+    _findTowers(room);
+  }
+}
+
+function _buildStructures(room: Room) {
   const state: RoomStates = room.memory.state;
   switch  (state) {
     case RoomStates.BOOTSTRAP:
@@ -35,6 +68,12 @@ export function run(room: Room): void {
       room.memory.stable_structures = true;
       break;
   }
+}
+
+function _findTowers(room: Room) {
+  const towers: Tower[] = room.find(FIND_STRUCTURES, {filter: (x: Structure) => x.structureType === STRUCTURE_TOWER});
+  const towerIds: string[] = _.map(towers, (tower) => tower.id);
+  room.memory.towers = towerIds;
 }
 
 function _buildRoad(from: RoomPosition, goal: RoomPosition, rangeOne: boolean = true, placeContainer: boolean = true) {

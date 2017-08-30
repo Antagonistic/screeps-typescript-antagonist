@@ -1,6 +1,6 @@
 import * as Config from "../../config/config";
 
-import { log } from "../../lib/logger/log";
+// import { log } from "../../lib/logger/log";
 
 /**
  * Shorthand method for `Creep.moveTo()`.
@@ -23,20 +23,14 @@ export function moveTo(creep: Creep, target: Structure | RoomPosition): number {
  * @returns {boolean}
  */
 export function needsRenew(creep: Creep): boolean {
-  return (creep.ticksToLive < Config.DEFAULT_MIN_LIFE_BEFORE_NEEDS_REFILL);
-}
-
-/**
- * Shorthand method for `renewCreep()`.
- *
- * @export
- * @param {Creep} creep
- * @param {Spawn} spawn
- * @returns {number}
- */
-export function tryRenew(creep: Creep, spawn: Spawn): number {
-  const  ret = spawn.renewCreep(creep);
-  return ret;
+  if (creep.memory.renew) {
+    return true;
+  }
+  if (creep.ticksToLive < Config.DEFAULT_MIN_LIFE_BEFORE_NEEDS_REFILL) {
+    creep.memory.renew = true;
+    return true;
+  }
+  return false;
 }
 
 /**
@@ -47,8 +41,23 @@ export function tryRenew(creep: Creep, spawn: Spawn): number {
  * @param {Spawn} spawn
  */
 export function moveToRenew(creep: Creep, spawn: Spawn): void {
-  log.info(creep.name + " needs to renew!");
-  if (tryRenew(creep, spawn) === ERR_NOT_IN_RANGE) {
+  const ret = spawn.renewCreep(creep);
+  console.log(creep.name + " needs to renew: " + ret + " - " + creep.ticksToLive);
+  if (ret === ERR_NOT_IN_RANGE) {
+    creep.moveTo(spawn);
+  } else if (ret === OK) {
+    if (creep.ticksToLive >= Config.DEFAULT_MAX_LIFE_WHILE_NEEDS_REFILL) {
+      creep.memory.renew = undefined;
+    }
+  } else if (ret === ERR_FULL) {
+    creep.memory.renew = undefined;
+  }
+}
+
+export function moveToRecycle(creep: Creep, spawn: Spawn): void {
+  const ret = spawn.recycleCreep(creep);
+  console.log(creep.name + " needs to retire: " + ret);
+  if (ret === ERR_NOT_IN_RANGE) {
     creep.moveTo(spawn);
   }
 }
@@ -310,6 +319,32 @@ export function actionGetStorageEnergy(creep: Creep, action: boolean, factor: nu
         }
         return true;
       }
+    }
+  }
+  return action;
+}
+
+export function actionRenew(creep: Creep, action: boolean) {
+  if (action === false) {
+    if (needsRenew(creep)) {
+      const spawn = creep.room.find<Spawn>(FIND_MY_SPAWNS);
+      if (spawn && spawn.length > 0) {
+          moveToRenew(creep, spawn[0]);
+      }
+      return true;
+    }
+  }
+  return action;
+}
+
+export function actionRecycle(creep: Creep, action: boolean) {
+  if (action === false) {
+    if (creep.memory.recycle) {
+      const spawn = creep.room.find<Spawn>(FIND_MY_SPAWNS);
+      if (spawn && spawn.length > 0) {
+          moveToRecycle(creep, spawn[0]);
+      }
+      return true;
     }
   }
   return action;

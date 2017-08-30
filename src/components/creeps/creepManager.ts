@@ -98,10 +98,10 @@ function _buildMiners(room: Room, creeps: Creep[]): boolean {
   }
 
   // Miners
+  const sources: Source[] = room.find(FIND_SOURCES);
   switch (State) {
     case RoomStates.TRANSITION:
     case RoomStates.STABLE:
-      const sources: Source[] = room.find(FIND_SOURCES);
       // for(let i: number = 0; i<sources.length; i++) {
         // const source: Source = sources[i];
       for (const source of sources) {
@@ -118,18 +118,22 @@ function _buildMiners(room: Room, creeps: Creep[]): boolean {
       break;
   }
 
+  // Haulers
+  let numHaulers = 0;
   switch (State) {
     case RoomStates.TRANSITION:
+      numHaulers = sources.length;
     case RoomStates.STABLE:
-      const _haulers = _.filter(creeps, (creep) => creep.memory.role === "hauler");
-      if (_haulers.length < 2) {
-        if (spawn.canCreateCreep(haulerParts) === 0) {
-          if (_createCreep(spawn, haulerParts, "hauler")) {
-            return true;
-          }
-        }
-      }
+      numHaulers = sources.length * 2;
       break;
+  }
+  const _haulers = _.filter(creeps, (creep) => creep.memory.role === "hauler");
+  if (_haulers.length < numHaulers) {
+    if (spawn.canCreateCreep(haulerParts) === 0) {
+      if (_createCreep(spawn, haulerParts, "hauler")) {
+        return true;
+      }
+    }
   }
   return isBuilding;
 }
@@ -161,6 +165,12 @@ function _buildBuilders(room: Room, creeps: Creep[]): boolean {
         }
         break;
     }
+  } else {
+    // No more need for builders, recycle them
+    const _builders = _.filter(creeps, (creep) => creep.memory.role === "builder");
+    for (const _builder of _builders) {
+      _builder.memory.recycle = true;
+    }
   }
   return false;
 }
@@ -190,8 +200,10 @@ function _buildUpgraders(room: Room, creeps: Creep[]): boolean {
   const _upgraders = _.filter(creeps, (creep) => creep.memory.role === "upgrader");
   const spawn = room.find<Spawn>(FIND_MY_SPAWNS)[0];
   if (room.storage) {
-    const energy: number = room.storage[RESOURCE_ENERGY];
-    if (energy > 50000) {
+    const energy: number = room.storage.store[RESOURCE_ENERGY];
+    if (energy > 100000) {
+      numUpgraders = 6;
+    } else if (energy > 50000) {
       numUpgraders = 5;
     } else if (energy > 30000) {
       numUpgraders = 4;

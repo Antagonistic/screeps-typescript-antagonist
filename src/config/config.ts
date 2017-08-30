@@ -15,7 +15,8 @@ export const USE_PROFILER: boolean = true;
  * Minimum number of ticksToLive for a Creep before they go to renew.
  * @type {number}
  */
-export const DEFAULT_MIN_LIFE_BEFORE_NEEDS_REFILL: number = 700;
+export const DEFAULT_MIN_LIFE_BEFORE_NEEDS_REFILL: number = 500;
+export const DEFAULT_MAX_LIFE_WHILE_NEEDS_REFILL: number = 1400;
 
 /**
  * Debug level for log output

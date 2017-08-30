@@ -9,8 +9,10 @@ import * as creepActions from "../creepActions";
 export function run(creep: Creep): void {
 
   if (creepActions.needsRenew(creep)) {
-    const spawn = creep.room.find<Spawn>(FIND_MY_SPAWNS)[0];
-    creepActions.moveToRenew(creep, spawn);
+    const spawn = creep.room.find<Spawn>(FIND_MY_SPAWNS);
+    if (spawn && spawn.length > 0) {
+        creepActions.moveToRenew(creep, spawn[0]);
+    }
     return;
   }
 

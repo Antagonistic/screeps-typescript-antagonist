@@ -8,13 +8,10 @@ import * as creepActions from "../creepActions";
  */
 export function run(creep: Creep): void {
 
-  if (creepActions.needsRenew(creep)) {
-    const spawn = creep.room.find<Spawn>(FIND_MY_SPAWNS)[0];
-    creepActions.moveToRenew(creep, spawn);
-    return;
-  }
+  let action: boolean = false;
+  action = creepActions.actionRenew(creep, action);
 
-  if (creepActions.canWork(creep)) {
+  if (!action && creepActions.canWork(creep)) {
     let targets: Structure[] = creep.room.find<Spawn>(FIND_STRUCTURES, {
       filter: (structure: Structure) => {
           return (structure.structureType === STRUCTURE_SPAWN) &&
@@ -54,7 +51,6 @@ export function run(creep: Creep): void {
       }
     }
   } else {
-    let action: boolean = false;
     action = creepActions.actionGetDroppedEnergy(creep, action, true);
     action = creepActions.actionGetContainerEnergy(creep, action, 4);
   }

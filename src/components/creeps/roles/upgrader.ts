@@ -8,15 +8,12 @@ import * as creepActions from "../creepActions";
  */
 export function run(creep: Creep): void {
 
-  if (creepActions.needsRenew(creep)) {
-    const spawn = creep.room.find<Spawn>(FIND_MY_SPAWNS)[0];
-    creepActions.moveToRenew(creep, spawn);
-    return;
-  }
+  let action: boolean = false;
+  // action = creepActions.actionRenew(creep, action);
 
-  if (creepActions.canWork(creep)) {
-    creepActions.moveToUpgrade(creep);
+  if (!action && creepActions.canWork(creep)) {
+    action = creepActions.actionUpgrade(creep, action);
   } else {
-    creepActions.getAnyEnergy(creep);
+    creepActions.getAnyEnergy(creep, 6);
   }
 }
