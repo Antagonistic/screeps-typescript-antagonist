@@ -9,7 +9,6 @@ import * as creepActions from "../creepActions";
 export function run(creep: Creep): void {
 
   let action: boolean = false;
-  action = creepActions.actionRenew(creep, action);
 
   if (!action && creepActions.canWork(creep)) {
     let targets: Structure[] = creep.room.find<Spawn>(FIND_STRUCTURES, {
