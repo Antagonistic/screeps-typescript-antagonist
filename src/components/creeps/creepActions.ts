@@ -153,6 +153,12 @@ export function moveToBuild(creep: Creep): void {
   }
 }
 
+export function moveToTransfer(creep: Creep, target: Structure): void {
+  if (creep.transfer(target, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
+    moveTo(creep, target);
+  }
+}
+
 export function actionUpgrade(creep: Creep, action: boolean): boolean {
   if (action === false) {
     if (creep.room.controller) {
@@ -249,6 +255,27 @@ export function actionFillEnergy(creep: Creep, action: boolean): boolean {
   return action;
 }
 
+export function actionFillTower(creep: Creep, action: boolean): boolean {
+  if (action === false) {
+    const towers: StructureTower[] = creep.room.find<StructureTower>(FIND_STRUCTURES, {filter:
+      (x: Structure) => x.structureType === STRUCTURE_TOWER && (x as Tower).energy < (x as Tower).energyCapacity});
+    if (towers && towers.length > 0) {
+      moveToTransfer(creep, towers[0]);
+    }
+  }
+  return action;
+}
+
+export function actionFillEnergyStorage(creep: Creep, action: boolean): boolean {
+  if (action === false) {
+    const storage: StructureStorage | undefined = creep.room.storage;
+    if (storage) {
+      moveToTransfer(creep, storage);
+    }
+  }
+  return action;
+}
+
 export function actionGetDroppedEnergy(creep: Creep, action: boolean, scavange?: boolean): boolean {
   if (action === false) {
       // Find dropped resources
@@ -286,12 +313,14 @@ export function actionGetDroppedEnergy(creep: Creep, action: boolean, scavange?:
 
 export function actionGetContainerEnergy(creep: Creep, action: boolean, factor: number): boolean {
   if (action === false) {
-    const energyCont: Container[] = creep.pos.findClosestByRange(FIND_STRUCTURES,
+    const energyCont: Container = creep.pos.findClosestByRange(FIND_STRUCTURES,
       {filter: (x: Container) => x.structureType === STRUCTURE_CONTAINER
-        && x.store[RESOURCE_ENERGY] >= creep.carryCapacity * factor});
-    if (energyCont && energyCont.length > 0) {
-      if (creep.withdraw(energyCont[0], RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
-        creep.moveTo(energyCont[0]);
+        && x.store.energy >= creep.carryCapacity * factor});
+    // console.log("energyCont: " + energyCont);
+    if (energyCont) {
+      // console.log("energyCont[0]: " + energyCont[0]);
+      if (creep.withdraw(energyCont, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
+        creep.moveTo(energyCont);
       }
       return true;
     }

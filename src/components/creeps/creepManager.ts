@@ -112,7 +112,7 @@ function _buildMiners(room: Room, creeps: Creep[]): boolean {
     case RoomStates.TRANSITION:
       numHaulers = sources.length;
     case RoomStates.STABLE:
-      numHaulers = sources.length * 2;
+      numHaulers = sources.length + 1;
       break;
   }
   const _haulers = _.filter(creeps, (creep) => creep.memory.role === "hauler");
