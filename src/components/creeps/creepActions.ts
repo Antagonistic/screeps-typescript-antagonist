@@ -262,6 +262,21 @@ export function actionGetDroppedEnergy(creep: Creep, action: boolean, scavange?:
     if (droppedRes && droppedRes.length > 0) {
       if (creep.pickup(droppedRes[0]) === ERR_NOT_IN_RANGE) {
         creep.moveTo(droppedRes[0]);
+      } else {
+        // Grab from container if nearby
+        const minerContainer: Container[] = droppedRes[0].pos.findInRange<Container>(FIND_STRUCTURES, 1, {filter:
+          (x: Structure) => x.structureType === STRUCTURE_CONTAINER});
+        if (minerContainer && minerContainer.length > 0) {
+          let energyNeed: number = creep.carryCapacity - droppedRes[0].amount;
+          if (creep.carry.energy) {
+            energyNeed -= creep.carry.energy;
+          }
+          if (energyNeed > 0 && minerContainer[0].store.energy) {
+            // There is energy in container
+            energyNeed = Math.min(energyNeed, minerContainer[0].store.energy);
+            creep.withdraw(minerContainer[0], RESOURCE_ENERGY, energyNeed);
+          }
+        }
       }
       return true;
     }
