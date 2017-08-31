@@ -42,7 +42,7 @@ export function needsRenew(creep: Creep): boolean {
  */
 export function moveToRenew(creep: Creep, spawn: Spawn): void {
   const ret = spawn.renewCreep(creep);
-  console.log(creep.name + " needs to renew: " + ret + " - " + creep.ticksToLive);
+  // console.log(creep.name + " needs to renew: " + ret + " - " + creep.ticksToLive);
   if (ret === ERR_NOT_IN_RANGE) {
     creep.moveTo(spawn);
   } else if (ret === OK) {
@@ -93,6 +93,9 @@ export function canWork(creep: Creep): boolean {
   const working = creep.memory.working;
   if (working && _.sum(creep.carry) === 0) {
     creep.memory.working = false;
+    if (creep.memory.target !== undefined) {
+      creep.memory.target = undefined; // Zero out existing targets
+    }
     return false;
   } else if (!working && _.sum(creep.carry) === creep.carryCapacity) {
     creep.memory.working = true;
@@ -178,61 +181,50 @@ export function actionBuild(creep: Creep, action: boolean): boolean {
   return action;
 }
 
-export function actionRepair(creep: Creep, action: boolean): boolean {
+export function actionRepairCache(creep: Creep, action: boolean): boolean {
   if (action === false) {
-    // Find critically damaged
-    const critical: Structure = creep.pos.findClosestByRange<Structure>(FIND_STRUCTURES, {filter:
-      (x: Structure) => x.structureType !== STRUCTURE_WALL && x.structureType !== STRUCTURE_RAMPART &&
-      x.hits < x.hitsMax / 10});
-    if (critical) {
-      moveToRepair(creep, critical);
-      return true;
-    }
-    const damaged: Structure = creep.pos.findClosestByRange<Structure>(FIND_STRUCTURES, {filter:
-      (x: Structure) => x.structureType !== STRUCTURE_WALL && x.structureType !== STRUCTURE_RAMPART &&
-      x.hits < x.hitsMax / 3});
-    if (damaged) {
-      moveToRepair(creep, damaged);
-      return true;
+    const targetId = creep.memory.target;
+    if (targetId) {
+      const target: Structure | null = Game.getObjectById(targetId);
+      if (target) {
+        if (target.hits < target.hitsMax) {
+          moveToRepair(creep, target);
+          return true;
+        } else {
+          creep.memory.target = undefined;
+        }
+      } else {
+        creep.memory.target = undefined;
+      }
     }
   }
-  return false;
+  return action;
 }
 
-export function actionRepairWall(creep: Creep, action: boolean): boolean {
+export function actionRepair(creep: Creep, action: boolean,
+                             repWalls: boolean = false, factor: number = 3): boolean {
   if (action === false) {
-    // Find critically damaged
-    const critical: Structure = creep.pos.findClosestByRange<Structure>(FIND_STRUCTURES, {filter:
-      (x: Structure) => (x.structureType === STRUCTURE_WALL || x.structureType === STRUCTURE_RAMPART) &&
-      x.hits < x.hitsMax / 300000});
-    if (critical) {
-      // creep.say("wall: " + critical.pos.x + "," + critical.pos.y);
-      moveToRepair(creep, critical);
-      return true;
+    let targets: Structure[];
+    if (repWalls) {
+      // Find walls
+      targets = creep.room.find<Structure>(FIND_STRUCTURES, {filter:
+        (x: Structure) => (x.structureType === STRUCTURE_WALL || x.structureType === STRUCTURE_RAMPART) &&
+        x.hits < x.hitsMax / factor});
+    } else {
+      // Find non-walls
+      targets = creep.room.find<Structure>(FIND_STRUCTURES, {filter:
+        (x: Structure) => x.structureType !== STRUCTURE_WALL && x.structureType !== STRUCTURE_RAMPART &&
+        x.hits < x.hitsMax / factor});
     }
-    const damaged: Structure = creep.pos.findClosestByRange<Structure>(FIND_STRUCTURES, {filter:
-      (x: Structure) => (x.structureType === STRUCTURE_WALL || x.structureType === STRUCTURE_RAMPART) &&
-      x.hits < x.hitsMax / 3000});
-    if (damaged) {
-      moveToRepair(creep, damaged);
-      return true;
-    }
-    const damaged2: Structure = creep.pos.findClosestByRange<Structure>(FIND_STRUCTURES, {filter:
-      (x: Structure) => (x.structureType === STRUCTURE_WALL || x.structureType === STRUCTURE_RAMPART) &&
-      x.hits < x.hitsMax / 300});
-    if (damaged2) {
-      moveToRepair(creep, damaged2);
-      return true;
-    }
-    const damaged3: Structure = creep.pos.findClosestByRange<Structure>(FIND_STRUCTURES, {filter:
-      (x: Structure) => (x.structureType === STRUCTURE_WALL || x.structureType === STRUCTURE_RAMPART) &&
-      x.hits < x.hitsMax / 3});
-    if (damaged3) {
-      moveToRepair(creep, damaged3);
+    if (targets && targets.length > 0) {
+      const salt: number = (creep.memory.uuid || 0) % targets.length;
+      // console.log(creep.name + " " + salt + " " + targets.length);
+      creep.memory.target = targets[salt].id;
+      moveToRepair(creep, targets[salt]);
       return true;
     }
   }
-  return false;
+  return action;
 }
 
 export function actionFillEnergy(creep: Creep, action: boolean): boolean {

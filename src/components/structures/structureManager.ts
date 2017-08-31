@@ -6,12 +6,13 @@ import * as TowerHandler from "./structure/tower";
 export function run(room: Room): void {
 
   // Handle Towers
-  const towerIDs = room.memory.towers;
-  if (towerIDs) {
-    for (const towerID in towerIDs) {
+  const towerIDs: string[] = room.memory.towers;
+  if (towerIDs && towerIDs.length > 0) {
+    const hostiles: Creep[] = room.find(FIND_HOSTILE_CREEPS);
+    for (const towerID of towerIDs) {
       const tower: Tower | null = Game.getObjectById(towerID);
       if (tower) {
-        TowerHandler.run(tower);
+        TowerHandler.run(tower, hostiles);
       }
     }
   }

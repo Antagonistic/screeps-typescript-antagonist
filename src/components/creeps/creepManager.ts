@@ -232,7 +232,8 @@ function _createCreep(spawn: Spawn, bodyParts: string[], role: string, memory?: 
     const properties: { [key: string]: any } = {
       role,
       room: spawn.room.name,
-      working: false
+      uuid,
+      working: false,
     };
     if (memory) {
       _.assign(properties, memory);
