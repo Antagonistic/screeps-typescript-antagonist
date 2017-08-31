@@ -49,3 +49,14 @@ function _findBox(creep: Creep, source: Source) {
   console.log(creep.name + " could not find its box!");
   creep.moveTo(source, {visualizePathStyle: {stroke: "#ffffff"}});
 }
+
+export function getBody(room: Room, isRemote: boolean = false): string[] | null {
+  if (room.energyCapacityAvailable < 550) {
+    return null;
+  }
+  if (isRemote) {
+    return [MOVE, MOVE, MOVE, WORK, WORK, WORK, WORK, WORK];
+  } else {
+    return [WORK, WORK, WORK, WORK, WORK, MOVE];
+  }
+}

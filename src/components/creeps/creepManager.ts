@@ -60,13 +60,6 @@ export function run(room: Room): void {
   });
 }
 
-const harvesterParts: string[] = [WORK, WORK, CARRY, MOVE];
-const minerParts: string[] = [WORK, WORK, WORK, WORK, WORK, MOVE];
-const haulerParts: string[] = [MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY];
-const builderParts: string[] = [WORK, WORK, WORK, WORK, CARRY, CARRY, MOVE, MOVE];
-const repairParts: string[] = [MOVE, MOVE, MOVE, WORK, WORK, WORK, CARRY, CARRY];
-const upgraderParts: string[] = [WORK, WORK, WORK, WORK, CARRY, CARRY, MOVE, MOVE];
-
 function _buildMiners(room: Room, creeps: Creep[]): boolean {
   const isBuilding: boolean = false;
   const State: RoomStates = room.memory.state as RoomStates;
@@ -78,8 +71,7 @@ function _buildMiners(room: Room, creeps: Creep[]): boolean {
     case RoomStates.BOOTSTRAP: {
       const harvesters = _.filter(creeps, (creep) => creep.memory.role === "harvester");
       if (harvesters.length < 4) {
-        if (spawn.canCreateCreep(harvesterParts) === 0) {
-          _createCreep(spawn, harvesterParts, "harvester");
+        if (_createCreep(spawn, harvester.getBody(), "harvester")) {
           return true;
         }
       }
@@ -88,8 +80,7 @@ function _buildMiners(room: Room, creeps: Creep[]): boolean {
     case RoomStates.TRANSITION: {
       const harvesters = _.filter(creeps, (creep) => creep.memory.role === "harvester");
       if (harvesters.length < 2) {
-        if (spawn.canCreateCreep(harvesterParts) === 0) {
-          _createCreep(spawn, harvesterParts, "harvester");
+        if (_createCreep(spawn, harvester.getBody(), "harvester")) {
           return true;
         }
       }
@@ -102,15 +93,12 @@ function _buildMiners(room: Room, creeps: Creep[]): boolean {
   switch (State) {
     case RoomStates.TRANSITION:
     case RoomStates.STABLE:
-      // for(let i: number = 0; i<sources.length; i++) {
-        // const source: Source = sources[i];
       for (const source of sources) {
-        // if (_spawnMiner(creeps, spawn, source)) {
         const _miner = _.filter(creeps, (creep) =>
           creep.memory.role === "miner" &&
           creep.memory.sourceID === source.id);
         if (!_miner || _miner.length === 0) {
-          if (_createCreep(spawn, minerParts, "miner", {sourceID: source.id})) {
+          if (_createCreep(spawn, miner.getBody(room), "miner", {sourceID: source.id})) {
             return true;
           }
         }
@@ -129,10 +117,8 @@ function _buildMiners(room: Room, creeps: Creep[]): boolean {
   }
   const _haulers = _.filter(creeps, (creep) => creep.memory.role === "hauler");
   if (_haulers.length < numHaulers) {
-    if (spawn.canCreateCreep(haulerParts) === 0) {
-      if (_createCreep(spawn, haulerParts, "hauler")) {
+    if (_createCreep(spawn, hauler.getBody(room), "hauler")) {
         return true;
-      }
     }
   }
   return isBuilding;
@@ -150,7 +136,7 @@ function _buildBuilders(room: Room, creeps: Creep[]): boolean {
       case RoomStates.BOOTSTRAP:
       case RoomStates.TRANSITION:
         if (_builders.length < 1) {
-          return _createCreep(spawn, builderParts, "builder");
+          return _createCreep(spawn, builder.getBody(room), "builder");
         }
         break;
       case RoomStates.STABLE:
@@ -161,7 +147,7 @@ function _buildBuilders(room: Room, creeps: Creep[]): boolean {
           numBuilders = 2;
         }
         if (_builders.length < numBuilders) {
-          return _createCreep(spawn, builderParts, "builder");
+          return _createCreep(spawn, builder.getBody(room), "builder");
         }
         break;
     }
@@ -188,7 +174,7 @@ function _buildRepair(room: Room, creeps: Creep[]): boolean {
         numReps = 3;
       }
       if (_reps.length < numReps) {
-        return _createCreep(spawn, repairParts, "repair");
+        return _createCreep(spawn, repair.getBody(room), "repair");
       }
       break;
   }
@@ -216,42 +202,45 @@ function _buildUpgraders(room: Room, creeps: Creep[]): boolean {
     }
   }
   if (_upgraders.length < numUpgraders) {
-    return _createCreep(spawn, upgraderParts, "upgrader");
+    return _createCreep(spawn, upgrader.getBody(room), "upgrader");
   }
   return false;
 }
 
-function _createCreep(spawn: Spawn, bodyParts: string[], role: string, memory?: any): boolean {
-  const status: number = spawn.canCreateCreep(bodyParts, undefined);
-  if (status === OK) {
+function _createCreep(spawn: Spawn, bodyParts: string[] | null, role: string, memory?: any): boolean {
+  if (bodyParts) {
+    const status: number = spawn.canCreateCreep(bodyParts, undefined);
+    if (status === OK) {
 
-    const uuid: number = Memory.uuid;
-    Memory.uuid = uuid + 1;
-    const creepName: string = spawn.room.name + " - " + role + uuid;
+      const uuid: number = Memory.uuid;
+      Memory.uuid = uuid + 1;
+      const creepName: string = spawn.room.name + " - " + role + uuid;
 
-    const properties: { [key: string]: any } = {
-      role,
-      room: spawn.room.name,
-      uuid,
-      working: false,
-    };
-    if (memory) {
-      _.assign(properties, memory);
+      const properties: { [key: string]: any } = {
+        role,
+        room: spawn.room.name,
+        uuid,
+        working: false,
+      };
+      if (memory) {
+        _.assign(properties, memory);
+      }
+
+      log.info("Started creating new creep: " + creepName);
+      if (Config.ENABLE_DEBUG_MODE) {
+        log.info("Body: " + bodyParts);
+      }
+
+      spawn.createCreep(bodyParts, creepName, properties);
     }
-
-    log.info("Started creating new creep: " + creepName);
-    if (Config.ENABLE_DEBUG_MODE) {
-      log.info("Body: " + bodyParts);
+    if (status !== OK) {
+      // if (Config.ENABLE_DEBUG_MODE) {
+        // log.info("Failed creating new creep: " + status);
+      // }
+      return false;
+    } else {
+      return true;
     }
-
-    spawn.createCreep(bodyParts, creepName, properties);
   }
-  if (status !== OK) {
-    // if (Config.ENABLE_DEBUG_MODE) {
-      // log.info("Failed creating new creep: " + status);
-    // }
-    return false;
-  } else {
-    return true;
-  }
+  return false;
 }

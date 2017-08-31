@@ -17,3 +17,12 @@ export function run(creep: Creep): void {
     creepActions.getAnyEnergy(creep, 6);
   }
 }
+
+export function getBody(room: Room): string[] | null {
+  const energyAvailable: number = room.energyCapacityAvailable;
+  if (energyAvailable < 600) {
+    return [WORK, WORK, CARRY, MOVE];
+  } else {
+    return [WORK, WORK, WORK, WORK, CARRY, CARRY, MOVE, MOVE];
+  }
+}

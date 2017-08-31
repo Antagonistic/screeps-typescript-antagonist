@@ -58,3 +58,14 @@ export function run(creep: Creep): void {
     action = creepActions.actionGetContainerEnergy(creep, action, 4);
   }
 }
+
+export function getBody(room: Room): string[] | null {
+    if (room.energyCapacityAvailable > 600) {
+        // Big hauler
+        return [MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY];
+    } else {
+        // Small hauler
+        return [MOVE, MOVE, CARRY, CARRY, CARRY, CARRY];
+    }
+
+  }

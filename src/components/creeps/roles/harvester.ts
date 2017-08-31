@@ -29,3 +29,7 @@ export function run(creep: Creep): void {
     action = creepActions.actionGetSourceEnergy(creep, action, 2);
   }
 }
+
+export function getBody(): string[] | null {
+  return [WORK, WORK, CARRY, MOVE];
+}

@@ -21,3 +21,11 @@ export function run(creep: Creep): void {
     creepActions.getAnyEnergy(creep);
   }
 }
+
+export function getBody(room: Room): string[] | null {
+  if (room.energyCapacityAvailable >= 550) {
+    return [MOVE, MOVE, MOVE, WORK, WORK, WORK, CARRY, CARRY];
+  } else {
+    return [MOVE, WORK, WORK, CARRY];
+  }
+}
