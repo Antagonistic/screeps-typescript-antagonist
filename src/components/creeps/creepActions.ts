@@ -135,6 +135,12 @@ export function moveToBuildSite(creep: Creep, target: ConstructionSite): void {
   }
 }
 
+export function moveToRepair(creep: Creep, target: Structure): void {
+  if (creep.repair(target) === ERR_NOT_IN_RANGE) {
+    moveTo(creep, target);
+  }
+}
+
 export function moveToBuild(creep: Creep): void {
   const target: ConstructionSite = creep.pos.findClosestByRange<ConstructionSite>(FIND_MY_CONSTRUCTION_SITES);
   if (target) {
@@ -179,19 +185,15 @@ export function actionRepair(creep: Creep, action: boolean): boolean {
       (x: Structure) => x.structureType !== STRUCTURE_WALL && x.structureType !== STRUCTURE_RAMPART &&
       x.hits < x.hitsMax / 10});
     if (critical) {
-      if (creep.repair(critical) === ERR_NOT_IN_RANGE) {
-        creep.moveTo(critical, {visualizePathStyle: {stroke: "#ffffff"}});
-        return true;
-      }
+      moveToRepair(creep, critical);
+      return true;
     }
     const damaged: Structure = creep.pos.findClosestByRange<Structure>(FIND_STRUCTURES, {filter:
       (x: Structure) => x.structureType !== STRUCTURE_WALL && x.structureType !== STRUCTURE_RAMPART &&
       x.hits < x.hitsMax / 3});
     if (damaged) {
-      if (creep.repair(damaged) === ERR_NOT_IN_RANGE) {
-        creep.moveTo(damaged);
-        return true;
-      }
+      moveToRepair(creep, damaged);
+      return true;
     }
   }
   return false;
@@ -205,37 +207,29 @@ export function actionRepairWall(creep: Creep, action: boolean): boolean {
       x.hits < x.hitsMax / 300000});
     if (critical) {
       // creep.say("wall: " + critical.pos.x + "," + critical.pos.y);
-      if (creep.repair(critical) === ERR_NOT_IN_RANGE) {
-        creep.moveTo(critical, {visualizePathStyle: {stroke: "#ffffff"}});
-        return true;
-      }
+      moveToRepair(creep, critical);
+      return true;
     }
     const damaged: Structure = creep.pos.findClosestByRange<Structure>(FIND_STRUCTURES, {filter:
       (x: Structure) => (x.structureType === STRUCTURE_WALL || x.structureType === STRUCTURE_RAMPART) &&
       x.hits < x.hitsMax / 3000});
     if (damaged) {
-      if (creep.repair(damaged) === ERR_NOT_IN_RANGE) {
-        creep.moveTo(damaged);
-        return true;
-      }
+      moveToRepair(creep, damaged);
+      return true;
     }
     const damaged2: Structure = creep.pos.findClosestByRange<Structure>(FIND_STRUCTURES, {filter:
       (x: Structure) => (x.structureType === STRUCTURE_WALL || x.structureType === STRUCTURE_RAMPART) &&
       x.hits < x.hitsMax / 300});
     if (damaged2) {
-      if (creep.repair(damaged2) === ERR_NOT_IN_RANGE) {
-        creep.moveTo(damaged2);
-        return true;
-      }
+      moveToRepair(creep, damaged2);
+      return true;
     }
     const damaged3: Structure = creep.pos.findClosestByRange<Structure>(FIND_STRUCTURES, {filter:
       (x: Structure) => (x.structureType === STRUCTURE_WALL || x.structureType === STRUCTURE_RAMPART) &&
       x.hits < x.hitsMax / 3});
     if (damaged3) {
-      if (creep.repair(damaged3) === ERR_NOT_IN_RANGE) {
-        creep.moveTo(damaged3);
-        return true;
-      }
+      moveToRepair(creep, damaged3);
+      return true;
     }
   }
   return false;
