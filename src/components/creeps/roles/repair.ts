@@ -1,5 +1,9 @@
 import * as creepActions from "../creepActions";
 
+import * as CreepManager from "../creepManager";
+
+import RoomStates from "../../state/roomStates";
+
 /**
  * Runs all creep actions.
  *
@@ -28,4 +32,24 @@ export function getBody(room: Room): string[] | null {
   } else {
     return [MOVE, WORK, WORK, CARRY];
   }
+}
+
+export function build(room: Room, spawn: Spawn, creeps: Creep[], State: RoomStates, spawnAction: boolean): boolean {
+  if (spawnAction === false) {
+    switch (State) {
+      case RoomStates.STABLE:
+        const _reps = _.filter(creeps, (creep) => creep.memory.role === "repair");
+        let numReps = 1;
+        const walls: StructureWall[] = room.find(FIND_STRUCTURES, {filter: (x: Structure) =>
+          x.structureType === STRUCTURE_WALL});
+        if (walls.length > 0) {
+          numReps = 3;
+        }
+        if (_reps.length < numReps) {
+          return CreepManager.createCreep(spawn, getBody(room), "repair");
+        }
+        break;
+    }
+  }
+  return spawnAction;
 }

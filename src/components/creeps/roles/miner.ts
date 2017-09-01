@@ -1,5 +1,9 @@
 // import * as creepActions from "../creepActions";
 
+import * as CreepManager from "../creepManager";
+
+import RoomStates from "../../state/roomStates";
+
 /**
  * Runs all creep actions.
  *
@@ -59,4 +63,26 @@ export function getBody(room: Room, isRemote: boolean = false): string[] | null 
   } else {
     return [WORK, WORK, WORK, WORK, WORK, MOVE];
   }
+}
+
+export function build(room: Room, spawn: Spawn, sources: Source[], creeps: Creep[],
+                      State: RoomStates, spawnAction: boolean): boolean {
+  if (spawnAction === false) {
+    switch (State) {
+      case RoomStates.TRANSITION:
+      case RoomStates.STABLE:
+        for (const source of sources) {
+          const _miner = _.filter(creeps, (creep) =>
+            creep.memory.role === "miner" &&
+            creep.memory.sourceID === source.id);
+          if (!_miner || _miner.length === 0) {
+            if (CreepManager.createCreep(spawn, getBody(room), "miner", {sourceID: source.id})) {
+              return true;
+            }
+          }
+        }
+        break;
+    }
+  }
+  return spawnAction;
 }

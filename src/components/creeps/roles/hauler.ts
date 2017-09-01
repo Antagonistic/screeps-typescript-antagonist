@@ -1,5 +1,9 @@
 import * as creepActions from "../creepActions";
 
+import * as CreepManager from "../creepManager";
+
+import RoomStates from "../../state/roomStates";
+
 /**
  * Runs all creep actions.
  *
@@ -30,3 +34,22 @@ export function getBody(room: Room): string[] | null {
     }
 
   }
+
+export function build(room: Room, spawn: Spawn, sources: Source[], creeps: Creep[],
+                      State: RoomStates, spawnAction: boolean): boolean {
+  if (spawnAction === false) {
+    let numHaulers = 0;
+    switch (State) {
+      case RoomStates.TRANSITION:
+        numHaulers = sources.length;
+      case RoomStates.STABLE:
+        numHaulers = sources.length + 1;
+        break;
+    }
+    const _haulers = _.filter(creeps, (creep) => creep.memory.role === "hauler");
+    if (_haulers.length < numHaulers) {
+       return CreepManager.createCreep(spawn, getBody(room), "hauler");
+    }
+  }
+  return spawnAction;
+}

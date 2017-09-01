@@ -1,5 +1,9 @@
 import * as creepActions from "../creepActions";
 
+import * as CreepManager from "../creepManager";
+
+import RoomStates from "../../state/roomStates";
+
 /**
  * Runs all creep actions.
  *
@@ -32,4 +36,26 @@ export function run(creep: Creep): void {
 
 export function getBody(): string[] | null {
   return [WORK, WORK, CARRY, MOVE];
+}
+
+export function build(spawn: Spawn, creeps: Creep[], State: RoomStates, spawnAction: boolean): boolean {
+  if (spawnAction === false) {
+    switch (State) {
+      case RoomStates.BOOTSTRAP: {
+        const harvesters = _.filter(creeps, (creep) => creep.memory.role === "harvester");
+        if (harvesters.length < 4) {
+          return CreepManager.createCreep(spawn, getBody(), "harvester");
+        }
+        break;
+      }
+      case RoomStates.TRANSITION: {
+        const harvesters = _.filter(creeps, (creep) => creep.memory.role === "harvester");
+        if (harvesters.length < 2) {
+          return CreepManager.createCreep(spawn, getBody(), "harvester");
+        }
+        break;
+      }
+    }
+  }
+  return spawnAction;
 }

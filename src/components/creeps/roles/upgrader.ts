@@ -1,5 +1,7 @@
 import * as creepActions from "../creepActions";
 
+import * as CreepManager from "../creepManager";
+
 /**
  * Runs all creep actions.
  *
@@ -25,4 +27,31 @@ export function getBody(room: Room): string[] | null {
   } else {
     return [WORK, WORK, WORK, WORK, CARRY, CARRY, MOVE, MOVE];
   }
+}
+
+export function build(room: Room, spawn: Spawn, creeps: Creep[], spawnAction: boolean): boolean {
+  if (spawnAction === false) {
+    let numUpgraders: number = 1;
+    const _upgraders = _.filter(creeps, (creep) => creep.memory.role === "upgrader");
+    if (room.storage) {
+      const energy: number | undefined = room.storage.store.energy;
+      if (energy) {
+        if (energy > 100000) {
+          numUpgraders = 6;
+        } else if (energy > 50000) {
+          numUpgraders = 5;
+        } else if (energy > 30000) {
+          numUpgraders = 4;
+        } else if (energy > 20000) {
+          numUpgraders = 3;
+        } else if (energy > 10000) {
+          numUpgraders = 2;
+        }
+      }
+    }
+    if (_upgraders.length < numUpgraders) {
+      return CreepManager.createCreep(spawn, getBody(room), "upgrader");
+    }
+  }
+  return spawnAction;
 }
