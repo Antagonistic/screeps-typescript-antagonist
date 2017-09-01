@@ -16,7 +16,11 @@ export function run(creep: Creep): void {
   if (!action && creepActions.canWork(creep)) {
     action = creepActions.actionUpgrade(creep, action);
   } else {
-    creepActions.getAnyEnergy(creep, 6);
+    action = creepActions.actionGetStorageEnergy(creep, action, 4);
+    action = creepActions.actionGetContainerEnergy(creep, action, 4);
+    if (creep.room.energyCapacityAvailable < 550) {
+      action = creepActions.actionGetSourceEnergy(creep, action, 2);
+    }
   }
 }
 

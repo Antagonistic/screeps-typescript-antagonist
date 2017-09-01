@@ -19,7 +19,19 @@ import RoomStates from "../state/roomStates";
  * @param {Room} room
  */
 export function run(room: Room): void {
-  const creeps = room.find<Creep>(FIND_MY_CREEPS);
+  let creeps = room.find<Creep>(FIND_MY_CREEPS);
+  const remoteRooms: string[] | null = room.memory.remoteRoom;
+  if (remoteRooms && remoteRooms.length) {
+    for (const remoteRoomName in remoteRooms) {
+      const remoteRoom = Game.rooms[remoteRoomName];
+      if (remoteRoom) {
+        const remoteCreeps = remoteRoom.find<Creep>(FIND_MY_CREEPS);
+        if (remoteCreeps.length) {
+          creeps = creeps.concat(remoteCreeps);
+        }
+      }
+    }
+  }
   // const creepCount = _.size(creeps);
 
   if (Config.ENABLE_DEBUG_MODE) {

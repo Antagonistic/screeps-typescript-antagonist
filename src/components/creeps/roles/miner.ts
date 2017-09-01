@@ -1,4 +1,4 @@
-// import * as creepActions from "../creepActions";
+import * as creepActions from "../creepActions";
 
 import * as CreepManager from "../creepManager";
 
@@ -11,8 +11,10 @@ import RoomStates from "../../state/roomStates";
  * @param {Creep} creep
  */
 export function run(creep: Creep): void {
+  let action: boolean = false;
   const sourceID: string = creep.memory.sourceID;
-  if (sourceID) {
+  action = creepActions.actionMoveToRoom(creep, action);
+  if (!action && sourceID) {
     const source: Source | null = Game.getObjectById(sourceID);
     if (source) {
       const ret: number = creep.harvest(source);

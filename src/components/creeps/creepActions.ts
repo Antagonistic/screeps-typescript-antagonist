@@ -348,7 +348,7 @@ export function actionGetDroppedEnergy(creep: Creep, action: boolean, scavange?:
   return action;
 }
 
-export function actionGetContainerEnergy(creep: Creep, action: boolean, factor: number): boolean {
+export function actionGetContainerEnergy(creep: Creep, action: boolean, factor: number = 2): boolean {
   if (action === false) {
     const energyCont: Container = creep.pos.findClosestByRange(FIND_STRUCTURES,
       {filter: (x: Container) => x.structureType === STRUCTURE_CONTAINER
@@ -370,8 +370,11 @@ export function actionGetSourceEnergy(creep: Creep, action: boolean, factor: num
     const sources: Source[] = creep.room.find(FIND_SOURCES_ACTIVE, {filter:
       (x: Source) => x.energy >= creep.carryCapacity * factor});
     if (sources.length) {
-      if (creep.harvest(sources[0]) === ERR_NOT_IN_RANGE) {
-        creep.moveTo(sources[0]);
+      const salt: number = (creep.memory.uuid || 0) % sources.length;
+      // console.log(creep.name + " " + salt + " " + sources.length);
+      creep.memory.target = sources[salt].id;
+      if (creep.harvest(sources[salt]) === ERR_NOT_IN_RANGE) {
+        creep.moveTo(sources[salt]);
       }
     }
   }

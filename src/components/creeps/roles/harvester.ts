@@ -24,6 +24,7 @@ export function run(creep: Creep): void {
     if (creep.room.controller && creep.room.controller.ticksToDowngrade < 2000) {
       action = creepActions.actionUpgrade(creep, action);
     }
+    action = creepActions.actionRepair(creep, action, false, 8);
     action = creepActions.actionBuild(creep, action);
     action = creepActions.actionUpgrade(creep, action);
   } else {
