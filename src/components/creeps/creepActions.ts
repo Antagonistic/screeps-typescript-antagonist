@@ -153,6 +153,12 @@ export function moveToBuild(creep: Creep): void {
   }
 }
 
+export function moveToTransfer(creep: Creep, target: Structure): void {
+  if (creep.transfer(target, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
+    moveTo(creep, target);
+  }
+}
+
 export function actionUpgrade(creep: Creep, action: boolean): boolean {
   if (action === false) {
     if (creep.room.controller) {
@@ -160,7 +166,6 @@ export function actionUpgrade(creep: Creep, action: boolean): boolean {
       if (creep.upgradeController(target) ===  ERR_NOT_IN_RANGE) {
         creep.moveTo(target);
       }
-      // console.log(creep.name + " upgrading!");
       return true;
     }
   }
@@ -174,7 +179,6 @@ export function actionBuild(creep: Creep, action: boolean): boolean {
       if (creep.build(target) === ERR_NOT_IN_RANGE) {
         creep.moveTo(target);
       }
-      // console.log(creep.name + " building!");
       return true;
     }
   }
@@ -216,7 +220,7 @@ export function actionRepair(creep: Creep, action: boolean,
         (x: Structure) => x.structureType !== STRUCTURE_WALL && x.structureType !== STRUCTURE_RAMPART &&
         x.hits < x.hitsMax / factor});
     }
-    if (targets && targets.length > 0) {
+    if (targets.length) {
       const salt: number = (creep.memory.uuid || 0) % targets.length;
       // console.log(creep.name + " " + salt + " " + targets.length);
       creep.memory.target = targets[salt].id;
@@ -235,7 +239,7 @@ export function actionFillEnergy(creep: Creep, action: boolean): boolean {
       (x: Structure) => x.structureType === STRUCTURE_EXTENSION &&
       (x as Extension).energy < (x as Extension).energyCapacity});
     const targets: Structure[] = spawn.concat(extentions);
-    if (targets.length > 0) {
+    if (targets.length) {
       const target: Structure = creep.pos.findClosestByRange(targets);
       if (target) {
         if (creep.transfer(target, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
@@ -244,6 +248,27 @@ export function actionFillEnergy(creep: Creep, action: boolean): boolean {
         // console.log(creep.name + " filling energy!");
         return true;
       }
+    }
+  }
+  return action;
+}
+
+export function actionFillTower(creep: Creep, action: boolean): boolean {
+  if (action === false) {
+    const towers: StructureTower[] = creep.room.find<StructureTower>(FIND_STRUCTURES, {filter:
+      (x: Structure) => x.structureType === STRUCTURE_TOWER && (x as Tower).energy < (x as Tower).energyCapacity});
+    if (towers.length) {
+      moveToTransfer(creep, towers[0]);
+    }
+  }
+  return action;
+}
+
+export function actionFillEnergyStorage(creep: Creep, action: boolean): boolean {
+  if (action === false) {
+    const storage: StructureStorage | undefined = creep.room.storage;
+    if (storage) {
+      moveToTransfer(creep, storage);
     }
   }
   return action;
@@ -259,9 +284,24 @@ export function actionGetDroppedEnergy(creep: Creep, action: boolean, scavange?:
     const droppedRes: Resource[] = creep.room.find<Resource>(FIND_DROPPED_RESOURCES,
       {filter: (x: Resource) => x.resourceType === RESOURCE_ENERGY
         && x.amount >= numPickup});
-    if (droppedRes && droppedRes.length > 0) {
+    if (droppedRes.length) {
       if (creep.pickup(droppedRes[0]) === ERR_NOT_IN_RANGE) {
         creep.moveTo(droppedRes[0]);
+      } else {
+        // Grab from container if nearby
+        const minerContainer: Container[] = droppedRes[0].pos.findInRange<Container>(FIND_STRUCTURES, 1, {filter:
+          (x: Structure) => x.structureType === STRUCTURE_CONTAINER});
+        if (minerContainer.length) {
+          let energyNeed: number = creep.carryCapacity - droppedRes[0].amount;
+          if (creep.carry.energy) {
+            energyNeed -= creep.carry.energy;
+          }
+          if (energyNeed > 0 && minerContainer[0].store.energy) {
+            // There is energy in container
+            energyNeed = Math.min(energyNeed, minerContainer[0].store.energy);
+            creep.withdraw(minerContainer[0], RESOURCE_ENERGY, energyNeed);
+          }
+        }
       }
       return true;
     }
@@ -271,12 +311,14 @@ export function actionGetDroppedEnergy(creep: Creep, action: boolean, scavange?:
 
 export function actionGetContainerEnergy(creep: Creep, action: boolean, factor: number): boolean {
   if (action === false) {
-    const energyCont: Container[] = creep.pos.findClosestByRange(FIND_STRUCTURES,
+    const energyCont: Container = creep.pos.findClosestByRange(FIND_STRUCTURES,
       {filter: (x: Container) => x.structureType === STRUCTURE_CONTAINER
-        && x.store[RESOURCE_ENERGY] >= creep.carryCapacity * factor});
-    if (energyCont && energyCont.length > 0) {
-      if (creep.withdraw(energyCont[0], RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
-        creep.moveTo(energyCont[0]);
+        && x.store.energy >= creep.carryCapacity * factor});
+    // console.log("energyCont: " + energyCont);
+    if (energyCont) {
+      // console.log("energyCont[0]: " + energyCont[0]);
+      if (creep.withdraw(energyCont, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
+        creep.moveTo(energyCont);
       }
       return true;
     }
@@ -288,7 +330,7 @@ export function actionGetSourceEnergy(creep: Creep, action: boolean, factor: num
   if (action === false) {
     const sources: Source[] = creep.room.find(FIND_SOURCES_ACTIVE, {filter:
       (x: Source) => x.energy >= creep.carryCapacity * factor});
-    if (sources && sources.length > 0) {
+    if (sources.length) {
       if (creep.harvest(sources[0]) === ERR_NOT_IN_RANGE) {
         creep.moveTo(sources[0]);
       }
@@ -317,7 +359,7 @@ export function actionRenew(creep: Creep, action: boolean) {
   if (action === false) {
     if (needsRenew(creep)) {
       const spawn = creep.room.find<Spawn>(FIND_MY_SPAWNS);
-      if (spawn && spawn.length > 0) {
+      if (spawn.length) {
           moveToRenew(creep, spawn[0]);
       }
       return true;
@@ -330,7 +372,7 @@ export function actionRecycle(creep: Creep, action: boolean) {
   if (action === false) {
     if (creep.memory.recycle) {
       const spawn = creep.room.find<Spawn>(FIND_MY_SPAWNS);
-      if (spawn && spawn.length > 0) {
+      if (spawn.length) {
           moveToRecycle(creep, spawn[0]);
       }
       return true;
