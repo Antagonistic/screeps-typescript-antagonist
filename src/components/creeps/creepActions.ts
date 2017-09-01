@@ -10,8 +10,12 @@ import * as Config from "../../config/config";
  * @param {(Structure | RoomPosition)} target
  * @returns {number}
  */
-export function moveTo(creep: Creep, target: Structure | RoomPosition): number {
-  return creep.moveTo(target);
+export function moveTo(creep: Creep, target: Structure | RoomPosition, visual: boolean = false): number {
+  if (visual) {
+    return creep.moveTo(target, {visualizePathStyle: {stroke: "#ffffff"}});
+  } else {
+    return creep.moveTo(target);
+  }
 }
 
 /**
@@ -157,6 +161,41 @@ export function moveToTransfer(creep: Creep, target: Structure): void {
   if (creep.transfer(target, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
     moveTo(creep, target);
   }
+}
+
+export function actionMoveToRoom(creep: Creep, action: boolean, roomID?: string) {
+  if (action === false) {
+    if (!roomID) {
+      roomID = creep.memory.room;
+    }
+    if (roomID) {
+      if (creep.room.name !== roomID) {
+        moveTo(creep, new RoomPosition(25, 25, roomID));
+        return true;
+      } else {
+        const pos: RoomPosition = creep.pos;
+        const x: number = pos.x;
+        const y: number = pos.y;
+        if (x === 0 || y === 0 || x === 49 || y === 49) {
+          creep.moveTo(25, 25);
+          return true;
+        }
+      }
+    }
+  }
+  return action;
+}
+
+export function actionMoveToController(creep: Creep, action: boolean) {
+  if (action === false) {
+    if (creep.room.controller) {
+      if (!creep.pos.inRangeTo(creep.room.controller, 1)) {
+        moveTo(creep, creep.room.controller);
+      }
+      return true;
+    }
+  }
+  return action;
 }
 
 export function actionUpgrade(creep: Creep, action: boolean): boolean {

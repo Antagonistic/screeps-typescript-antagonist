@@ -5,6 +5,7 @@ import * as harvester from "./roles/harvester";
 import * as hauler from "./roles/hauler";
 import * as miner from "./roles/miner";
 import * as repair from "./roles/repair";
+import * as scout from "./roles/scout";
 import * as upgrader from "./roles/upgrader";
 
 import { log } from "../../lib/logger/log";
@@ -52,6 +53,9 @@ export function run(room: Room): void {
     case "repair":
       repair.run(creep);
       break;
+    case "scout":
+      scout.run(creep);
+      break;
     }
   });
 }
@@ -68,6 +72,8 @@ function _spawnAllCreeps(room: Room, spawn: Spawn, creeps: Creep[]): void {
     spawnAction = builder.build(room, spawn, creeps, State, spawnAction);
     spawnAction = repair.build(room, spawn, creeps, State, spawnAction);
     spawnAction = upgrader.build(room, spawn, creeps, spawnAction);
+
+    spawnAction = scout.build(room, spawn, creeps, State, spawnAction);
   }
 }
 
