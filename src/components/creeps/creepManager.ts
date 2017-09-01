@@ -207,7 +207,8 @@ function _buildUpgraders(room: Room, creeps: Creep[]): boolean {
   return false;
 }
 
-function _createCreep(spawn: Spawn, bodyParts: string[] | null, role: string, memory?: any): boolean {
+function _createCreep(spawn: Spawn, bodyParts: string[] | null,
+                      role: string, memory?: any, room: Room = spawn.room): boolean {
   if (bodyParts) {
     const status: number = spawn.canCreateCreep(bodyParts, undefined);
     if (status === OK) {
@@ -217,8 +218,9 @@ function _createCreep(spawn: Spawn, bodyParts: string[] | null, role: string, me
       const creepName: string = spawn.room.name + " - " + role + uuid;
 
       const properties: { [key: string]: any } = {
+        home: spawn.room.name,
         role,
-        room: spawn.room.name,
+        room: room.name,
         uuid,
         working: false,
       };
