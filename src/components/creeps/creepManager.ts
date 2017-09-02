@@ -1,6 +1,8 @@
 import * as Config from "../../config/config";
 
 import * as builder from "./roles/builder";
+import * as claim from "./roles/claim";
+import * as guard from "./roles/guard";
 import * as harvester from "./roles/harvester";
 import * as hauler from "./roles/hauler";
 import * as miner from "./roles/miner";
@@ -68,6 +70,12 @@ export function run(room: Room): void {
     case "scout":
       scout.run(creep);
       break;
+    case "guard":
+      guard.run(creep);
+      break;
+    case "claim":
+      claim.run(creep);
+      break;
     }
   });
 }
@@ -86,6 +94,7 @@ function _spawnAllCreeps(room: Room, spawn: Spawn, creeps: Creep[]): void {
     spawnAction = upgrader.build(room, spawn, creeps, State, spawnAction);
 
     spawnAction = scout.build(room, spawn, creeps, State, spawnAction);
+    spawnAction = claim.build(room, spawn, creeps, State, spawnAction);
   }
 }
 

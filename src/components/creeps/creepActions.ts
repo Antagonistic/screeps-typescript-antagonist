@@ -163,6 +163,12 @@ export function moveToTransfer(creep: Creep, target: Structure | Creep): void {
   }
 }
 
+export function moveToAttack(creep: Creep, target: Creep | Structure): void {
+  if (creep.attack(target) === ERR_NOT_IN_RANGE) {
+    moveTo(creep, target);
+  }
+}
+
 export function actionMoveToRoom(creep: Creep, action: boolean, roomID?: string) {
   if (action === false) {
     if (!roomID) {
@@ -430,6 +436,22 @@ export function actionRecycle(creep: Creep, action: boolean) {
       if (spawn.length) {
           moveToRecycle(creep, spawn[0]);
       }
+      return true;
+    }
+  }
+  return action;
+}
+
+export function actionAttackHostile(creep: Creep, action: boolean, target?: Creep) {
+  if (action === false) {
+    if (!target) {
+      const targetFind: Creep | null = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
+      if (targetFind) {
+        target = targetFind;
+      }
+    }
+    if (target) {
+      moveToAttack(creep, target);
       return true;
     }
   }
