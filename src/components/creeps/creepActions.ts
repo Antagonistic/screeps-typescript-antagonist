@@ -10,7 +10,7 @@ import * as Config from "../../config/config";
  * @param {(Structure | RoomPosition)} target
  * @returns {number}
  */
-export function moveTo(creep: Creep, target: Structure | RoomPosition, visual: boolean = false): number {
+export function moveTo(creep: Creep, target: Structure | Creep | RoomPosition, visual: boolean = false): number {
   if (visual) {
     return creep.moveTo(target, {visualizePathStyle: {stroke: "#ffffff"}});
   } else {
@@ -157,9 +157,9 @@ export function moveToBuild(creep: Creep): void {
   }
 }
 
-export function moveToTransfer(creep: Creep, target: Structure): void {
+export function moveToTransfer(creep: Creep, target: Structure | Creep): void {
   if (creep.transfer(target, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
-    moveTo(creep, target);
+    moveTo(creep, target.pos);
   }
 }
 
@@ -313,6 +313,19 @@ export function actionFillEnergyStorage(creep: Creep, action: boolean): boolean 
   return action;
 }
 
+export function actionFillUpgrader(creep: Creep, action: boolean): boolean {
+  if (action === false) {
+    const targets: Creep[] = creep.room.find<Creep>(FIND_MY_CREEPS, {filter:
+    (x: Creep) => x.memory.role === "upgrader"});
+    if (targets.length) {
+      const salt: number = (creep.memory.uuid || 0) % targets.length;
+      moveToTransfer(creep, targets[salt]);
+      return true;
+    }
+  }
+  return action;
+}
+
 export function actionGetDroppedEnergy(creep: Creep, action: boolean, scavange?: boolean): boolean {
   if (action === false) {
       // Find dropped resources
@@ -372,7 +385,7 @@ export function actionGetSourceEnergy(creep: Creep, action: boolean, factor: num
     if (sources.length) {
       const salt: number = (creep.memory.uuid || 0) % sources.length;
       // console.log(creep.name + " " + salt + " " + sources.length);
-      creep.memory.target = sources[salt].id;
+      // creep.memory.target = sources[salt].id;
       if (creep.harvest(sources[salt]) === ERR_NOT_IN_RANGE) {
         creep.moveTo(sources[salt]);
       }

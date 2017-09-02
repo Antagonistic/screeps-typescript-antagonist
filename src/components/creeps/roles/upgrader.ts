@@ -2,6 +2,8 @@ import * as creepActions from "../creepActions";
 
 import * as CreepManager from "../creepManager";
 
+import RoomStates from "../../state/roomStates";
+
 /**
  * Runs all creep actions.
  *
@@ -26,30 +28,35 @@ export function run(creep: Creep): void {
 
 export function getBody(room: Room): string[] | null {
   const energyAvailable: number = room.energyCapacityAvailable;
-  if (energyAvailable < 600) {
-    return [WORK, WORK, CARRY, MOVE];
+  if (energyAvailable >= 650) {
+    return [WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, MOVE, MOVE];
+  } else  if (energyAvailable >= 550) {
+    return [MOVE, MOVE, WORK, WORK, WORK, CARRY, CARRY, CARRY];
   } else {
-    return [WORK, WORK, WORK, WORK, CARRY, CARRY, MOVE, MOVE];
+    return [WORK, WORK, CARRY, MOVE];
   }
 }
 
-export function build(room: Room, spawn: Spawn, creeps: Creep[], spawnAction: boolean): boolean {
+export function build(room: Room, spawn: Spawn, creeps: Creep[], State: RoomStates, spawnAction: boolean): boolean {
   if (spawnAction === false) {
     let numUpgraders: number = 1;
     const _upgraders = _.filter(creeps, (creep) => creep.memory.role === "upgrader");
-    if (room.storage) {
-      const energy: number | undefined = room.storage.store.energy;
-      if (energy) {
-        if (energy > 100000) {
-          numUpgraders = 6;
-        } else if (energy > 50000) {
-          numUpgraders = 5;
-        } else if (energy > 30000) {
-          numUpgraders = 4;
-        } else if (energy > 20000) {
-          numUpgraders = 3;
-        } else if (energy > 10000) {
-          numUpgraders = 2;
+    if (State === RoomStates.STABLE) {
+      numUpgraders = 2;
+      if (room.storage) {
+        const energy: number | undefined = room.storage.store.energy;
+        if (energy) {
+          if (energy > 100000) {
+            numUpgraders = 6;
+          } else if (energy > 50000) {
+            numUpgraders = 5;
+          } else if (energy > 30000) {
+            numUpgraders = 4;
+          } else if (energy > 20000) {
+            numUpgraders = 3;
+          } else if (energy > 10000) {
+            numUpgraders = 2;
+          }
         }
       }
     }

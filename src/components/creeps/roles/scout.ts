@@ -47,7 +47,9 @@ function _needSpawnScout(roomID: string | undefined, spawn: Spawn, creeps: Creep
 function _needScout(roomID: string, creeps: Creep[]) {
   if (Game.rooms[roomID] === undefined &&
       Game.map.isRoomAvailable(roomID) &&
-      Memory.rooms[roomID].state !== RoomStates.NONE) {
+      (Memory.rooms[roomID] === undefined ||
+        Memory.rooms[roomID].state === undefined ||
+        Memory.rooms[roomID].state !== RoomStates.NONE)) {
     const _scouts = _.filter(creeps, (creep) => creep.memory.role === "scout" && creep.memory.room === roomID);
     if (_scouts.length) {
       return false;

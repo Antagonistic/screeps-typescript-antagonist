@@ -44,7 +44,7 @@ export function build(spawn: Spawn, creeps: Creep[], State: RoomStates, spawnAct
     switch (State) {
       case RoomStates.BOOTSTRAP: {
         const harvesters = _.filter(creeps, (creep) => creep.memory.role === "harvester");
-        if (harvesters.length < 4) {
+        if (harvesters.length < 5) {
           return CreepManager.createCreep(spawn, getBody(), "harvester");
         }
         break;

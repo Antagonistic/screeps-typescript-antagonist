@@ -83,7 +83,7 @@ function _spawnAllCreeps(room: Room, spawn: Spawn, creeps: Creep[]): void {
 
     spawnAction = builder.build(room, spawn, creeps, State, spawnAction);
     spawnAction = repair.build(room, spawn, creeps, State, spawnAction);
-    spawnAction = upgrader.build(room, spawn, creeps, spawnAction);
+    spawnAction = upgrader.build(room, spawn, creeps, State, spawnAction);
 
     spawnAction = scout.build(room, spawn, creeps, State, spawnAction);
   }

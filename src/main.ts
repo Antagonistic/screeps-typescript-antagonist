@@ -37,7 +37,7 @@ function mloop() {
     const room: Room = Game.rooms[i];
 
     CreepManager.run(room);
-    if (Game.time % 10 === 0) {
+    if (Game.time % 20 === 0) {
       StateManager.run(room);
     }
     StructureManager.run(room);

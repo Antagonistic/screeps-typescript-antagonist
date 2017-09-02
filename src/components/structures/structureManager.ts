@@ -32,6 +32,10 @@ export function run(room: Room): void {
   if (Game.time % 50 === 10) {
     _findTowers(room);
   }
+
+  if (Game.time % 50 === 15) {
+    _findBufferChests(room);
+  }
 }
 
 function _buildStructures(room: Room) {
@@ -75,6 +79,21 @@ function _findTowers(room: Room) {
   const towers: Tower[] = room.find(FIND_STRUCTURES, {filter: (x: Structure) => x.structureType === STRUCTURE_TOWER});
   const towerIds: string[] = _.map(towers, (tower) => tower.id);
   room.memory.towers = towerIds;
+}
+
+function _findBufferChests(room: Room) {
+  const containers: Container[] = room.find<Container>(FIND_STRUCTURES, {filter:
+    (x: Structure) => x.structureType === STRUCTURE_CONTAINER});
+  if (containers && containers.length) {
+    const bufferChests: string[] = [];
+    for (const container of containers) {
+      const sources: Source[] = container.pos.findInRange(FIND_SOURCES, 1);
+      if (!sources || sources.length === 0) {
+        bufferChests.push(container.id);
+      }
+    }
+    room.memory.bufferChests = bufferChests;
+  }
 }
 
 function _buildRoad(from: RoomPosition, goal: RoomPosition, rangeOne: boolean = true, placeContainer: boolean = true) {

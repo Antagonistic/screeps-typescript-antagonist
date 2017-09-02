@@ -1,7 +1,9 @@
+import RoomStates from "../../state/roomStates";
 
 export function run(spawn: Spawn): void {
   // Opportunistic renewal
-  if (!spawn.spawning && spawn.room.energyAvailable > 300) {
+  const State: RoomStates = spawn.room.memory.state;
+  if (!spawn.spawning && spawn.room.energyAvailable > 300 && State === RoomStates.STABLE) {
     const creeps: Creep[] = spawn.pos.findInRange(FIND_MY_CREEPS, 1, {filter:
       (s: Creep) => s.ticksToLive < 1200});
     if (creeps && creeps.length > 0) {

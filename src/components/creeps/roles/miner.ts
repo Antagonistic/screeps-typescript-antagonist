@@ -40,13 +40,13 @@ export function run(creep: Creep): void {
 }
 
 function _findBox(creep: Creep, source: Source) {
-  const box: Container[] = source.pos.findInRange<Container>(FIND_STRUCTURES, 2,
+  const box: Container[] = source.pos.findInRange<Container>(FIND_STRUCTURES, 1,
     {filter: (x: Structure) => x.structureType === STRUCTURE_CONTAINER});
   if (box && box.length > 0) {
     creep.moveTo(box[0], {visualizePathStyle: {stroke: "#ffffff"}});
     return;
   }
-  const boxSite: ConstructionSite[] = source.pos.findInRange(FIND_MY_CONSTRUCTION_SITES, 2,
+  const boxSite: ConstructionSite[] = source.pos.findInRange(FIND_MY_CONSTRUCTION_SITES, 1,
     {filter: (x: ConstructionSite) => x.structureType === STRUCTURE_CONTAINER});
   if (boxSite && boxSite.length > 0) {
     creep.moveTo(boxSite[0], {visualizePathStyle: {stroke: "#ffffff"}});
