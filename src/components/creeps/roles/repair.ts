@@ -11,9 +11,9 @@ import RoomStates from "../../state/roomStates";
  * @param {Creep} creep
  */
 export function run(creep: Creep): void {
+  let action: boolean = false;
 
   if (creepActions.canWork(creep)) {
-    let action: boolean = false;
     action = creepActions.actionRepairCache(creep, action);
     action = creepActions.actionRepair(creep, action, false, 10);
     action = creepActions.actionRepair(creep, action, true, 300000);
@@ -23,8 +23,17 @@ export function run(creep: Creep): void {
       action = creepActions.actionRepair(creep, action, true, 300);
       action = creepActions.actionRepair(creep, action, true, 2);
     }
+    action = creepActions.actionBuild(creep, action);
+    action = creepActions.actionUpgrade(creep, action);
   } else {
-    creepActions.getAnyEnergy(creep);
+    // action = creepActions.actionGetDroppedEnergy(creep, action);
+    action = creepActions.actionGetStorageEnergy(creep, action);
+    action = creepActions.actionGetContainerEnergy(creep, action, 2, true);
+    if (creep.room.energyCapacityAvailable < 550) {
+      action = creepActions.actionGetSourceEnergy(creep, action);
+    } else {
+      action = creepActions.actionGetDroppedEnergy(creep, action);
+    }
   }
 }
 

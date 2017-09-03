@@ -41,9 +41,16 @@ export function run(room: Room): void {
   }
 
   const spawns: Spawn[] = room.find<Spawn>(FIND_MY_SPAWNS);
+  const State: RoomStates = room.memory.state as RoomStates;
   if (spawns.length) {
     for (const spawn of spawns) {
       _spawnAllCreeps(room, spawn, creeps);
+    }
+  } else if (room.memory.home && State === RoomStates.MINE) {
+    const homeSpawns: Spawn[] = Game.rooms[room.memory.home].find<Spawn>(FIND_MY_SPAWNS);
+    if (homeSpawns && homeSpawns[0] && !homeSpawns[0].spawning) {
+      _spawnRemoteCreeps(room, homeSpawns[0], creeps);
+      // console.log("RemoteSpawn!");
     }
   }
 
@@ -95,6 +102,17 @@ function _spawnAllCreeps(room: Room, spawn: Spawn, creeps: Creep[]): void {
 
     spawnAction = scout.build(room, spawn, creeps, State, spawnAction);
     spawnAction = claim.build(room, spawn, creeps, State, spawnAction);
+  }
+}
+
+function _spawnRemoteCreeps(room: Room, spawn: Spawn, creeps: Creep[]): void {
+  const sources: Source[] = room.find(FIND_SOURCES);
+  const State: RoomStates = room.memory.state as RoomStates;
+  if (spawn && !spawn.spawning && State === RoomStates.MINE) {
+    let spawnAction: boolean = false;
+    spawnAction = miner.build(room, spawn, sources, creeps, State, spawnAction, true);
+    // spawnAction = hauler.build(room, spawn, sources, creeps, State, spawnAction);
+    // console.log(spawnAction);
   }
 }
 

@@ -12,14 +12,17 @@ import RoomStates from "../../state/roomStates";
  */
 export function run(creep: Creep): void {
   let action: boolean = false;
+  action = creepActions.actionRecycle(creep, action);
   if (creepActions.canWork(creep)) {
     action = creepActions.actionBuild(creep, action);
   } else {
+    // action = creepActions.actionGetDroppedEnergy(creep, action);
     action = creepActions.actionGetStorageEnergy(creep, action);
-    action = creepActions.actionGetContainerEnergy(creep, action, 2);
-    creepActions.getAnyEnergy(creep);
+    action = creepActions.actionGetContainerEnergy(creep, action, 2, true);
     if (creep.room.energyCapacityAvailable < 550) {
       action = creepActions.actionGetSourceEnergy(creep, action);
+    } else {
+      action = creepActions.actionGetDroppedEnergy(creep, action);
     }
   }
 }
@@ -45,22 +48,25 @@ export function build(room: Room, spawn: Spawn, creeps: Creep[], State: RoomStat
       let numBuilders: number = 0;
 
       switch (State) {
+        case RoomStates.MINE:
+          numBuilders = 1;
+          break;
         case RoomStates.BOOTSTRAP:
         case RoomStates.TRANSITION:
           numBuilders = 1;
           break;
         case RoomStates.STABLE:
           numBuilders = 1;
-          if (buildSum > 40000) {
+          if (buildSum > 10000) {
             numBuilders = 3;
-          } else if (buildSum > 10000) {
+          } else if (buildSum > 5000) {
             numBuilders = 2;
           }
           break;
       }
 
       if (_builders.length < numBuilders) {
-        return CreepManager.createCreep(spawn, getBody(room), "builder");
+        return CreepManager.createCreep(spawn, getBody(room), "builder", {room: room.name});
       }
     } else {
       // No more need for builders, recycle them

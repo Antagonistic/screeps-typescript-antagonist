@@ -138,7 +138,7 @@ export function moveToUpgrade(creep: Creep): void {
 
 export function moveToBuildSite(creep: Creep, target: ConstructionSite): void {
   if (creep.build(target) === ERR_NOT_IN_RANGE) {
-    moveTo(creep, target.pos);
+    moveTo(creep, target.pos, true);
   }
 }
 
@@ -163,18 +163,27 @@ export function moveToTransfer(creep: Creep, target: Structure | Creep): void {
   }
 }
 
+export function moveToWithdraw(creep: Creep, target: Structure): void {
+  if (creep.withdraw(target, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
+    moveTo(creep, target.pos);
+  }
+}
+
 export function moveToAttack(creep: Creep, target: Creep | Structure): void {
   if (creep.attack(target) === ERR_NOT_IN_RANGE) {
     moveTo(creep, target);
   }
 }
 
-export function actionMoveToRoom(creep: Creep, action: boolean, roomID?: string) {
+export function actionMoveToRoom(creep: Creep, action: boolean, roomID?: string | any) {
   if (action === false) {
     if (!roomID) {
       roomID = creep.memory.room;
     }
     if (roomID) {
+      if (roomID.name) {
+        roomID = roomID.name;
+      }
       if (creep.room.name !== roomID) {
         moveTo(creep, new RoomPosition(25, 25, roomID));
         return true;
@@ -221,9 +230,7 @@ export function actionBuild(creep: Creep, action: boolean): boolean {
   if (action === false) {
     const target: ConstructionSite = creep.pos.findClosestByRange(FIND_MY_CONSTRUCTION_SITES);
     if (target) {
-      if (creep.build(target) === ERR_NOT_IN_RANGE) {
-        creep.moveTo(target);
-      }
+      moveToBuildSite(creep, target);
       return true;
     }
   }
@@ -332,6 +339,22 @@ export function actionFillUpgrader(creep: Creep, action: boolean): boolean {
   return action;
 }
 
+export function actionFillBufferChest(creep: Creep, action: boolean): boolean {
+  if (action === false) {
+    if (creep.room.memory.bufferChests) {
+      const chestIDs: string[] = creep.room.memory.bufferChests;
+      for (const id of chestIDs) {
+        const chest: Container | null = Game.getObjectById(id);
+        if (chest && ((chest.store.energy || 0) + (chest.store.resources || 0)) < chest.storeCapacity) {
+          moveToTransfer(creep, chest);
+          return true;
+        }
+      }
+    }
+  }
+  return action;
+}
+
 export function actionGetDroppedEnergy(creep: Creep, action: boolean, scavange?: boolean): boolean {
   if (action === false) {
       // Find dropped resources
@@ -339,18 +362,18 @@ export function actionGetDroppedEnergy(creep: Creep, action: boolean, scavange?:
     if (scavange) {
       numPickup = 10;
     }
-    const droppedRes: Resource[] = creep.room.find<Resource>(FIND_DROPPED_RESOURCES,
+    const droppedRes: Resource = creep.pos.findClosestByRange<Resource>(FIND_DROPPED_RESOURCES,
       {filter: (x: Resource) => x.resourceType === RESOURCE_ENERGY
         && x.amount >= numPickup});
-    if (droppedRes.length) {
-      if (creep.pickup(droppedRes[0]) === ERR_NOT_IN_RANGE) {
-        creep.moveTo(droppedRes[0]);
+    if (droppedRes) {
+      if (creep.pickup(droppedRes) === ERR_NOT_IN_RANGE) {
+        creep.moveTo(droppedRes);
       } else {
         // Grab from container if nearby
-        const minerContainer: Container[] = droppedRes[0].pos.findInRange<Container>(FIND_STRUCTURES, 1, {filter:
+        const minerContainer: Container[] = droppedRes.pos.findInRange<Container>(FIND_STRUCTURES, 1, {filter:
           (x: Structure) => x.structureType === STRUCTURE_CONTAINER});
         if (minerContainer.length) {
-          let energyNeed: number = creep.carryCapacity - droppedRes[0].amount;
+          let energyNeed: number = creep.carryCapacity - droppedRes.amount;
           if (creep.carry.energy) {
             energyNeed -= creep.carry.energy;
           }
@@ -367,18 +390,30 @@ export function actionGetDroppedEnergy(creep: Creep, action: boolean, scavange?:
   return action;
 }
 
-export function actionGetContainerEnergy(creep: Creep, action: boolean, factor: number = 2): boolean {
+export function actionGetContainerEnergy(creep: Creep, action: boolean,
+                                         factor: number = 2, useBuffer?: boolean): boolean {
   if (action === false) {
-    const energyCont: Container = creep.pos.findClosestByRange(FIND_STRUCTURES,
+    const energyCont: Container[] = creep.room.find(FIND_STRUCTURES,
       {filter: (x: Container) => x.structureType === STRUCTURE_CONTAINER
         && x.store.energy >= creep.carryCapacity * factor});
     // console.log("energyCont: " + energyCont);
-    if (energyCont) {
-      // console.log("energyCont[0]: " + energyCont[0]);
-      if (creep.withdraw(energyCont, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
-        creep.moveTo(energyCont);
+    if (energyCont && energyCont.length) {
+      if (!useBuffer) {
+        const buf: string[] = creep.room.memory.bufferChest;
+        if (buf && buf.length) {
+          const nonBuffer = _.filter(energyCont, (x) => !_.includes(buf, x.id));
+          if (nonBuffer && nonBuffer.length) {
+            // console.log(nonBuffer);
+            const salt: number = (creep.memory.uuid || 0) % nonBuffer.length;
+            moveToWithdraw(creep, nonBuffer[salt]);
+            return true;
+          }
+        }
+      } else {
+        const salt: number = (creep.memory.uuid || 0) % energyCont.length;
+        moveToWithdraw(creep, energyCont[salt]);
+        return true;
       }
-      return true;
     }
   }
   return action;

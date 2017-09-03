@@ -13,15 +13,19 @@ import RoomStates from "../../state/roomStates";
 export function run(creep: Creep): void {
 
   let action: boolean = false;
+  action = creepActions.actionRecycle(creep, action);
 
   if (!action && creepActions.canWork(creep)) {
+    action = creepActions.actionMoveToRoom(creep, action, creep.memory.home);
     action = creepActions.actionFillEnergy(creep, action);
     action = creepActions.actionFillTower(creep, action);
+    action = creepActions.actionFillBufferChest(creep, action);
     action = creepActions.actionFillEnergyStorage(creep, action);
     action = creepActions.actionFillUpgrader(creep, action);
   } else {
+    action = creepActions.actionMoveToRoom(creep, action);
     action = creepActions.actionGetDroppedEnergy(creep, action, true);
-    action = creepActions.actionGetContainerEnergy(creep, action, 3);
+    action = creepActions.actionGetContainerEnergy(creep, action, 3, true);
   }
 }
 
@@ -41,15 +45,19 @@ export function build(room: Room, spawn: Spawn, sources: Source[], creeps: Creep
   if (spawnAction === false) {
     let numHaulers = 0;
     switch (State) {
+      case RoomStates.MINE:
+        numHaulers = sources.length * 2;
+        break;
       case RoomStates.TRANSITION:
         numHaulers = sources.length;
+        break;
       case RoomStates.STABLE:
-        numHaulers = sources.length + 1;
+        numHaulers = sources.length * 3 + 1;
         break;
     }
-    const _haulers = _.filter(creeps, (creep) => creep.memory.role === "hauler");
+    const _haulers = _.filter(creeps, (creep) => creep.memory.role === "hauler" && creep.memory.room === room.name);
     if (_haulers.length < numHaulers) {
-       return CreepManager.createCreep(spawn, getBody(room), "hauler");
+       return CreepManager.createCreep(spawn, getBody(room), "hauler", {room: room.name});
     }
   }
   return spawnAction;

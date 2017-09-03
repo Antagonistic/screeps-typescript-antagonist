@@ -23,12 +23,16 @@ export function run(room: Room): void {
     SpawnHandler.run(spawn);
     if (spawn.hits < spawn.hitsMax) {
       // EMERGENCY, SAFE MODE!
-      if (room.controller) {
-        room.controller.activateSafeMode();
-      }
+      _safeMode(room);
     }
   }
 
+  // Check for extention damage
+  const extentions: Extension[] = room.find<StructureExtension>(FIND_MY_STRUCTURES, {filter:
+    (x: Structure) => x.structureType === STRUCTURE_EXTENSION && x.hits < x.hitsMax});
+  if (extentions && extentions.length) {
+    _safeMode(room);
+  }
   // Check to build structures
   if (Game.time % 50 === 5) {
     _buildStructures(room);
@@ -41,6 +45,16 @@ export function run(room: Room): void {
 
   if (Game.time % 50 === 15) {
     _findBufferChests(room);
+  }
+}
+
+function _safeMode(room: Room) {
+  // EMERGENCY, SAFE MODE!
+  const hostiles: Creep[] = room.find(FIND_HOSTILE_CREEPS, {filter: (x: Creep) => x.owner.username !== "Invader"});
+  if (room.controller && room.controller.my && room.controller.safeModeAvailable && hostiles && hostiles.length) {
+    if (!room.controller.safeMode) {
+      room.controller.activateSafeMode();
+    }
   }
 }
 
@@ -84,6 +98,23 @@ export function getRoomEnergyCapacity(room: Room): number {
 function _buildStructures(room: Room) {
   const state: RoomStates = room.memory.state;
   switch  (state) {
+    case RoomStates.MINE:
+      if (room.memory.mine_structures) {
+        return;
+      }
+      console.log("Placing mining room layouts!");
+      const home = room.memory.home;
+      if (home) {
+        const homeSpawn: Spawn[] = Game.rooms[home].find(FIND_MY_SPAWNS);
+        const mineSources: Source[] = room.find(FIND_SOURCES);
+        if (homeSpawn && homeSpawn.length && mineSources && mineSources.length) {
+          for (const s of mineSources) {
+            _buildRoad(homeSpawn[0].pos, s.pos, true, true);
+          }
+          room.memory.mine_structures = true;
+        }
+      }
+      break;
     case RoomStates.TRANSITION:
     case RoomStates.STABLE:
       if (room.memory.stable_structures || room.energyCapacityAvailable < 550) {

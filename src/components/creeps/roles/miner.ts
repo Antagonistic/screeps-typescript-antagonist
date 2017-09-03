@@ -13,6 +13,7 @@ import RoomStates from "../../state/roomStates";
 export function run(creep: Creep): void {
   let action: boolean = false;
   const sourceID: string = creep.memory.sourceID;
+  action = creepActions.actionRecycle(creep, action);
   action = creepActions.actionMoveToRoom(creep, action);
   if (!action && sourceID) {
     const source: Source | null = Game.getObjectById(sourceID);
@@ -68,19 +69,20 @@ export function getBody(room: Room, isRemote: boolean = false): string[] | null 
 }
 
 export function build(room: Room, spawn: Spawn, sources: Source[], creeps: Creep[],
-                      State: RoomStates, spawnAction: boolean): boolean {
+                      State: RoomStates, spawnAction: boolean, remote: boolean = false): boolean {
   if (spawnAction === false) {
     switch (State) {
+      case RoomStates.MINE:
       case RoomStates.TRANSITION:
       case RoomStates.STABLE:
         for (const source of sources) {
           const _miner = _.filter(creeps, (creep) =>
             creep.memory.role === "miner" &&
             creep.memory.sourceID === source.id);
-          if (!_miner || _miner.length === 0) {
-            if (CreepManager.createCreep(spawn, getBody(room), "miner", {sourceID: source.id})) {
-              return true;
-            }
+          if (!_miner || _miner.length === 0 || _.all(_miner, (c) => c.ticksToLive < 150)) {
+            // console.log("minerSpawn");
+            return CreepManager.createCreep(spawn, getBody(room, remote), "miner",
+             {sourceID: source.id, room: room.name});
           }
         }
         break;

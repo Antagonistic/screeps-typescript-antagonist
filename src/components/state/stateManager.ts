@@ -6,6 +6,7 @@ import RoomStates from "./roomStates";
 
 import * as BootStrapState from "./states/bootstrap";
 import * as ClaimState from "./states/claim";
+import * as MineState from "./states/mine";
 import * as StableState from "./states/stable";
 import * as TransitionState from "./states/transition";
 
@@ -26,7 +27,7 @@ export function run(room: Room): void {
 
         break;
       case RoomStates.MINE:
-
+        MineState.run(room);
         break;
       case RoomStates.CLAIM:
         ClaimState.run(room);

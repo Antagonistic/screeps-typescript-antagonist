@@ -8,7 +8,7 @@ export function run(room: Room): void {
     room.memory.state = RoomStates.STABLE;
   } else if (!room.controller || !room.controller.my) {
     room.memory.state = RoomStates.NEUTRAL;
-  } else if (room.energyCapacityAvailable < 500) {
+  } else if (room.energyCapacityAvailable <= 500) {
     room.memory.state = RoomStates.BOOTSTRAP;
   }
 }

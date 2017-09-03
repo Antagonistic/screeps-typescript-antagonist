@@ -21,10 +21,11 @@ export function run(creep: Creep): void {
     action = creepActions.actionUpgrade(creep, action);
   } else {
     action = creepActions.actionGetStorageEnergy(creep, action, 4);
-    action = creepActions.actionGetContainerEnergy(creep, action, 4);
+    action = creepActions.actionGetContainerEnergy(creep, action, 4, true);
     if (creep.room.energyCapacityAvailable < 550) {
       action = creepActions.actionGetSourceEnergy(creep, action, 2);
     }
+    action = creepActions.actionGetDroppedEnergy(creep, action, false);
   }
 }
 
@@ -34,6 +35,8 @@ export function getBody(room: Room): string[] | null {
     return [WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, MOVE, MOVE];
   } else  if (energyAvailable >= 550) {
     return [MOVE, MOVE, WORK, WORK, WORK, CARRY, CARRY, CARRY];
+  } else if (room.energyCapacityAvailable >= 400) {
+    return [MOVE, MOVE, WORK, WORK, CARRY, CARRY];
   } else {
     return [WORK, WORK, CARRY, MOVE];
   }
@@ -50,28 +53,31 @@ export function build(room: Room, spawn: Spawn, creeps: Creep[], State: RoomStat
           const energy: number | undefined = room.storage.store.energy;
           if (energy) {
             if (energy > 100000) {
-              numUpgraders = 6;
+              numUpgraders += 5;
             } else if (energy > 50000) {
-              numUpgraders = 5;
+              numUpgraders += 4;
             } else if (energy > 30000) {
-              numUpgraders = 4;
+              numUpgraders += 3;
             } else if (energy > 20000) {
-              numUpgraders = 3;
+              numUpgraders += 2;
             } else if (energy > 10000) {
-              numUpgraders = 2;
+              numUpgraders += 1;
             }
           }
         }
+        // console.log(numUpgraders);
         const roomEnergy: number = StructureManager.getRoomEnergy(room);
         const roomEnergyCapacity: number = StructureManager.getRoomEnergyCapacity(room);
-        if (roomEnergyCapacity > 4000) {
+        // console.log(roomEnergy + " " + roomEnergyCapacity);
+        if (roomEnergyCapacity >= 4000) {
           if (roomEnergy > roomEnergyCapacity) {
-            numUpgraders += 2;
+            numUpgraders += 3;
           } else if (roomEnergy > roomEnergyCapacity / 2) {
             numUpgraders += 1;
           }
         }
       }
+      // console.log(numUpgraders);
       if (_upgraders.length < numUpgraders) {
         return CreepManager.createCreep(spawn, getBody(room), "upgrader");
       }
