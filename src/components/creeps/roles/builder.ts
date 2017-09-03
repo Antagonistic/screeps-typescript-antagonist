@@ -28,6 +28,8 @@ export function getBody(room: Room): string[] | null {
   const availableEnergy: number = room.energyCapacityAvailable;
   if (availableEnergy >= 650) {
     return [MOVE, MOVE, MOVE, WORK, WORK, WORK, WORK, CARRY, CARRY];
+  } else if (availableEnergy >= 400) {
+    return [MOVE, MOVE, WORK, WORK, CARRY, CARRY];
   } else {
     return [MOVE, WORK, WORK, CARRY];
   }

@@ -21,6 +21,12 @@ export function run(room: Room): void {
   const spawns: Spawn[] = room.find(FIND_MY_SPAWNS);
   for (const spawn of spawns) {
     SpawnHandler.run(spawn);
+    if (spawn.hits < spawn.hitsMax) {
+      // EMERGENCY, SAFE MODE!
+      if (room.controller) {
+        room.controller.activateSafeMode();
+      }
+    }
   }
 
   // Check to build structures
@@ -38,13 +44,49 @@ export function run(room: Room): void {
   }
 }
 
+export function getRoomEnergy(room: Room): number {
+  let energy: number = 0;
+  if (room.storage && room.storage.my && room.storage.store.energy) {
+    energy += room.storage.store.energy;
+  }
+  const containers: Container[] = room.find<Container>(FIND_STRUCTURES, {filter:
+    (x: Structure) => x.structureType === STRUCTURE_CONTAINER});
+  if (containers && containers.length) {
+    for (const container of containers) {
+      energy += container.store.energy;
+    }
+  }
+  const dropped: Resource[] = room.find<Resource>(FIND_DROPPED_RESOURCES, {filter:
+    (x: Resource) => x.resourceType === RESOURCE_ENERGY});
+  if (dropped && dropped.length) {
+    for (const res of dropped) {
+      energy += res.amount;
+    }
+  }
+  return energy;
+}
+
+export function getRoomEnergyCapacity(room: Room): number {
+  let energy: number = 0;
+  if (room.storage && room.storage.my && room.storage.store.energy) {
+    energy += room.storage.storeCapacity;
+  }
+  const containers: Container[] = room.find<Container>(FIND_STRUCTURES, {filter:
+    (x: Structure) => x.structureType === STRUCTURE_CONTAINER});
+  if (containers && containers.length) {
+    for (const container of containers) {
+      energy += container.storeCapacity;
+    }
+  }
+  return energy;
+}
+
 function _buildStructures(room: Room) {
   const state: RoomStates = room.memory.state;
   switch  (state) {
-    case RoomStates.BOOTSTRAP:
     case RoomStates.TRANSITION:
     case RoomStates.STABLE:
-      if (room.memory.stable_structures) {
+      if (room.memory.stable_structures || room.energyCapacityAvailable < 550) {
         return;
       }
       console.log("Placing stable room layouts!");

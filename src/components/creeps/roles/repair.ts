@@ -18,9 +18,11 @@ export function run(creep: Creep): void {
     action = creepActions.actionRepair(creep, action, false, 10);
     action = creepActions.actionRepair(creep, action, true, 300000);
     action = creepActions.actionRepair(creep, action, false, 2);
-    action = creepActions.actionRepair(creep, action, true, 3000);
-    action = creepActions.actionRepair(creep, action, true, 300);
-    action = creepActions.actionRepair(creep, action, true, 2);
+    if (creep.room.controller && creep.room.controller.level >= 3) {
+      action = creepActions.actionRepair(creep, action, true, 3000);
+      action = creepActions.actionRepair(creep, action, true, 300);
+      action = creepActions.actionRepair(creep, action, true, 2);
+    }
   } else {
     creepActions.getAnyEnergy(creep);
   }
@@ -40,10 +42,12 @@ export function build(room: Room, spawn: Spawn, creeps: Creep[], State: RoomStat
       case RoomStates.STABLE:
         const _reps = _.filter(creeps, (creep) => creep.memory.role === "repair");
         let numReps = 1;
-        const walls: StructureWall[] = room.find(FIND_STRUCTURES, {filter: (x: Structure) =>
-          x.structureType === STRUCTURE_WALL});
-        if (walls.length > 0) {
-          numReps = 3;
+        if (room.controller && room.controller.my && room.controller.level >= 3) {
+          const walls: StructureWall[] = room.find(FIND_STRUCTURES, {filter: (x: Structure) =>
+            x.structureType === STRUCTURE_WALL});
+          if (walls.length > 0) {
+            numReps = 3;
+          }
         }
         if (_reps.length < numReps) {
           return CreepManager.createCreep(spawn, getBody(room), "repair");
