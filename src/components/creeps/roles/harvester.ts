@@ -61,9 +61,9 @@ export function build(spawn: Spawn, creeps: Creep[], State: RoomStates, spawnAct
     if (harvesters.length < numHarvesters) {
       return CreepManager.createCreep(spawn, getBody(spawn.room), "harvester");
     }
-    if (numHarvesters === 0 && harvesters.length) {
+    /*if (numHarvesters === 0 && harvesters.length) {
       _.each(harvesters, (harvester) => harvester.memory.role = "hauler");
-    }
+    }*/
   }
   return spawnAction;
 }

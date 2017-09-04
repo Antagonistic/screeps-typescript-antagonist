@@ -15,28 +15,30 @@ export function run(creep: Creep): void {
   const sourceID: string = creep.memory.sourceID;
   action = creepActions.actionRecycle(creep, action);
   action = creepActions.actionMoveToRoom(creep, action);
-  if (!action && sourceID) {
-    const source: Source | null = Game.getObjectById(sourceID);
-    if (source) {
-      const ret: number = creep.harvest(source);
-      if (ret === ERR_NOT_IN_RANGE) {
-        _findBox(creep, source);
-      } else {
-        // In case its not on box cos of obstruction
-        if (creep.ticksToLive % 50 === 0) {
+  if (!action) {
+    if (sourceID) {
+      const source: Source | null = Game.getObjectById(sourceID);
+      if (source) {
+        const ret: number = creep.harvest(source);
+        if (ret === ERR_NOT_IN_RANGE) {
           _findBox(creep, source);
+        } else {
+          // In case its not on box cos of obstruction
+          if (creep.ticksToLive % 50 === 0) {
+            _findBox(creep, source);
+          }
+        }
+      } else {
+        if (creep.room.name !== creep.memory.room) {
+          // Wrong room, lets walk
+          creep.moveTo(new RoomPosition(20, 20, creep.memory.room));
         }
       }
     } else {
-      if (creep.room.name !== creep.memory.room) {
-        // Wrong room, lets walk
-        creep.moveTo(new RoomPosition(20, 20, creep.memory.room));
-      }
+      console.log("Miner " + creep.name + "  has no specified source to mine!");
+      const sources: Source[] = creep.room.find(FIND_SOURCES);
+      creep.memory.sourceID = sources[0].id;
     }
-  } else {
-    console.log("Miner " + creep.name + "  has no specified source to mine!");
-    const sources: Source[] = creep.room.find(FIND_SOURCES);
-    creep.memory.sourceID = sources[0].id;
   }
 }
 
@@ -80,7 +82,7 @@ export function build(room: Room, spawn: Spawn, sources: Source[], creeps: Creep
             creep.memory.role === "miner" &&
             creep.memory.sourceID === source.id);
           if (!_miner || _miner.length === 0 || _.all(_miner, (c) => c.ticksToLive < 150)) {
-            console.log("minerSpawn " + room.name + " " + spawn.name);
+            // console.log("minerSpawn " + room.name + " " + spawn.name);
             return CreepManager.createCreep(spawn, getBody(spawn.room, remote), "miner",
              {sourceID: source.id}, room);
           }

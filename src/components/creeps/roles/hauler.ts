@@ -52,7 +52,7 @@ export function build(room: Room, spawn: Spawn, sources: Source[], creeps: Creep
         numHaulers = sources.length;
         break;
       case RoomStates.STABLE:
-        numHaulers = sources.length * 3 + 1;
+        numHaulers = sources.length * 2 + 1;
         break;
     }
     const _haulers = _.filter(creeps, (creep) => creep.memory.role === "hauler" && creep.memory.room === room.name);
