@@ -40,16 +40,18 @@ export function run(room: Room): void {
     // log.info(creepCount + " creeps found in the playground.");
   }
 
+  let spawnAction: boolean = false;
+
   const spawns: Spawn[] = room.find<Spawn>(FIND_MY_SPAWNS);
   const State: RoomStates = room.memory.state as RoomStates;
   if (spawns.length) {
     for (const spawn of spawns) {
-      _spawnAllCreeps(room, spawn, creeps);
+      spawnAction = _spawnAllCreeps(room, spawn, creeps, spawnAction);
     }
   } else if (room.memory.home && State === RoomStates.MINE) {
     const homeSpawns: Spawn[] = Game.rooms[room.memory.home].find<Spawn>(FIND_MY_SPAWNS);
     if (homeSpawns && homeSpawns[0] && !homeSpawns[0].spawning) {
-      _spawnRemoteCreeps(room, homeSpawns[0], creeps);
+      spawnAction = _spawnRemoteCreeps(room, homeSpawns[0], creeps, spawnAction);
       // console.log("RemoteSpawn!");
     }
   }
@@ -87,11 +89,10 @@ export function run(room: Room): void {
   });
 }
 
-function _spawnAllCreeps(room: Room, spawn: Spawn, creeps: Creep[]): void {
+function _spawnAllCreeps(room: Room, spawn: Spawn, creeps: Creep[], spawnAction: boolean): boolean {
   const sources: Source[] = room.find(FIND_SOURCES);
   const State: RoomStates = room.memory.state as RoomStates;
   if (spawn && !spawn.spawning) {
-    let spawnAction: boolean = false;
     spawnAction = harvester.build(spawn, creeps, State, spawnAction);
     spawnAction = miner.build(room, spawn, sources, creeps, State, spawnAction);
     spawnAction = hauler.build(room, spawn, sources, creeps, State, spawnAction);
@@ -103,17 +104,18 @@ function _spawnAllCreeps(room: Room, spawn: Spawn, creeps: Creep[]): void {
     spawnAction = scout.build(room, spawn, creeps, State, spawnAction);
     spawnAction = claim.build(room, spawn, creeps, State, spawnAction);
   }
+  return spawnAction;
 }
 
-function _spawnRemoteCreeps(room: Room, spawn: Spawn, creeps: Creep[]): void {
+function _spawnRemoteCreeps(room: Room, spawn: Spawn, creeps: Creep[], spawnAction: boolean): boolean {
   const sources: Source[] = room.find(FIND_SOURCES);
   const State: RoomStates = room.memory.state as RoomStates;
   if (spawn && !spawn.spawning && State === RoomStates.MINE) {
-    let spawnAction: boolean = false;
     spawnAction = miner.build(room, spawn, sources, creeps, State, spawnAction, true);
     // spawnAction = hauler.build(room, spawn, sources, creeps, State, spawnAction);
     // console.log(spawnAction);
   }
+  return spawnAction;
 }
 
 export function createCreep(spawn: Spawn, bodyParts: string[] | null,
