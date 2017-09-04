@@ -1,12 +1,12 @@
 import * as Config from "./config/config";
 
 import * as CreepManager from "./components/creeps/creepManager";
+import * as FlagManager from "./components/flags/flagManager";
 import * as StateManager from "./components/state/stateManager";
+import * as StructureManager from "./components/structures/structureManager";
 
 import * as Profiler from "screeps-profiler";
 import { log } from "./lib/logger/log";
-
-import * as StructureManager from "./components/structures/structureManager";
 
 // Any code written outside the `loop()` method is executed only when the
 // Screeps system reloads your script.
@@ -45,6 +45,8 @@ function mloop() {
   // console.log(creeps.length);
 
   CreepManager.runCreeps(creeps);
+
+  FlagManager.run();
 
   for (const i in Game.rooms) {
     const room: Room = Game.rooms[i];

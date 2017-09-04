@@ -49,10 +49,14 @@ export function getBody(room: Room): string[] | null {
 
 export function build(room: Room, spawn: Spawn, creeps: Creep[], State: RoomStates, spawnAction: boolean): boolean {
   if (spawnAction === false) {
+    let numReps: number = 0;
+    const _reps = _.filter(creeps, (creep) => creep.memory.role === "repair" && creep.memory.room === room.name);
     switch (State) {
+      case RoomStates.MINE:
+        numReps = 1;
+        break;
       case RoomStates.STABLE:
-        const _reps = _.filter(creeps, (creep) => creep.memory.role === "repair");
-        let numReps = 1;
+        numReps = 1;
         if (room.controller && room.controller.my && room.controller.level >= 3) {
           const walls: StructureWall[] = room.find(FIND_STRUCTURES, {filter: (x: Structure) =>
             x.structureType === STRUCTURE_WALL});
@@ -60,10 +64,10 @@ export function build(room: Room, spawn: Spawn, creeps: Creep[], State: RoomStat
             numReps = 3;
           }
         }
-        if (_reps.length < numReps) {
-          return CreepManager.createCreep(spawn, getBody(spawn.room), "repair", {}, room);
-        }
         break;
+    }
+    if (_reps.length < numReps) {
+      return CreepManager.createCreep(spawn, getBody(spawn.room), "repair", {}, room);
     }
   }
   return spawnAction;
