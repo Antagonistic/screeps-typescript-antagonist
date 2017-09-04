@@ -30,14 +30,19 @@ export function run(creep: Creep): void {
 }
 
 export function getBody(room: Room): string[] | null {
-    if (room.energyCapacityAvailable > 600) {
-        // Big hauler
-        return [MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY];
+    if (room.energyCapacityAvailable >= 750) {
+      // Huge hauler
+      return [MOVE, MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY];
+    } else if (room.energyCapacityAvailable >= 600) {
+      // Big hauler
+      return [MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY];
+    } else if (room.energyAvailable >= 450) {
+      // Medium hauler
+      return [MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY];
     } else {
-        // Small hauler
-        return [MOVE, MOVE, CARRY, CARRY, CARRY, CARRY];
+      // Small hauler
+      return [MOVE, MOVE, CARRY, CARRY, CARRY, CARRY];
     }
-
   }
 
 export function build(room: Room, spawn: Spawn, sources: Source[], creeps: Creep[],

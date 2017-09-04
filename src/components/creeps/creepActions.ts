@@ -197,7 +197,7 @@ export function actionMoveToRoom(creep: Creep, action: boolean, roomID?: string 
         roomID = roomID.name;
       }
       if (creep.room.name !== roomID) {
-        moveTo(creep, new RoomPosition(25, 25, roomID));
+        moveTo(creep, new RoomPosition(25, 25, roomID), true);
         return true;
       } else {
         const pos: RoomPosition = creep.pos;
