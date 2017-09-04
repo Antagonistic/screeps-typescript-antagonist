@@ -16,15 +16,18 @@ export function run(creep: Creep): void {
   if (creepActions.canWork(creep)) {
     action = creepActions.actionMoveToRoom(creep, action);
     action = creepActions.actionRepairCache(creep, action);
+    action = creepActions.actionRepairCritical(creep, action);
+    // action = creepActions.actionRepair(creep, action, true, 3000000);
     action = creepActions.actionRepair(creep, action, false, 10);
-    action = creepActions.actionRepair(creep, action, true, 300000);
+    // action = creepActions.actionRepair(creep, action, true, 300000);
     action = creepActions.actionRepair(creep, action, false, 2);
-    if (creep.room.controller && creep.room.controller.level >= 3) {
-      action = creepActions.actionRepair(creep, action, true, 3000);
-      action = creepActions.actionRepair(creep, action, true, 300);
-      action = creepActions.actionRepair(creep, action, true, 2);
-    }
     action = creepActions.actionBuild(creep, action);
+    if (creep.room.controller && creep.room.controller.level >= 3) {
+      // action = creepActions.actionRepair(creep, action, true, 3000);
+      // action = creepActions.actionRepair(creep, action, true, 300);
+      // action = creepActions.actionRepair(creep, action, true, 2);
+      action = creepActions.actionRepairWeakestWall(creep, action);
+    }
     action = creepActions.actionUpgrade(creep, action);
   } else {
     action = creepActions.actionGetStorageEnergy(creep, action);
@@ -61,7 +64,7 @@ export function build(room: Room, spawn: Spawn, creeps: Creep[], State: RoomStat
           const walls: StructureWall[] = room.find(FIND_STRUCTURES, {filter: (x: Structure) =>
             x.structureType === STRUCTURE_WALL});
           if (walls.length > 0) {
-            numReps = 3;
+            numReps = 2;
           }
         }
         break;

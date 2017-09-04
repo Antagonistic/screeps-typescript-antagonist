@@ -36,7 +36,7 @@ export function build(room: Room, spawn: Spawn, creeps: Creep[],
   if (spawnAction === false) {
     if (State === RoomStates.MINE) {
       if (room.controller) {
-        if (!room.controller.my || !room.controller.reservation || room.controller.reservation.ticksToEnd < 150) {
+        if (!room.controller.my || !room.controller.reservation || room.controller.reservation.ticksToEnd < 1500) {
           const _claims = _.filter(creeps, (creep) => creep.memory.role === "claim" && creep.memory.room === room.name);
           if (!_claims || _claims.length === 0) {
             // Need to reserve

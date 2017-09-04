@@ -144,7 +144,7 @@ export function moveToBuildSite(creep: Creep, target: ConstructionSite): void {
 
 export function moveToRepair(creep: Creep, target: Structure): void {
   if (creep.repair(target) === ERR_NOT_IN_RANGE) {
-    moveTo(creep, target);
+    moveTo(creep, target, true);
   }
 }
 
@@ -173,6 +173,17 @@ export function moveToAttack(creep: Creep, target: Creep | Structure): void {
   if (creep.attack(target) === ERR_NOT_IN_RANGE) {
     moveTo(creep, target);
   }
+}
+
+export function moveToRangedAttack(creep: Creep, target: Creep | Structure): void {
+  const range: number = creep.pos.getRangeTo(target.pos);
+  if (range > 3) {
+    moveTo(creep, target, true);
+  } else if (range < 3) {
+    const path = PathFinder.search(creep.pos, {pos: target.pos, range: 3}, {flee: true});
+    creep.moveByPath(path.path);
+  }
+  creep.rangedAttack(target);
 }
 
 export function moveToReserve(creep: Creep, target: Controller): void {
@@ -269,6 +280,23 @@ export function actionRepairCache(creep: Creep, action: boolean): boolean {
   return action;
 }
 
+export function actionRepairCritical(creep: Creep, action: boolean): boolean {
+  if (action === false) {
+    const targets: Structure[] = creep.room.find(FIND_STRUCTURES, {filter:
+      (x: Structure) => (x.structureType === STRUCTURE_SPAWN ||
+        x.structureType === STRUCTURE_EXTENSION ||
+        x.structureType === STRUCTURE_TOWER)
+        && x.hits < x.hitsMax});
+    if (targets && targets.length) {
+      const salt: number = (creep.memory.uuid || 0) % targets.length;
+      creep.memory.target = targets[salt].id;
+      moveToRepair(creep, targets[salt]);
+      return true;
+    }
+  }
+  return action;
+}
+
 export function actionRepair(creep: Creep, action: boolean,
                              repWalls: boolean = false, factor: number = 3): boolean {
   if (action === false) {
@@ -277,7 +305,7 @@ export function actionRepair(creep: Creep, action: boolean,
       // Find walls
       targets = creep.room.find<Structure>(FIND_STRUCTURES, {filter:
         (x: Structure) => (x.structureType === STRUCTURE_WALL || x.structureType === STRUCTURE_RAMPART) &&
-        x.hits < x.hitsMax / factor});
+        ((x.hits < x.hitsMax / factor) || x.hits === 1)});
     } else {
       // Find non-walls
       targets = creep.room.find<Structure>(FIND_STRUCTURES, {filter:
@@ -289,6 +317,21 @@ export function actionRepair(creep: Creep, action: boolean,
       // console.log(creep.name + " " + salt + " " + targets.length);
       creep.memory.target = targets[salt].id;
       moveToRepair(creep, targets[salt]);
+      return true;
+    }
+  }
+  return action;
+}
+
+export function actionRepairWeakestWall(creep: Creep, action: boolean, maxHits: number = 1000000): boolean {
+  if (action === false) {
+    const targets: Structure[] = creep.room.find<Structure>(FIND_STRUCTURES, {filter:
+      (x: Structure) => (x.structureType === STRUCTURE_WALL || x.structureType === STRUCTURE_RAMPART) &&
+      x.hits < maxHits});
+    if (targets && targets.length) {
+      const target = _.min(targets, (t) => t.hits);
+      creep.memory.target = target.id;
+      moveToRepair(creep, target);
       return true;
     }
   }
@@ -500,7 +543,13 @@ export function actionAttackHostile(creep: Creep, action: boolean, target?: Cree
       }
     }
     if (target) {
-      moveToAttack(creep, target);
+      if (creep.getActiveBodyparts(RANGED_ATTACK)) {
+        moveToRangedAttack(creep, target);
+      } else if (creep.getActiveBodyparts(ATTACK)) {
+        moveToAttack(creep, target);
+      }
+
+      // console.log(creep.name + " attacking " + target.body);
       return true;
     }
   }

@@ -115,7 +115,7 @@ function _buildStructures(room: Room) {
           for (const s of mineSources) {
             _buildRoad(homeSpawn[0].pos, s.pos, true, true);
           }
-          room.memory.mine_structures = true;
+          room.memory.mine_structures = Game.time;
         }
       }
       break;

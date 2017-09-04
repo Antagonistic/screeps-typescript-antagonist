@@ -99,6 +99,8 @@ function _spawnAllCreeps(room: Room, spawn: Spawn, creeps: Creep[], spawnAction:
   const sources: Source[] = room.find(FIND_SOURCES);
   const State: RoomStates = room.memory.state as RoomStates;
   if (spawn && !spawn.spawning) {
+    spawnAction = guard.build(room, spawn, creeps, spawnAction);
+
     spawnAction = harvester.build(spawn, creeps, State, spawnAction);
     spawnAction = miner.build(room, spawn, sources, creeps, State, spawnAction);
     spawnAction = hauler.build(room, spawn, sources, creeps, State, spawnAction);
@@ -116,14 +118,17 @@ function _spawnRemoteCreeps(room: Room, spawn: Spawn, creeps: Creep[], spawnActi
   const sources: Source[] = room.find(FIND_SOURCES);
   const State: RoomStates = room.memory.state as RoomStates;
   if (spawn && !spawn.spawning && State === RoomStates.MINE) {
-    spawnAction = guard.build(room, spawn, creeps, spawnAction);
-
-    spawnAction = miner.build(room, spawn, sources, creeps, State, spawnAction, true);
-    spawnAction = hauler.build(room, spawn, sources, creeps, State, spawnAction);
-    spawnAction = builder.build(room, spawn, creeps, State, spawnAction);
-    spawnAction = repair.build(room, spawn, creeps, State, spawnAction);
-    spawnAction = claim.build(room, spawn, creeps, State, spawnAction);
-    // console.log(spawnAction);
+    const hostiles = room.find<Creep>(FIND_HOSTILE_CREEPS);
+    if (hostiles && hostiles.length) {
+      spawnAction = guard.build(room, spawn, creeps, spawnAction);
+    } else {
+      spawnAction = miner.build(room, spawn, sources, creeps, State, spawnAction, true);
+      spawnAction = hauler.build(room, spawn, sources, creeps, State, spawnAction);
+      spawnAction = builder.build(room, spawn, creeps, State, spawnAction);
+      spawnAction = repair.build(room, spawn, creeps, State, spawnAction);
+      spawnAction = claim.build(room, spawn, creeps, State, spawnAction);
+      // console.log(spawnAction);
+    }
   }
   return spawnAction;
 }
