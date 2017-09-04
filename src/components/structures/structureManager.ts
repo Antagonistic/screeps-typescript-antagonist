@@ -46,6 +46,10 @@ export function run(room: Room): void {
   if (Game.time % 50 === 15) {
     _findBufferChests(room);
   }
+
+  if (Game.time % 50 === 20) {
+    _findRemoteRooms(room);
+  }
 }
 
 function _safeMode(room: Room) {
@@ -166,6 +170,36 @@ function _findBufferChests(room: Room) {
       }
     }
     room.memory.bufferChests = bufferChests;
+  }
+}
+
+function _findRemoteRooms(room: Room) {
+  const validRemotes: string[] = [];
+  const exits = Game.map.describeExits(room.name);
+  let exit: string | undefined = exits["1"];
+  if (exit && _validRoom(exit)) {
+    validRemotes.push(exit);
+  }
+  exit = exits["3"];
+  if (exit && _validRoom(exit)) {
+    validRemotes.push(exit);
+  }
+  exit = exits["5"];
+  if (exit && _validRoom(exit)) {
+    validRemotes.push(exit);
+  }
+  exit = exits["7"];
+  if (exit && _validRoom(exit)) {
+    validRemotes.push(exit);
+  }
+  room.memory.remoteRoom = validRemotes;
+}
+
+function _validRoom(roomName: string): boolean {
+  if (!Game.map.isRoomAvailable(roomName)) {
+    return false;
+  } else {
+    return true;
   }
 }
 

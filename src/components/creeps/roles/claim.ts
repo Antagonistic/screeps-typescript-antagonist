@@ -15,6 +15,9 @@ export function run(creep: Creep): void {
 
   action = creepActions.actionMoveToRoom(creep, action);
   // action = creepActions.actionMoveToController(creep, action);
+  if (creep.memory.reserve) {
+    action = creepActions.actionReserve(creep, action);
+  }
 
 }
 
@@ -25,36 +28,17 @@ export function getBody(): string[] | null {
 export function build(room: Room, spawn: Spawn, creeps: Creep[],
                       State: RoomStates, spawnAction: boolean): boolean {
   if (spawnAction === false) {
-    if (State === RoomStates.STABLE) {
-      const exits = Game.map.describeExits(room.name);
-      spawnAction = _needClaimer(exits["1"], spawn, creeps, spawnAction);
-      spawnAction = _needClaimer(exits["3"], spawn, creeps, spawnAction);
-      spawnAction = _needClaimer(exits["5"], spawn, creeps, spawnAction);
-      spawnAction = _needClaimer(exits["7"], spawn, creeps, spawnAction);
+    if (State === RoomStates.MINE) {
+      if (room.controller) {
+        if (!room.controller.my || !room.controller.reservation || room.controller.reservation.ticksToEnd < 150) {
+          const _claims = _.filter(creeps, (creep) => creep.memory.role === "claim" && creep.memory.room === room.name);
+          if (!_claims || _claims.length === 0) {
+            // Need to reserve
+            return CreepManager.createCreep(spawn, getBody(), "claim", {reserve: true}, room);
+          }
+        }
+      }
     }
   }
   return spawnAction;
-}
-
-function _needClaimer(roomID: string | undefined, spawn: Spawn, creeps: Creep[], spawnAction: boolean) {
-  if (!spawnAction && roomID !== undefined && _needClaim(roomID, creeps)) {
-    CreepManager.createCreep(spawn, getBody(), "claim", {room: roomID});
-    return true;
-  }
-  return spawnAction;
-}
-
-function _needClaim(roomID: string, creeps: Creep[]) {
-  if (Game.rooms[roomID] === undefined &&
-    Game.map.isRoomAvailable(roomID) &&
-    (Memory.rooms[roomID] === undefined ||
-      Memory.rooms[roomID].state !== RoomStates.CLAIM ||
-      Memory.rooms[roomID].state !== RoomStates.MINE)) {
-    const _claims = _.filter(creeps, (creep) => creep.memory.role === "claim" && creep.memory.room === roomID);
-    if (_claims.length) {
-      return false;
-    } else {
-      return true;
-    }
-  }
 }

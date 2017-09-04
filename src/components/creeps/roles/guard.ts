@@ -28,7 +28,7 @@ export function build(room: Room, spawn: Spawn, creeps: Creep[],
     if (hostiles && hostiles.length) {
       const guards: Creep[] = _.filter(creeps, (creep) => creep.memory.role === "guard");
       _.each(guards, (guard) => guard.memory.recycle = undefined);
-      return CreepManager.createCreep(spawn, getBody(), "guard");
+      return CreepManager.createCreep(spawn, getBody(), "guard", {}, room);
     } else {
       const guards: Creep[] = _.filter(creeps, (creep) => creep.memory.role === "guard");
       if (guards && guards.length) {

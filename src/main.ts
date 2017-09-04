@@ -33,10 +33,23 @@ function mloop() {
     Memory.uuid = 0;
   }
 
+  let creeps: Creep[] = [];
+  for (const i in Game.rooms) {
+    const room: Room = Game.rooms[i];
+    const roomCreeps: Creep[] = room.find(FIND_MY_CREEPS);
+    if (roomCreeps && roomCreeps.length) {
+      creeps = creeps.concat(roomCreeps);
+    }
+  }
+
+  // console.log(creeps.length);
+
+  CreepManager.runCreeps(creeps);
+
   for (const i in Game.rooms) {
     const room: Room = Game.rooms[i];
 
-    CreepManager.run(room);
+    CreepManager.run(room, creeps);
     if (Game.time % 20 === 0) {
       StateManager.run(room);
     }

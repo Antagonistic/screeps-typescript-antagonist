@@ -14,6 +14,7 @@ export function run(creep: Creep): void {
   let action: boolean = false;
 
   if (creepActions.canWork(creep)) {
+    action = creepActions.actionMoveToRoom(creep, action);
     action = creepActions.actionRepairCache(creep, action);
     action = creepActions.actionRepair(creep, action, false, 10);
     action = creepActions.actionRepair(creep, action, true, 300000);
@@ -34,6 +35,7 @@ export function run(creep: Creep): void {
     } else {
       action = creepActions.actionGetDroppedEnergy(creep, action);
     }
+    action = creepActions.actionMoveToRoom(creep, action, creep.memory.home);
   }
 }
 
@@ -59,7 +61,7 @@ export function build(room: Room, spawn: Spawn, creeps: Creep[], State: RoomStat
           }
         }
         if (_reps.length < numReps) {
-          return CreepManager.createCreep(spawn, getBody(room), "repair");
+          return CreepManager.createCreep(spawn, getBody(spawn.room), "repair", {}, room);
         }
         break;
     }

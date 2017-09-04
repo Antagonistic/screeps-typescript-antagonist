@@ -175,6 +175,18 @@ export function moveToAttack(creep: Creep, target: Creep | Structure): void {
   }
 }
 
+export function moveToReserve(creep: Creep, target: Controller): void {
+  if (creep.reserveController(target) === ERR_NOT_IN_RANGE) {
+    moveTo(creep, target, true);
+  }
+}
+
+export function moveToClaim(creep: Creep, target: Controller): void {
+  if (creep.claimController(target) === ERR_NOT_IN_RANGE) {
+    moveTo(creep, target, true);
+  }
+}
+
 export function actionMoveToRoom(creep: Creep, action: boolean, roomID?: string | any) {
   if (action === false) {
     if (!roomID) {
@@ -470,8 +482,10 @@ export function actionRecycle(creep: Creep, action: boolean) {
       const spawn = creep.room.find<Spawn>(FIND_MY_SPAWNS);
       if (spawn.length) {
           moveToRecycle(creep, spawn[0]);
+          return true;
+      } else {
+        return actionMoveToRoom(creep, action, creep.memory.home);
       }
-      return true;
     }
   }
   return action;
@@ -488,6 +502,26 @@ export function actionAttackHostile(creep: Creep, action: boolean, target?: Cree
     if (target) {
       moveToAttack(creep, target);
       return true;
+    }
+  }
+  return action;
+}
+
+export function actionReserve(creep: Creep, action: boolean) {
+  if (action === false) {
+    const controller = creep.room.controller;
+    if (controller) {
+      moveToReserve(creep, controller);
+    }
+  }
+  return action;
+}
+
+export function actionClaim(creep: Creep, action: boolean) {
+  if (action === false) {
+    const controller = creep.room.controller;
+    if (controller) {
+      moveToClaim(creep, controller);
     }
   }
   return action;

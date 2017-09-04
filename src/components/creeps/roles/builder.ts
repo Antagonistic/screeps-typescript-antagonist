@@ -14,6 +14,7 @@ export function run(creep: Creep): void {
   let action: boolean = false;
   action = creepActions.actionRecycle(creep, action);
   if (creepActions.canWork(creep)) {
+    action = creepActions.actionMoveToRoom(creep, action);
     action = creepActions.actionBuild(creep, action);
   } else {
     // action = creepActions.actionGetDroppedEnergy(creep, action);
@@ -24,6 +25,7 @@ export function run(creep: Creep): void {
     } else {
       action = creepActions.actionGetDroppedEnergy(creep, action);
     }
+    action = creepActions.actionMoveToRoom(creep, action, creep.memory.home);
   }
 }
 
@@ -41,7 +43,7 @@ export function getBody(room: Room): string[] | null {
 export function build(room: Room, spawn: Spawn, creeps: Creep[], State: RoomStates, spawnAction: boolean): boolean {
   if (spawnAction === false) {
     const _constructions: ConstructionSite[] = room.find(FIND_MY_CONSTRUCTION_SITES);
-    const _builders = _.filter(creeps, (creep) => creep.memory.role === "builder");
+    const _builders = _.filter(creeps, (creep) => creep.memory.role === "builder" && creep.memory.room === room.name);
 
     if (_constructions.length > 0) {
       const buildSum = _.sum(_constructions, (x: ConstructionSite) => (x.progressTotal - x.progress));
@@ -66,7 +68,8 @@ export function build(room: Room, spawn: Spawn, creeps: Creep[], State: RoomStat
       }
 
       if (_builders.length < numBuilders) {
-        return CreepManager.createCreep(spawn, getBody(room), "builder", {room: room.name});
+        console.log(_builders.length + "/" + numBuilders + " - " + room.name);
+        return CreepManager.createCreep(spawn, getBody(spawn.room), "builder", {}, room);
       }
     } else {
       // No more need for builders, recycle them

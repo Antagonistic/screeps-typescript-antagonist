@@ -34,7 +34,7 @@ export function run(creep: Creep): void {
       }
     }
   } else {
-    console.log("Miner has no specified source to mine!");
+    console.log("Miner " + creep.name + "  has no specified source to mine!");
     const sources: Source[] = creep.room.find(FIND_SOURCES);
     creep.memory.sourceID = sources[0].id;
   }
@@ -80,9 +80,9 @@ export function build(room: Room, spawn: Spawn, sources: Source[], creeps: Creep
             creep.memory.role === "miner" &&
             creep.memory.sourceID === source.id);
           if (!_miner || _miner.length === 0 || _.all(_miner, (c) => c.ticksToLive < 150)) {
-            // console.log("minerSpawn");
-            return CreepManager.createCreep(spawn, getBody(room, remote), "miner",
-             {sourceID: source.id, room: room.name});
+            console.log("minerSpawn " + room.name + " " + spawn.name);
+            return CreepManager.createCreep(spawn, getBody(spawn.room, remote), "miner",
+             {sourceID: source.id}, room);
           }
         }
         break;
