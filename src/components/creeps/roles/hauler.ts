@@ -51,7 +51,7 @@ export function build(room: Room, spawn: Spawn, sources: Source[], creeps: Creep
     let numHaulers = 0;
     switch (State) {
       case RoomStates.MINE:
-        numHaulers = sources.length * 2;
+        numHaulers = sources.length * 2 + 1;
         break;
       case RoomStates.TRANSITION:
         numHaulers = sources.length;
