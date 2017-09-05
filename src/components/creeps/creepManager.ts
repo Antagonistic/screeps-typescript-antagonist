@@ -8,6 +8,7 @@ import * as hauler from "./roles/hauler";
 import * as miner from "./roles/miner";
 import * as repair from "./roles/repair";
 import * as scout from "./roles/scout";
+import * as soldier from "./roles/soldier";
 import * as upgrader from "./roles/upgrader";
 
 import { log } from "../../lib/logger/log";
@@ -50,6 +51,9 @@ export function runCreeps(creeps: Creep[]): void {
       break;
     case "claim":
       claim.run(creep);
+      break;
+    case "soldier":
+      soldier.run(creep);
       break;
     }
   });

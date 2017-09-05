@@ -55,7 +55,7 @@ function _findBox(creep: Creep, source: Source) {
     creep.moveTo(boxSite[0], {visualizePathStyle: {stroke: "#ffffff"}});
     return;
   }
-  console.log(creep.name + " could not find its box!");
+  // console.log(creep.name + " could not find its box!");
   creep.moveTo(source, {visualizePathStyle: {stroke: "#ffffff"}});
 }
 

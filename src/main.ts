@@ -4,6 +4,7 @@ import * as CreepManager from "./components/creeps/creepManager";
 import * as FlagManager from "./components/flags/flagManager";
 import * as StateManager from "./components/state/stateManager";
 import * as StructureManager from "./components/structures/structureManager";
+import * as WarManager from "./components/war/warManager";
 
 import * as Profiler from "screeps-profiler";
 import { log } from "./lib/logger/log";
@@ -47,6 +48,7 @@ function mloop() {
   }
 
   // console.log(creeps.length);
+  WarManager.run();
 
   CreepManager.runCreeps(creeps);
 

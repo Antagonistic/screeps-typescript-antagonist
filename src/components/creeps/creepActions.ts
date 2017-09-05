@@ -186,6 +186,12 @@ export function moveToRangedAttack(creep: Creep, target: Creep | Structure): voi
   creep.rangedAttack(target);
 }
 
+export function moveToHeal(creep: Creep, target: Creep): void {
+  if (creep.heal(target) === ERR_NOT_IN_RANGE) {
+    moveTo(creep, target.pos, true);
+  }
+}
+
 export function moveToReserve(creep: Creep, target: Controller): void {
   if (creep.reserveController(target) === ERR_NOT_IN_RANGE) {
     moveTo(creep, target, true);
@@ -552,6 +558,21 @@ export function actionAttackHostile(creep: Creep, action: boolean, target?: Cree
       // console.log(creep.name + " attacking " + target.body);
       return true;
     }
+  }
+  return action;
+}
+
+export function actionHealFriendly(creep: Creep, action: boolean, target?: Creep): boolean {
+  if (action === false) {
+    if (!target) {
+      const targets: Creep[] = creep.pos.findInRange(FIND_MY_CREEPS, 1, {filter: (x: Creep) => x.hits < x.hitsMax});
+      if (targets && targets.length) {
+        target = targets[0];
+      } else {
+        return false;
+      }
+    }
+
   }
   return action;
 }
