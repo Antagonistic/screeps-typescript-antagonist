@@ -8,6 +8,8 @@ import * as StructureManager from "./components/structures/structureManager";
 import * as Profiler from "screeps-profiler";
 import { log } from "./lib/logger/log";
 
+import {commandConsole} from "./commandConsole";
+
 // Any code written outside the `loop()` method is executed only when the
 // Screeps system reloads your script.
 // Use this bootstrap wisely. You can cache some of your stuff to save CPU.
@@ -26,6 +28,8 @@ if (Config.USE_PROFILER) {
 if (__REVISION__) {
   log.info(`Revision ID: ${__REVISION__}`);
 }
+
+global.cc = commandConsole;
 
 function mloop() {
   // Check memory for null or out of bounds custom objects

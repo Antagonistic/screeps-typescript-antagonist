@@ -13,6 +13,10 @@ import RoomStates from "../../state/roomStates";
 export function run(creep: Creep): void {
   let action: boolean = false;
 
+  if (creep.ticksToLive >= 1499) {
+    creep.notifyWhenAttacked(false);
+  }
+
   action = creepActions.actionMoveToRoom(creep, action);
   // action = creepActions.actionMoveToController(creep, action);
 
