@@ -1,5 +1,7 @@
 import { LogLevels } from "../lib/logger/logLevels";
 
+export const homeSpawnName: string = "Antagonist";
+
 /**
  * Enable this if you want a lot of text to be logged to console.
  * @type {boolean}

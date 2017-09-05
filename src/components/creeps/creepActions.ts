@@ -26,11 +26,11 @@ export function moveTo(creep: Creep, target: Structure | Creep | RoomPosition, v
  * @param {Creep} creep
  * @returns {boolean}
  */
-export function needsRenew(creep: Creep): boolean {
+export function needsRenew(creep: Creep, renewLow: number = Config.DEFAULT_MIN_LIFE_BEFORE_NEEDS_REFILL): boolean {
   if (creep.memory.renew) {
     return true;
   }
-  if (creep.ticksToLive < Config.DEFAULT_MIN_LIFE_BEFORE_NEEDS_REFILL) {
+  if (creep.ticksToLive < renewLow) {
     creep.memory.renew = true;
     return true;
   }
@@ -60,7 +60,7 @@ export function moveToRenew(creep: Creep, spawn: Spawn): void {
 
 export function moveToRecycle(creep: Creep, spawn: Spawn): void {
   const ret = spawn.recycleCreep(creep);
-  console.log(creep.name + " needs to retire: " + ret);
+  // console.log(creep.name + " needs to retire: " + ret);
   if (ret === ERR_NOT_IN_RANGE) {
     creep.moveTo(spawn);
   }
@@ -512,9 +512,9 @@ export function actionGetStorageEnergy(creep: Creep, action: boolean, factor: nu
   return action;
 }
 
-export function actionRenew(creep: Creep, action: boolean) {
+export function actionRenew(creep: Creep, action: boolean, renewLow?: number) {
   if (action === false) {
-    if (needsRenew(creep)) {
+    if (needsRenew(creep, renewLow)) {
       const spawn = creep.room.find<Spawn>(FIND_MY_SPAWNS);
       if (spawn.length) {
           moveToRenew(creep, spawn[0]);
@@ -593,6 +593,18 @@ export function actionClaim(creep: Creep, action: boolean) {
     if (controller) {
       moveToClaim(creep, controller);
     }
+  }
+  return action;
+}
+
+export function actionRally(creep: Creep, action: boolean) {
+  if (action === false) {
+    if (!creep.room.memory.rally) {
+      creep.moveTo(25, 25);
+    } else {
+      creep.moveTo(creep.room.memory.rally.x, creep.room.memory.rally.y);
+    }
+    return true;
   }
   return action;
 }

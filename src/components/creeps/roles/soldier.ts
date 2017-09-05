@@ -13,11 +13,21 @@ export function run(creep: Creep): void {
 
   action = creepActions.actionRecycle(creep, action);
 
-  action = creepActions.actionMoveToRoom(creep, action);
-
   action = creepActions.actionAttackHostile(creep, action);
 
   action = creepActions.actionHealFriendly(creep, action);
+
+  if (!creep.memory.squad || !Memory.squads || !Memory.squads[creep.memory.squad]) {
+    action = creepActions.actionMoveToRoom(creep, action);
+    // console.log(creep.memory.squad);
+  } else {
+    action = creepActions.actionMoveToRoom(creep, action, Memory.squads[creep.memory.squad].assignedRoom);
+    // console.log(Memory.squads[creep.memory.squad].assignedRoom);
+  }
+
+  action = creepActions.actionRenew(creep, action, 1200);
+
+  action = creepActions.actionRally(creep, action);
 }
 
 export function getBody(subrole: string): string[] | null {
@@ -34,10 +44,14 @@ export function getBody(subrole: string): string[] | null {
   return null;
 }
 
-export function build(room: Room, spawn: Spawn, subrole: string,
+export function build(room: Room, spawn: Spawn, subrole: string, squad: string,
                       spawnAction: boolean): boolean {
   if (spawnAction === false) {
-    return CreepManager.createCreep(spawn, getBody(subrole), "soldier", {subrole}, room);
+    if (!squad) {
+      squad = "null";
+    }
+    return CreepManager.createCreep(spawn, getBody(subrole), "soldier",
+     {subrole, squad}, room, squad + " - " + subrole);
   }
   return spawnAction;
 }

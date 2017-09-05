@@ -59,7 +59,7 @@ export function runCreeps(creeps: Creep[]): void {
   });
 }
 
-export function run(room: Room, creeps: Creep[]): void {
+export function run(room: Room, creeps: Creep[], spawnAction: boolean): boolean {
   /*let creeps = room.find<Creep>(FIND_MY_CREEPS);
   const remoteRooms: string[] | null = room.memory.remoteRoom;
   if (remoteRooms && remoteRooms.length) {
@@ -82,8 +82,6 @@ export function run(room: Room, creeps: Creep[]): void {
     // log.info(creepCount + " creeps found in the playground.");
   }
 
-  let spawnAction: boolean = false;
-
   const spawns: Spawn[] = room.find<Spawn>(FIND_MY_SPAWNS);
   const State: RoomStates = room.memory.state as RoomStates;
   if (spawns.length) {
@@ -97,6 +95,7 @@ export function run(room: Room, creeps: Creep[]): void {
       // console.log("RemoteSpawn!");
     }
   }
+  return spawnAction;
 }
 
 function _spawnAllCreeps(room: Room, spawn: Spawn, creeps: Creep[], spawnAction: boolean): boolean {
@@ -138,15 +137,19 @@ function _spawnRemoteCreeps(room: Room, spawn: Spawn, creeps: Creep[], spawnActi
 }
 
 export function createCreep(spawn: Spawn, bodyParts: string[] | null,
-                            role: string, memory?: any, room: Room = spawn.room): boolean {
+                            role: string, memory?: any, room: Room = spawn.room, creepName?: string): boolean {
   if (bodyParts) {
-    const status: number = spawn.canCreateCreep(bodyParts, undefined);
+    let status: number | string = spawn.canCreateCreep(bodyParts, undefined);
     // console.log(status);
     if (status === OK) {
 
       const uuid: number = Memory.uuid;
       Memory.uuid = uuid + 1;
-      const creepName: string = room.name + " - " + role + uuid;
+      if (!creepName) {
+        creepName = room.name + " - " + role + uuid;
+      } else {
+        creepName = creepName + uuid;
+      }
 
       const properties: { [key: string]: any } = {
         home: spawn.room.name,
@@ -164,9 +167,9 @@ export function createCreep(spawn: Spawn, bodyParts: string[] | null,
         log.info("Body: " + bodyParts);
       }
 
-      spawn.createCreep(bodyParts, creepName, properties);
+      status = spawn.createCreep(bodyParts, creepName, properties);
     }
-    if (status !== OK && status !== ERR_NOT_ENOUGH_ENERGY) {
+    if (typeof status !== "string" && status !== OK && status !== ERR_NOT_ENOUGH_ENERGY) {
       if (Config.ENABLE_DEBUG_MODE) {
         log.info("Failed creating new creep: " + status);
       }

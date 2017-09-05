@@ -16,6 +16,8 @@ export function run(creep: Creep): void {
   action = creepActions.actionMoveToRoom(creep, action);
 
   action = creepActions.actionAttackHostile(creep, action);
+
+  action = creepActions.actionRally(creep, action);
 }
 
 export function getBody(): string[] | null {

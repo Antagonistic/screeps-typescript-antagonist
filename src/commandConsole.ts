@@ -33,7 +33,7 @@ export const commandConsole = {
               creepRoom = rT;
             }
           }
-          if (soldier.build(creepRoom, spawn, subrole, false)) {
+          if (soldier.build(creepRoom, spawn, subrole, null, false)) {
             log.info("Soldier spawned: " + subrole);
             return true;
           }
@@ -57,13 +57,21 @@ export const commandConsole = {
     return false;
   },
   newSquad() {
-    const squads: Squad[] = Memory.squads || [];
+    if (!Memory.squads) {
+      Memory.squads = {};
+    }
     const squad: Squad = {name: "squad1", composition: {archer: 2, brawler: 1}, members: [], assignedRoom: "W22N34"};
-    squads.push(squad);
-    console.log(squads);
-    Memory.squads = squads;
+    console.log("Squad " + squad.name + " created.");
+    Memory.squads[squad.name] = squad;
   },
   clearSquads() {
-    Memory.squads = undefined;
+    for (const name in Memory.creeps) {
+      if (Game.creeps[name]) {
+        if (Memory.creeps[name].squad) {
+          Memory.creeps[name].recycle = true;
+        }
+      }
+    }
+    Memory.squads = {};
   }
 };

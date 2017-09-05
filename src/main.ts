@@ -48,31 +48,31 @@ function mloop() {
   }
 
   // console.log(creeps.length);
-  WarManager.run();
+  // WarManager.run();
 
   CreepManager.runCreeps(creeps);
 
   FlagManager.run();
 
+  let spawnAction: boolean = false;
+
   for (const i in Game.rooms) {
     const room: Room = Game.rooms[i];
 
-    CreepManager.run(room, creeps);
+    spawnAction = CreepManager.run(room, creeps, spawnAction);
     if (Game.time % 20 === 0) {
       StateManager.run(room);
     }
     StructureManager.run(room);
+  }
 
-    // Clears any non-existing creep memory.
-    for (const name in Memory.creeps) {
-      const creep: any = Memory.creeps[name];
+  WarManager.spawnWarCreeps(Game.spawns[Config.homeSpawnName], creeps, spawnAction);
 
-      if (creep.room === room.name) {
-        if (!Game.creeps[name]) {
-          log.info("Clearing non-existing creep memory:", name);
-          delete Memory.creeps[name];
-        }
-      }
+  // Clears any non-existing creep memory.
+  for (const name in Memory.creeps) {
+    if (!Game.creeps[name]) {
+      log.info("Clearing non-existing creep memory:", name);
+      delete Memory.creeps[name];
     }
   }
 }

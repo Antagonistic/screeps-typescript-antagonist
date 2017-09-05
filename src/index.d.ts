@@ -23,7 +23,9 @@ interface Squad {
 interface Memory {
   uuid: number;
   log: any;
-  squads: Squad[];
+  squads: {
+    [name: string]: Squad;
+  };
 }
 
 declare const __REVISION__: string
