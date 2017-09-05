@@ -329,7 +329,7 @@ export function actionRepair(creep: Creep, action: boolean,
   return action;
 }
 
-export function actionRepairWeakestWall(creep: Creep, action: boolean, maxHits: number = 1000000): boolean {
+export function actionRepairWeakestWall(creep: Creep, action: boolean, maxHits: number = 500000): boolean {
   if (action === false) {
     const targets: Structure[] = creep.room.find<Structure>(FIND_STRUCTURES, {filter:
       (x: Structure) => (x.structureType === STRUCTURE_WALL || x.structureType === STRUCTURE_RAMPART) &&
