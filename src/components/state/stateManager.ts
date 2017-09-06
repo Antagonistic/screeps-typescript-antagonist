@@ -46,7 +46,7 @@ export function run(room: Room): void {
         break;
     }
   }
-  printState(room);
+  // printState(room);
 }
 
 export function printState(room: Room): void {

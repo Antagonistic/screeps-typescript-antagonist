@@ -31,7 +31,10 @@ export function run(creep: Creep): void {
 
 export function getBody(room: Room): string[] | null {
   const energyAvailable: number = room.energyCapacityAvailable;
-  if (energyAvailable >= 650) {
+  if (energyAvailable >= 1300) {
+    return [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK,
+       CARRY, CARRY, CARRY, CARRY];
+  } else if (energyAvailable >= 650) {
     return [WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, MOVE, MOVE];
   } else  if (energyAvailable >= 550) {
     return [MOVE, MOVE, WORK, WORK, WORK, CARRY, CARRY, CARRY];

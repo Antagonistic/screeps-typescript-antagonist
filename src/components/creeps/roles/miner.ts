@@ -59,12 +59,14 @@ function _findBox(creep: Creep, source: Source) {
   creep.moveTo(source, {visualizePathStyle: {stroke: "#ffffff"}});
 }
 
-export function getBody(room: Room, isRemote: boolean = false): string[] | null {
+export function getBody(room: Room, isRemote: boolean = false, linkMiner: boolean = false): string[] | null {
   if (room.energyCapacityAvailable < 550) {
     return null;
   }
   if (isRemote) {
     return [MOVE, MOVE, MOVE, WORK, WORK, WORK, WORK, WORK];
+  } else if (linkMiner) {
+    return [MOVE, MOVE, MOVE, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY];
   } else {
     return [WORK, WORK, WORK, WORK, WORK, MOVE];
   }
@@ -78,13 +80,14 @@ export function build(room: Room, spawn: Spawn, sources: Source[], creeps: Creep
       case RoomStates.TRANSITION:
       case RoomStates.STABLE:
         for (const source of sources) {
+          const linkMining = room.memory.mininglinks !== undefined;
           const _miner = _.filter(creeps, (creep) =>
             creep.memory.role === "miner" &&
             creep.memory.sourceID === source.id);
           if (!_miner || _miner.length === 0 || _.all(_miner, (c) => c.ticksToLive < 150)) {
             // console.log("minerSpawn " + room.name + " " + spawn.name);
-            return CreepManager.createCreep(spawn, getBody(spawn.room, remote), "miner",
-             {sourceID: source.id}, room);
+            return CreepManager.createCreep(spawn, getBody(spawn.room, remote, linkMining), "miner",
+             {sourceID: source.id, linkMining, remote}, room);
           }
         }
         break;

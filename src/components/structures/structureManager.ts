@@ -3,6 +3,8 @@ import RoomStates from "../state/roomStates";
 import * as SpawnHandler from "./structure/spawn";
 import * as TowerHandler from "./structure/tower";
 
+import { log } from "../../lib/logger/log";
+
 export function run(room: Room): void {
 
   // Handle Towers
@@ -50,6 +52,10 @@ export function run(room: Room): void {
   if (Game.time % 50 === 20) {
     _findRemoteRooms(room);
   }
+
+  if (Game.time % 50 === 25) {
+    _findLinks(room);
+  }
 }
 
 function _safeMode(room: Room) {
@@ -58,6 +64,7 @@ function _safeMode(room: Room) {
   if (room.controller && room.controller.my && room.controller.safeModeAvailable && hostiles && hostiles.length) {
     if (!room.controller.safeMode) {
       room.controller.activateSafeMode();
+      log.info(room.name + ": EMERGENCY! SAFE MODE ACTIVATED!!");
     }
   }
 }
@@ -106,7 +113,7 @@ function _buildStructures(room: Room) {
       if (room.memory.mine_structures) {
         return;
       }
-      console.log("Placing mining room layouts!");
+      log.info(room.name + ": Placing mining room layouts!");
       const home = room.memory.home;
       if (home) {
         const homeSpawn: Spawn[] = Game.rooms[home].find(FIND_MY_SPAWNS);
@@ -124,13 +131,13 @@ function _buildStructures(room: Room) {
       if (room.memory.stable_structures || room.energyCapacityAvailable < 550) {
         return;
       }
-      console.log("Placing stable room layouts!");
+      log.info(room.name + ": Placing stable room layouts!");
       const spawns: Spawn[] = room.find(FIND_MY_SPAWNS);
       const spawnPos: RoomPosition[] = _.map(spawns, (x) => x.pos);
       const sources: Source[] = room.find(FIND_SOURCES);
       const sourcePos: RoomPosition[] = _.map(sources, (x) => x.pos);
       if (!spawns || spawns.length === 0) {
-        console.log("StructureManager can't find any spawns!");
+        log.info(room.name + ": StructureManager can't find any spawns!");
         return;
       }
       // Place a container per source
@@ -154,8 +161,13 @@ function _buildStructures(room: Room) {
 
 function _findTowers(room: Room) {
   const towers: Tower[] = room.find(FIND_STRUCTURES, {filter: (x: Structure) => x.structureType === STRUCTURE_TOWER});
-  const towerIds: string[] = _.map(towers, (tower) => tower.id);
-  room.memory.towers = towerIds;
+  if (towers && towers.length) {
+    const towerIds: string[] = _.map(towers, (tower) => tower.id);
+    if (!_.isEqual(towerIds, room.memory.towers)) {
+      room.memory.towers = towerIds;
+      log.info(room.name + ": Updating tower info.");
+    }
+  }
 }
 
 function _findBufferChests(room: Room) {
@@ -169,7 +181,12 @@ function _findBufferChests(room: Room) {
         bufferChests.push(container.id);
       }
     }
-    room.memory.bufferChests = bufferChests;
+    if (bufferChests && bufferChests.length) {
+      if (!_.isEqual(bufferChests, room.memory.bufferChests)) {
+        log.info(room.name + ": Updating buffer chests.");
+        room.memory.bufferChests = bufferChests;
+      }
+    }
   }
 }
 
@@ -218,5 +235,43 @@ function _buildRoad(from: RoomPosition, goal: RoomPosition, rangeOne: boolean = 
   }
   for (const step of foundpath.path) {
     step.createConstructionSite(STRUCTURE_ROAD);
+  }
+}
+
+function _findLinks(room: Room): void {
+  const links: Link[] = room.find<Link>(FIND_STRUCTURES, {filter:
+     (x: Structure) => x.structureType === STRUCTURE_LINK});
+  if (links && links.length) {
+    const mininglinks: Link[] = _.filter(links, (l) => l.pos.findInRange(FIND_SOURCES, 2).length);
+    if (mininglinks && mininglinks.length) {
+      const mininglinkIDs = _.map(mininglinks, (l) => l.id);
+      if (!_.isEqual(room.memory.mininglinks, mininglinkIDs)) {
+        log.info(room.name + ": Updating mining links! " + mininglinks.length);
+        room.memory.mininglinks = mininglinkIDs;
+      }
+    } else {
+      room.memory.mininglinks = undefined;
+    }
+    const spawnlinks: Link[] = _.filter(links, (l) => l.pos.findInRange(FIND_MY_STRUCTURES, 2, {filter:
+      (x: Structure) => x.structureType === STRUCTURE_SPAWN}).length);
+    if (spawnlinks && spawnlinks.length) {
+      const spawnlinkIDs = _.map(spawnlinks, (l) => l.id);
+      if (!_.isEqual(room.memory.spawnlinks, spawnlinkIDs)) {
+        log.info(room.name + ": Updating spawn links! " + spawnlinks.length);
+        room.memory.spawnlinks = spawnlinkIDs;
+      }
+    } else {
+      room.memory.spawnlinks = undefined;
+    }
+    const controllerlinks: Link[] = _.filter(links, (l) => l.pos.findInRange([room.controller.pos], 3).length);
+    if (controllerlinks && controllerlinks.length) {
+      const controllerlinkIDs = _.map(controllerlinks, (l) => l.id);
+      if (!_.isEqual(room.memory.controllerlinks, controllerlinkIDs)) {
+        log.info(room.name + ": Updating controller links! " + controllerlinks.length);
+        room.memory.controllerlinks = controllerlinkIDs;
+      }
+    } else {
+      room.memory.controllerlinks = undefined;
+    }
   }
 }

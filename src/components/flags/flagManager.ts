@@ -14,7 +14,7 @@ export function run(): void {
       console.log("Rally location updated");
     }
 
-    if (Memory.squads[flag.name]) {
+    if (Memory.squads && Memory.squads[flag.name]) {
       Memory.squads[flag.name].assignedRoom = roomName;
       if (!Memory.rooms[roomName]) {
         Memory.rooms[roomName] = {};
