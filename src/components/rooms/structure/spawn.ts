@@ -1,4 +1,3 @@
-import RoomStates from "../../state/roomStates";
 
 export function run(spawn: Spawn): void {
   // Opportunistic renewal

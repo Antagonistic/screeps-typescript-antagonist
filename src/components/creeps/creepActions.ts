@@ -291,7 +291,10 @@ export function actionRepairCritical(creep: Creep, action: boolean): boolean {
     const targets: Structure[] = creep.room.find(FIND_STRUCTURES, {filter:
       (x: Structure) => (x.structureType === STRUCTURE_SPAWN ||
         x.structureType === STRUCTURE_EXTENSION ||
-        x.structureType === STRUCTURE_TOWER)
+        x.structureType === STRUCTURE_TOWER ||
+        x.structureType === STRUCTURE_STORAGE ||
+        x.structureType === STRUCTURE_TERMINAL ||
+        x.structureType === STRUCTURE_LAB)
         && x.hits < x.hitsMax});
     if (targets && targets.length) {
       const salt: number = (creep.memory.uuid || 0) % targets.length;

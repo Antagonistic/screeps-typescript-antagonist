@@ -1,6 +1,3 @@
-
-import RoomStates from "./components/state/roomStates";
-
 // import * as CreepManager from "./components/creeps/creepManager";
 import * as soldier from "./components/creeps/roles/soldier";
 
@@ -15,7 +12,7 @@ export const commandConsole = {
     if (room) {
       const state: RoomStates = room.memory.state;
       if (state) {
-        console.log(RoomStates[state]);
+        console.log(state);
       }
     }
   },
@@ -33,7 +30,7 @@ export const commandConsole = {
               creepRoom = rT;
             }
           }
-          if (soldier.build(creepRoom, spawn, subrole, null, false)) {
+          if (soldier.build(creepRoom, spawn, subrole, "null", false)) {
             log.info("Soldier spawned: " + subrole);
             return true;
           }

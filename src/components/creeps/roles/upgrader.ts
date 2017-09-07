@@ -2,9 +2,7 @@ import * as creepActions from "../creepActions";
 
 import * as CreepManager from "../creepManager";
 
-import RoomStates from "../../state/roomStates";
-
-import * as StructureManager from "../../structures/structureManager";
+import * as StructureManager from "../../rooms/structureManager";
 
 /**
  * Runs all creep actions.

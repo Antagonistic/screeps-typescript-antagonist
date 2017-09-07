@@ -1,4 +1,3 @@
-import RoomStates from "../state/roomStates";
 
 export function run(): void {
   for (const f in Game.flags) {

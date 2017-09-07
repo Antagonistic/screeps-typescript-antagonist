@@ -13,8 +13,6 @@ import * as upgrader from "./roles/upgrader";
 
 import { log } from "../../lib/logger/log";
 
-import RoomStates from "../state/roomStates";
-
 /**
  * Initialization scripts for CreepManager module.
  *

@@ -1,4 +1,3 @@
-import RoomStates from "../roomStates";
 
 export function run(room: Room): void {
   if (room.find(FIND_MY_SPAWNS).length > 0) {

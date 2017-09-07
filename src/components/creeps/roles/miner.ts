@@ -2,8 +2,6 @@ import * as creepActions from "../creepActions";
 
 import * as CreepManager from "../creepManager";
 
-import RoomStates from "../../state/roomStates";
-
 /**
  * Runs all creep actions.
  *
@@ -80,7 +78,7 @@ export function build(room: Room, spawn: Spawn, sources: Source[], creeps: Creep
       case RoomStates.TRANSITION:
       case RoomStates.STABLE:
         for (const source of sources) {
-          const linkMining = room.memory.mininglinks !== undefined;
+          const linkMining: boolean = (room.memory.mininglinks && room.memory.mininglinks.length);
           const _miner = _.filter(creeps, (creep) =>
             creep.memory.role === "miner" &&
             creep.memory.sourceID === source.id);

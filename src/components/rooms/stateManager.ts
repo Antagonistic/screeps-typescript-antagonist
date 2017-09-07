@@ -2,8 +2,6 @@
 
 import { log } from "../../lib/logger/log";
 
-import RoomStates from "./roomStates";
-
 import * as BootStrapState from "./states/bootstrap";
 import * as ClaimState from "./states/claim";
 import * as MineState from "./states/mine";

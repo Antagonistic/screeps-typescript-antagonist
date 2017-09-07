@@ -1,5 +1,3 @@
-import RoomStates from "../state/roomStates";
-
 import * as SpawnHandler from "./structure/spawn";
 import * as TowerHandler from "./structure/tower";
 
@@ -35,6 +33,12 @@ export function run(room: Room): void {
   if (extentions && extentions.length) {
     _safeMode(room);
   }
+
+  const storage = room.storage;
+  if (storage && storage.hits < storage.hitsMax) {
+    _safeMode(room);
+  }
+
   // Check to build structures
   if (Game.time % 50 === 5) {
     _buildStructures(room);
@@ -263,15 +267,18 @@ function _findLinks(room: Room): void {
     } else {
       room.memory.spawnlinks = undefined;
     }
-    const controllerlinks: Link[] = _.filter(links, (l) => l.pos.findInRange([room.controller.pos], 3).length);
-    if (controllerlinks && controllerlinks.length) {
-      const controllerlinkIDs = _.map(controllerlinks, (l) => l.id);
-      if (!_.isEqual(room.memory.controllerlinks, controllerlinkIDs)) {
-        log.info(room.name + ": Updating controller links! " + controllerlinks.length);
-        room.memory.controllerlinks = controllerlinkIDs;
+    const controller = room.controller;
+    if (controller) {
+      const controllerlinks: Link[] = _.filter(links, (l) => l.pos.findInRange([controller.pos], 3).length);
+      if (controllerlinks && controllerlinks.length) {
+        const controllerlinkIDs = _.map(controllerlinks, (l) => l.id);
+        if (!_.isEqual(room.memory.controllerlinks, controllerlinkIDs)) {
+          log.info(room.name + ": Updating controller links! " + controllerlinks.length);
+          room.memory.controllerlinks = controllerlinkIDs;
+        }
+      } else {
+        room.memory.controllerlinks = undefined;
       }
-    } else {
-      room.memory.controllerlinks = undefined;
     }
   }
 }
