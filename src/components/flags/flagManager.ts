@@ -22,6 +22,10 @@ export function run(): void {
       console.log("Squad " + flag.name + " rally location updated");
     }
 
+    if (flag.name === "attack") {
+      return;
+    }
+
     console.log(flag.pos.roomName + " state is " + roomState);
     flag.remove();
   }

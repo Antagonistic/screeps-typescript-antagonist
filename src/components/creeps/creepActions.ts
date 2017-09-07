@@ -204,6 +204,12 @@ export function moveToClaim(creep: Creep, target: Controller): void {
   }
 }
 
+export function moveToBoost(creep: Creep, lab: Lab) {
+  if (lab.boostCreep(creep) === ERR_NOT_IN_RANGE) {
+    moveTo(creep, lab, true);
+  }
+}
+
 export function actionMoveToRoom(creep: Creep, action: boolean, roomID?: string | any) {
   if (action === false) {
     if (!roomID) {
@@ -543,6 +549,29 @@ export function actionRecycle(creep: Creep, action: boolean) {
   return action;
 }
 
+export function actionAttackFlag(creep: Creep, action: boolean) {
+  if (action === false) {
+    const attackFlag: Flag = creep.pos.findClosestByRange(FIND_FLAGS, {filter:
+      (x: Flag) => x.name.substr(0, 3) === "att"});
+    if (attackFlag) {
+      const path = creep.pos.findPathTo(attackFlag.pos, {ignoreDestructibleStructures: true});
+      const lookCreep = creep.room.lookForAt<Creep>(LOOK_CREEPS, path[0].x, path[0].y);
+      if (lookCreep && lookCreep.length) {
+        if (!lookCreep[0].my) {
+          return actionAttackHostile(creep, action, lookCreep[0]);
+        }
+      }
+      const lookStruct = creep.room.lookForAt<Structure>(LOOK_STRUCTURES, path[0].x, path[0].y);
+      if (lookStruct && lookStruct.length) {
+        return actionAttackStructure(creep, action, lookStruct[0]);
+      }
+      moveTo(creep, attackFlag.pos);
+      return true;
+    }
+  }
+  return action;
+}
+
 export function actionAttackHostile(creep: Creep, action: boolean, target?: Creep) {
   if (action === false) {
     if (!target) {
@@ -560,6 +589,25 @@ export function actionAttackHostile(creep: Creep, action: boolean, target?: Cree
 
       // console.log(creep.name + " attacking " + target.body);
       return true;
+    }
+  }
+  return action;
+}
+
+export function actionAttackStructure(creep: Creep, action: boolean, target?: Structure) {
+  if (action === false) {
+    if (!target) {
+      const targetFind: Structure = creep.pos.findClosestByRange<Structure>(FIND_HOSTILE_STRUCTURES);
+      if (targetFind) {
+        target = targetFind;
+      }
+    }
+    if (target) {
+      if (creep.getActiveBodyparts(RANGED_ATTACK)) {
+        moveToRangedAttack(creep, target);
+      } else if (creep.getActiveBodyparts(ATTACK)) {
+        moveToAttack(creep, target);
+      }
     }
   }
   return action;
@@ -608,6 +656,23 @@ export function actionRally(creep: Creep, action: boolean) {
       creep.moveTo(creep.room.memory.rally.x, creep.room.memory.rally.y);
     }
     return true;
+  }
+  return action;
+}
+
+export function actionBoost(creep: Creep, action: boolean) {
+  if (action === false || creep.memory.isBoosted) {
+    const availBoost = creep.room.memory.availBoost;
+    if (availBoost) {
+      for (const body of creep.body) {
+        if (!body.boost && availBoost[body.type]) {
+          const lab: Lab | null = Game.getObjectById(availBoost[body.type]);
+          if (lab) {
+            moveToBoost(creep, lab);
+          }
+        }
+      }
+    }
   }
   return action;
 }

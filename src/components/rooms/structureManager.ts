@@ -60,6 +60,10 @@ export function run(room: Room): void {
   if (Game.time % 50 === 25) {
     _findLinks(room);
   }
+
+  if (Game.time % 50 === 30) {
+    _findBoostLabs(room);
+  }
 }
 
 function _safeMode(room: Room) {
@@ -279,6 +283,35 @@ function _findLinks(room: Room): void {
       } else {
         room.memory.controllerlinks = undefined;
       }
+    }
+  }
+}
+
+function _findBoostLabs(room: Room) {
+  const labs: Lab[] = room.find(FIND_STRUCTURES, {filter: (x: Structure) => x.structureType === STRUCTURE_LAB});
+  if (labs && labs.length) {
+    const availBoost: { [name: string]: string; } = {};
+    for (const lab of labs) {
+      switch (lab.mineralType) {
+        case RESOURCE_CATALYZED_UTRIUM_ACID:
+          availBoost[ATTACK] = lab.id;
+          break;
+        case RESOURCE_CATALYZED_KEANIUM_ALKALIDE:
+          availBoost[RANGED_ATTACK] = lab.id;
+          break;
+        case RESOURCE_CATALYZED_LEMERGIUM_ALKALIDE:
+          availBoost[HEAL] = lab.id;
+          break;
+        case RESOURCE_CATALYZED_GHODIUM_ALKALIDE:
+          availBoost[TOUGH] = lab.id;
+          break;
+      }
+    }
+    if (_.isEmpty(availBoost)) {
+      room.memory.availBoost = undefined;
+    } else if (!_.isEqual(room.memory.availBoost, availBoost)) {
+      log.info(room.name + ": Updating available boosts!");
+      room.memory.availBoost = availBoost;
     }
   }
 }

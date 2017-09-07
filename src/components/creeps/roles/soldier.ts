@@ -13,9 +13,11 @@ export function run(creep: Creep): void {
 
   action = creepActions.actionRecycle(creep, action);
 
-  action = creepActions.actionAttackHostile(creep, action);
-
   action = creepActions.actionHealFriendly(creep, action);
+
+  action = creepActions.actionAttackFlag(creep, action);
+
+  action = creepActions.actionAttackHostile(creep, action);
 
   if (!creep.memory.squad || !Memory.squads || !Memory.squads[creep.memory.squad]) {
     action = creepActions.actionMoveToRoom(creep, action);

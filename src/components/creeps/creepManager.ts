@@ -125,7 +125,7 @@ function _spawnRemoteCreeps(room: Room, spawn: Spawn, creeps: Creep[], spawnActi
   if (spawn && !spawn.spawning && State === RoomStates.MINE) {
     const hostiles = room.find<Creep>(FIND_HOSTILE_CREEPS);
     if (hostiles && hostiles.length) {
-      spawnAction = guard.build(room, spawn, creeps, spawnAction);
+      // spawnAction = guard.build(room, spawn, creeps, spawnAction);
     } else {
       spawnAction = miner.build(room, spawn, sources, creeps, State, spawnAction, true);
       spawnAction = hauler.build(room, spawn, sources, creeps, State, spawnAction);
