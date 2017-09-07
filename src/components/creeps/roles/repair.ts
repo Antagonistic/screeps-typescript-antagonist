@@ -11,6 +11,7 @@ import * as CreepManager from "../creepManager";
 export function run(creep: Creep): void {
   let action: boolean = false;
 
+  action = creepActions.actionRecycle(creep, action);
   if (creepActions.canWork(creep)) {
     action = creepActions.actionMoveToRoom(creep, action);
     action = creepActions.actionRepairCache(creep, action);

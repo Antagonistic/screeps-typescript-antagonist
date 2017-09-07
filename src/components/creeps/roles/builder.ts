@@ -66,7 +66,7 @@ export function build(room: Room, spawn: Spawn, creeps: Creep[], State: RoomStat
       }
 
       if (_builders.length < numBuilders) {
-        console.log(_builders.length + "/" + numBuilders + " - " + room.name);
+        // console.log(_builders.length + "/" + numBuilders + " - " + room.name);
         return CreepManager.createCreep(spawn, getBody(spawn.room), "builder", {}, room);
       }
     } else {

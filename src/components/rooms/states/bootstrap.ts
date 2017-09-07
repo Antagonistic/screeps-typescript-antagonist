@@ -1,8 +1,9 @@
+import * as StateManager from "../stateManager";
 
 export function run(room: Room): void {
   if (room.energyCapacityAvailable > 500) {
-    room.memory.state = RoomStates.TRANSITION;
+    StateManager.stateChange(room, RoomStates.TRANSITION);
   } else if (!room.controller || !room.controller.my) {
-    room.memory.state = RoomStates.NEUTRAL;
+    StateManager.stateChange(room, RoomStates.NEUTRAL);
   }
 }

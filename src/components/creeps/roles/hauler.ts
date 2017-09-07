@@ -60,7 +60,7 @@ export function build(room: Room, spawn: Spawn, sources: Source[], creeps: Creep
     }
     const _haulers = _.filter(creeps, (creep) => creep.memory.role === "hauler" && creep.memory.room === room.name);
     if (_haulers.length < numHaulers) {
-      console.log(_haulers.length + "/" + numHaulers + " - " + room.name);
+      // console.log(_haulers.length + "/" + numHaulers + " - " + room.name);
       return CreepManager.createCreep(spawn, getBody(spawn.room), "hauler", {}, room);
     }
   }

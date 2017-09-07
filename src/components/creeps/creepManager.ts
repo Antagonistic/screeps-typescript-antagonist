@@ -13,6 +13,8 @@ import * as upgrader from "./roles/upgrader";
 
 import { log } from "../../lib/logger/log";
 
+import * as StructureManager from "../rooms/structureManager";
+
 /**
  * Initialization scripts for CreepManager module.
  *
@@ -106,11 +108,13 @@ function _spawnAllCreeps(room: Room, spawn: Spawn, creeps: Creep[], spawnAction:
     spawnAction = miner.build(room, spawn, sources, creeps, State, spawnAction);
     spawnAction = hauler.build(room, spawn, sources, creeps, State, spawnAction);
 
-    spawnAction = builder.build(room, spawn, creeps, State, spawnAction);
-    spawnAction = repair.build(room, spawn, creeps, State, spawnAction);
-    spawnAction = upgrader.build(room, spawn, creeps, State, spawnAction);
+    if (StructureManager.getRoomEnergy(room) >= 1000) {
+      spawnAction = builder.build(room, spawn, creeps, State, spawnAction);
+      spawnAction = repair.build(room, spawn, creeps, State, spawnAction);
+      spawnAction = upgrader.build(room, spawn, creeps, State, spawnAction);
 
-    spawnAction = scout.build(room, spawn, creeps, State, spawnAction);
+      spawnAction = scout.build(room, spawn, creeps, State, spawnAction);
+    }
   }
   return spawnAction;
 }

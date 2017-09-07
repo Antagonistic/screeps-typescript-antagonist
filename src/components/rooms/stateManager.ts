@@ -47,35 +47,37 @@ export function run(room: Room): void {
   // printState(room);
 }
 
+export function stateChange(room: Room, newState: RoomStates) {
+  const state = room.memory.state;
+  log.info(room.name + ": State changed from " + stateString(state) + "(" + state + ") to " +
+    stateString(newState) + "(" + newState + ")");
+  room.memory.state = newState;
+}
+
+export function stateString(state: RoomStates): string {
+  switch (state) {
+    case RoomStates.WAR:
+      return "WAR";
+    case RoomStates.NEUTRAL:
+      return "NEUTRAL";
+    case RoomStates.MINE:
+      return "MINE";
+    case RoomStates.CLAIM:
+      return "CLAIM";
+    case RoomStates.BOOTSTRAP:
+      return "BOOTSTRAP";
+    case RoomStates.TRANSITION:
+      return "TRANSITION";
+    case RoomStates.STABLE:
+      return "STABLE";
+    default:
+      return "UNDEFINED";
+  }
+}
+
 export function printState(room: Room): void {
   const roomstate = room.memory.state;
   const State = roomstate as RoomStates;
-  let stateStr: string;
-  switch (State) {
-    case RoomStates.WAR:
-      stateStr = "WAR";
-      break;
-    case RoomStates.NEUTRAL:
-      stateStr = "NEUTRAL";
-      break;
-    case RoomStates.MINE:
-      stateStr = "MINE";
-      break;
-    case RoomStates.CLAIM:
-      stateStr = "CLAIM";
-      break;
-    case RoomStates.BOOTSTRAP:
-      stateStr = "BOOTSTRAP";
-      break;
-    case RoomStates.TRANSITION:
-      stateStr = "TRANSITION";
-      break;
-    case RoomStates.STABLE:
-      stateStr = "STABLE";
-      break;
-    default:
-      stateStr = "UNDEFINED";
-      break;
-  }
+  const stateStr: string = stateString(State);
   log.info("Room " + room.name + " state is " + stateStr);
 }
