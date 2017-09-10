@@ -33,12 +33,12 @@ export function run(creep: Creep): void {
   }
 }
 
-export function getBody(room: Room): string[] | null {
-  if (room.energyCapacityAvailable >= 500) {
+export function getBody(): string[] | null {
+  /*if (room.energyCapacityAvailable >= 500) {
     return [MOVE, MOVE, MOVE, WORK, WORK, CARRY, CARRY, CARRY];
   } else if (room.energyCapacityAvailable >= 400) {
     return [MOVE, MOVE, WORK, WORK, CARRY, CARRY];
-  }
+  }*/
   return [WORK, WORK, CARRY, MOVE];
 }
 
@@ -51,13 +51,13 @@ export function build(spawn: Spawn, creeps: Creep[], State: RoomStates, spawnAct
         break;
       }
       case RoomStates.TRANSITION: {
-        numHarvesters = 2;
+        numHarvesters = 3;
         break;
       }
     }
     const harvesters = _.filter(creeps, (creep) => creep.memory.role === "harvester");
     if (harvesters.length < numHarvesters) {
-      return CreepManager.createCreep(spawn, getBody(spawn.room), "harvester");
+      return CreepManager.createCreep(spawn, getBody(), "harvester");
     }
     /*if (numHarvesters === 0 && harvesters.length) {
       _.each(harvesters, (harvester) => harvester.memory.role = "hauler");
