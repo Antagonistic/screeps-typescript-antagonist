@@ -27,10 +27,16 @@ export function run(room: Room): void {
     }
   }
 
-  // Check for extention damage
-  const extentions: Extension[] = room.find<StructureExtension>(FIND_MY_STRUCTURES, {filter:
-    (x: Structure) => x.structureType === STRUCTURE_EXTENSION && x.hits < x.hitsMax});
+  // Check for extention or lab damage
+  const extentions: Structure[] = room.find<StructureExtension>(FIND_MY_STRUCTURES, {filter:
+    (x: Structure) => (x.structureType === STRUCTURE_EXTENSION || x.structureType === STRUCTURE_LAB)
+    && x.hits < x.hitsMax});
   if (extentions && extentions.length) {
+    _safeMode(room);
+  }
+  // Check for terminal damage
+  const terminal: Terminal | undefined = room.terminal;
+  if (terminal && terminal.hits < terminal.hitsMax) {
     _safeMode(room);
   }
 

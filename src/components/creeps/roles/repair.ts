@@ -25,7 +25,7 @@ export function run(creep: Creep): void {
       // action = creepActions.actionRepair(creep, action, true, 3000);
       // action = creepActions.actionRepair(creep, action, true, 300);
       // action = creepActions.actionRepair(creep, action, true, 2);
-      action = creepActions.actionRepairWeakestWall(creep, action);
+      action = creepActions.actionRepairWeakestWall(creep, action, 1000000);
     }
     action = creepActions.actionUpgrade(creep, action);
   } else {
