@@ -102,7 +102,7 @@ function _spawnAllCreeps(room: Room, spawn: Spawn, creeps: Creep[], spawnAction:
   const sources: Source[] = room.find(FIND_SOURCES);
   const State: RoomStates = room.memory.state as RoomStates;
   if (spawn && !spawn.spawning) {
-    // spawnAction = guard.build(room, spawn, creeps, spawnAction);
+    spawnAction = guard.build(room, spawn, creeps, spawnAction);
 
     spawnAction = harvester.build(spawn, creeps, State, spawnAction);
     spawnAction = miner.build(room, spawn, sources, creeps, State, spawnAction);
