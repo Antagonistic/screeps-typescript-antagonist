@@ -255,6 +255,7 @@ export function actionUpgrade(creep: Creep, action: boolean): boolean {
       if (creep.upgradeController(target) ===  ERR_NOT_IN_RANGE) {
         creep.moveTo(target);
       }
+      creep.moveTo(target);
       return true;
     }
   }

@@ -3,12 +3,16 @@
 
 import * as soldier from "../creeps/roles/soldier";
 
+// import {empire} from "../../Empire";
+
+import {SpawnRoom} from "../rooms/SpawnRoom";
+
 export function run(): void {
   console.log("WAR");
 }
 
-export function spawnWarCreeps(spawn: Spawn, creeps: Creep[], spawnAction: boolean): boolean {
-  if (!spawnAction && spawn && !spawn.spawning) {
+export function spawnWarCreeps(spawn: SpawnRoom, creeps: Creep[], spawnAction: boolean): boolean {
+  if (!spawnAction && spawn && spawn.availableSpawnCount) {
     // console.log(spawn.name + " " + spawn.spawning);
     // const squads: string[] = Memory.squads;
     // if (squads && squads.length) {

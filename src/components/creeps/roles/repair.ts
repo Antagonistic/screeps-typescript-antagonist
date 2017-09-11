@@ -1,6 +1,7 @@
 import * as creepActions from "../creepActions";
 
-import * as CreepManager from "../creepManager";
+import {SpawnRoom} from "../../rooms/SpawnRoom";
+// import * as CreepManager from "../creepManager";
 
 /**
  * Runs all creep actions.
@@ -14,6 +15,9 @@ export function run(creep: Creep): void {
   action = creepActions.actionRecycle(creep, action);
   if (creepActions.canWork(creep)) {
     action = creepActions.actionMoveToRoom(creep, action);
+    if (creep.room.controller && creep.room.controller.ticksToDowngrade < 2000) {
+      action = creepActions.actionUpgrade(creep, action);
+    }
     action = creepActions.actionRepairCache(creep, action);
     action = creepActions.actionRepairCritical(creep, action);
     // action = creepActions.actionRepair(creep, action, true, 3000000);
@@ -25,7 +29,7 @@ export function run(creep: Creep): void {
       // action = creepActions.actionRepair(creep, action, true, 3000);
       // action = creepActions.actionRepair(creep, action, true, 300);
       // action = creepActions.actionRepair(creep, action, true, 2);
-      action = creepActions.actionRepairWeakestWall(creep, action, 1000000);
+      action = creepActions.actionRepairWeakestWall(creep, action, 500000);
     }
     action = creepActions.actionUpgrade(creep, action);
   } else {
@@ -49,7 +53,7 @@ export function getBody(room: Room): string[] | null {
   }
 }
 
-export function build(room: Room, spawn: Spawn, creeps: Creep[], State: RoomStates, spawnAction: boolean): boolean {
+export function build(room: Room, spawn: SpawnRoom, creeps: Creep[], State: RoomStates, spawnAction: boolean): boolean {
   if (spawnAction === false) {
     let numReps: number = 0;
     const _reps = _.filter(creeps, (creep) => creep.memory.role === "repair" && creep.memory.room === room.name);
@@ -69,7 +73,7 @@ export function build(room: Room, spawn: Spawn, creeps: Creep[], State: RoomStat
         break;
     }
     if (_reps.length < numReps) {
-      return CreepManager.createCreep(spawn, getBody(spawn.room), "repair", {}, room);
+      return spawn.createCreep(getBody(spawn.room), "repair", {}, room);
     }
   }
   return spawnAction;

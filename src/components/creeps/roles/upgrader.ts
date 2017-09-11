@@ -1,6 +1,7 @@
 import * as creepActions from "../creepActions";
 
-import * as CreepManager from "../creepManager";
+import {SpawnRoom} from "../../rooms/SpawnRoom";
+// import * as CreepManager from "../creepManager";
 
 import * as StructureManager from "../../rooms/structureManager";
 
@@ -43,7 +44,7 @@ export function getBody(room: Room): string[] | null {
   }
 }
 
-export function build(room: Room, spawn: Spawn, creeps: Creep[], State: RoomStates, spawnAction: boolean): boolean {
+export function build(room: Room, spawn: SpawnRoom, creeps: Creep[], State: RoomStates, spawnAction: boolean): boolean {
   if (spawnAction === false) {
     if (creeps.length > 0) {
       let numUpgraders: number = 1;
@@ -80,7 +81,7 @@ export function build(room: Room, spawn: Spawn, creeps: Creep[], State: RoomStat
       }
       // console.log(numUpgraders);
       if (_upgraders.length < numUpgraders) {
-        return CreepManager.createCreep(spawn, getBody(room), "upgrader");
+        return spawn.createCreep(getBody(room), "upgrader");
       }
     }
   }

@@ -1,6 +1,7 @@
 import * as creepActions from "../creepActions";
 
-import * as CreepManager from "../creepManager";
+import {SpawnRoom} from "../../rooms/SpawnRoom";
+// import * as CreepManager from "../creepManager";
 
 /**
  * Runs all creep actions.
@@ -24,7 +25,7 @@ export function getBody(): string[] | null {
   return [MOVE];
 }
 
-export function build(room: Room, spawn: Spawn, creeps: Creep[],
+export function build(room: Room, spawn: SpawnRoom, creeps: Creep[],
                       State: RoomStates, spawnAction: boolean): boolean {
   if (spawnAction === false) {
     if (State === RoomStates.STABLE) {
@@ -38,9 +39,9 @@ export function build(room: Room, spawn: Spawn, creeps: Creep[],
   return spawnAction;
 }
 
-function _needSpawnScout(roomID: string | undefined, spawn: Spawn, creeps: Creep[], spawnAction: boolean) {
+function _needSpawnScout(roomID: string | undefined, spawn: SpawnRoom, creeps: Creep[], spawnAction: boolean) {
   if (!spawnAction && roomID !== undefined && _needScout(roomID, creeps)) {
-    CreepManager.createCreep(spawn, getBody(), "scout", {room: roomID});
+    spawn.createCreep(getBody(), "scout", {room: roomID});
     return true;
   }
   return spawnAction;

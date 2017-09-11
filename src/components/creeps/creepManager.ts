@@ -11,7 +11,11 @@ import * as scout from "./roles/scout";
 import * as soldier from "./roles/soldier";
 import * as upgrader from "./roles/upgrader";
 
-import { log } from "../../lib/logger/log";
+// import { log } from "../../lib/logger/log";
+
+import {SpawnRoom} from "../rooms/SpawnRoom";
+
+import {empire} from "../../Empire";
 
 import * as StructureManager from "../rooms/structureManager";
 
@@ -82,26 +86,27 @@ export function run(room: Room, creeps: Creep[], spawnAction: boolean): boolean 
     // log.info(creepCount + " creeps found in the playground.");
   }
 
+  const spawnRoom: SpawnRoom = empire.spawnRooms.W9N38;
   const spawns: Spawn[] = room.find<Spawn>(FIND_MY_SPAWNS);
   const State: RoomStates = room.memory.state as RoomStates;
   if (spawns.length) {
-    for (const spawn of spawns) {
-      spawnAction = _spawnAllCreeps(room, spawn, creeps, spawnAction);
-    }
+    // for (const spawn of spawns) {
+      spawnAction = _spawnAllCreeps(room, spawnRoom, creeps, spawnAction);
+    // }
   } else if (room.memory.home && State === RoomStates.MINE) {
-    const homeSpawns: Spawn[] = Game.rooms[room.memory.home].find<Spawn>(FIND_MY_SPAWNS);
-    if (homeSpawns && homeSpawns[0] && !homeSpawns[0].spawning) {
-      spawnAction = _spawnRemoteCreeps(room, homeSpawns[0], creeps, spawnAction);
+    // const homeSpawns: Spawn[] = Game.rooms[room.memory.home].find<Spawn>(FIND_MY_SPAWNS);
+    // if (homeSpawns && homeSpawns[0] && !homeSpawns[0].spawning) {
+      spawnAction = _spawnRemoteCreeps(room, spawnRoom, creeps, spawnAction);
       // console.log("RemoteSpawn!");
-    }
+    // }
   }
   return spawnAction;
 }
 
-function _spawnAllCreeps(room: Room, spawn: Spawn, creeps: Creep[], spawnAction: boolean): boolean {
+function _spawnAllCreeps(room: Room, spawn: SpawnRoom, creeps: Creep[], spawnAction: boolean): boolean {
   const sources: Source[] = room.find(FIND_SOURCES);
   const State: RoomStates = room.memory.state as RoomStates;
-  if (spawn && !spawn.spawning) {
+  if (spawn && spawn.availableSpawnCount) {
     spawnAction = guard.build(room, spawn, creeps, spawnAction);
 
     spawnAction = harvester.build(spawn, creeps, State, spawnAction);
@@ -119,10 +124,10 @@ function _spawnAllCreeps(room: Room, spawn: Spawn, creeps: Creep[], spawnAction:
   return spawnAction;
 }
 
-function _spawnRemoteCreeps(room: Room, spawn: Spawn, creeps: Creep[], spawnAction: boolean): boolean {
+function _spawnRemoteCreeps(room: Room, spawn: SpawnRoom, creeps: Creep[], spawnAction: boolean): boolean {
   const sources: Source[] = room.find(FIND_SOURCES);
   const State: RoomStates = room.memory.state as RoomStates;
-  if (spawn && !spawn.spawning && State === RoomStates.MINE) {
+  if (spawn && spawn.availableSpawnCount && State === RoomStates.MINE) {
     const hostiles = room.find<Creep>(FIND_HOSTILE_CREEPS);
     if (hostiles && hostiles.length) {
       // spawnAction = guard.build(room, spawn, creeps, spawnAction);
@@ -138,7 +143,7 @@ function _spawnRemoteCreeps(room: Room, spawn: Spawn, creeps: Creep[], spawnActi
   return spawnAction;
 }
 
-export function createCreep(spawn: Spawn, bodyParts: string[] | null,
+/*export function createCreep(spawn: Spawn, bodyParts: string[] | null,
                             role: string, memory?: any, room: Room = spawn.room, creepName?: string): boolean {
   if (bodyParts) {
     let status: number | string = spawn.canCreateCreep(bodyParts, undefined);
@@ -181,4 +186,4 @@ export function createCreep(spawn: Spawn, bodyParts: string[] | null,
     }
   }
   return false;
-}
+}*/

@@ -1,6 +1,7 @@
 import * as creepActions from "../creepActions";
 
-import * as CreepManager from "../creepManager";
+import {SpawnRoom} from "../../rooms/SpawnRoom";
+// import * as CreepManager from "../creepManager";
 
 /**
  * Runs all creep actions.
@@ -35,7 +36,7 @@ export function getBody(room: Room): string[] | null {
 
   }
 
-export function build(room: Room, spawn: Spawn, sources: Source[], creeps: Creep[],
+export function build(room: Room, spawn: SpawnRoom, sources: Source[], creeps: Creep[],
                       State: RoomStates, spawnAction: boolean): boolean {
   if (spawnAction === false) {
     let numHaulers = 0;
@@ -48,7 +49,7 @@ export function build(room: Room, spawn: Spawn, sources: Source[], creeps: Creep
     }
     const _haulers = _.filter(creeps, (creep) => creep.memory.role === "longhauler");
     if (_haulers.length < numHaulers) {
-       return CreepManager.createCreep(spawn, getBody(room), "hauler", {room: room.name, home: spawn.room.name});
+       return spawn.createCreep(getBody(room), "hauler", {room: room.name, home: spawn.room.name});
     }
   }
   return spawnAction;

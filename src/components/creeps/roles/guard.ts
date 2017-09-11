@@ -1,6 +1,7 @@
 import * as creepActions from "../creepActions";
 
-import * as CreepManager from "../creepManager";
+import {SpawnRoom} from "../../rooms/SpawnRoom";
+// import * as CreepManager from "../creepManager";
 
 /**
  * Runs all creep actions.
@@ -24,7 +25,7 @@ export function getBody(): string[] | null {
   return [RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, MOVE, MOVE, MOVE, MOVE];
 }
 
-export function build(room: Room, spawn: Spawn, creeps: Creep[],
+export function build(room: Room, spawn: SpawnRoom, creeps: Creep[],
                       spawnAction: boolean): boolean {
   if (spawnAction === false) {
     const hostiles = room.find<Creep>(FIND_HOSTILE_CREEPS);
@@ -32,7 +33,7 @@ export function build(room: Room, spawn: Spawn, creeps: Creep[],
       const guards: Creep[] = _.filter(creeps, (creep) => creep.memory.role === "guard" &&
        creep.memory.room === room.name);
       _.each(guards, (guard) => guard.memory.recycle = undefined);
-      return CreepManager.createCreep(spawn, getBody(), "guard", {}, room);
+      return spawn.createCreep(getBody(), "guard", {}, room);
     } else {
       const guards: Creep[] = _.filter(creeps, (creep) => creep.memory.role === "guard" &&
        creep.memory.room === room.name);

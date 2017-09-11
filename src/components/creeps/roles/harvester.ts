@@ -1,6 +1,7 @@
 import * as creepActions from "../creepActions";
 
-import * as CreepManager from "../creepManager";
+import {SpawnRoom} from "../../rooms/SpawnRoom";
+// import * as CreepManager from "../creepManager";
 
 /**
  * Runs all creep actions.
@@ -17,6 +18,7 @@ export function run(creep: Creep): void {
   // }
 
   let action: boolean = false;
+  action = creepActions.actionRecycle(creep, action);
 
   if (creepActions.canWork(creep)) {
     action = creepActions.actionFillEnergy(creep, action);
@@ -33,16 +35,19 @@ export function run(creep: Creep): void {
   }
 }
 
-export function getBody(): string[] | null {
+export function getBody(room: Room): string[] | null {
+  if (room.memory.stable_structures) {
+    return [WORK, WORK, CARRY, MOVE];
+  }
   /*if (room.energyCapacityAvailable >= 500) {
     return [MOVE, MOVE, MOVE, WORK, WORK, CARRY, CARRY, CARRY];
   } else if (room.energyCapacityAvailable >= 400) {
     return [MOVE, MOVE, WORK, WORK, CARRY, CARRY];
   }*/
-  return [WORK, WORK, CARRY, MOVE];
+  return [WORK, CARRY, MOVE, MOVE];
 }
 
-export function build(spawn: Spawn, creeps: Creep[], State: RoomStates, spawnAction: boolean): boolean {
+export function build(spawn: SpawnRoom, creeps: Creep[], State: RoomStates, spawnAction: boolean): boolean {
   if (spawnAction === false) {
     let numHarvesters: number = 0;
     switch (State) {
@@ -58,11 +63,11 @@ export function build(spawn: Spawn, creeps: Creep[], State: RoomStates, spawnAct
     const harvesters = _.filter(creeps, (creep) => creep.memory.role === "harvester");
     if (harvesters.length < numHarvesters) {
       console.log(spawn.room.name + ": harvester: " + harvesters.length + "/" + numHarvesters);
-      return CreepManager.createCreep(spawn, getBody(), "harvester");
+      return spawn.createCreep(getBody(spawn.room), "harvester");
     }
-    /*if (numHarvesters === 0 && harvesters.length) {
-      _.each(harvesters, (harvester) => harvester.memory.role = "hauler");
-    }*/
+    if (numHarvesters === 0 && harvesters.length) {
+      _.each(harvesters, (harvester) => harvester.memory.recycle = true);
+    }
   }
   return spawnAction;
 }

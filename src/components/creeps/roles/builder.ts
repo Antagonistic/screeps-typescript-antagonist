@@ -1,6 +1,7 @@
 import * as creepActions from "../creepActions";
 
-import * as CreepManager from "../creepManager";
+import {SpawnRoom} from "../../rooms/SpawnRoom";
+// import * as CreepManager from "../creepManager";
 
 /**
  * Runs all creep actions.
@@ -13,6 +14,9 @@ export function run(creep: Creep): void {
   action = creepActions.actionRecycle(creep, action);
   if (creepActions.canWork(creep)) {
     action = creepActions.actionMoveToRoom(creep, action);
+    if (creep.room.controller && creep.room.controller.ticksToDowngrade < 2000) {
+      action = creepActions.actionUpgrade(creep, action);
+    }
     action = creepActions.actionBuild(creep, action);
   } else {
     action = creepActions.actionGetStorageEnergy(creep, action);
@@ -38,7 +42,7 @@ export function getBody(room: Room): string[] | null {
   }
 }
 
-export function build(room: Room, spawn: Spawn, creeps: Creep[], State: RoomStates, spawnAction: boolean): boolean {
+export function build(room: Room, spawn: SpawnRoom, creeps: Creep[], State: RoomStates, spawnAction: boolean): boolean {
   if (spawnAction === false) {
     const _constructions: ConstructionSite[] = room.find(FIND_MY_CONSTRUCTION_SITES);
     const _builders = _.filter(creeps, (creep) => creep.memory.role === "builder" && creep.memory.room === room.name);
@@ -57,17 +61,17 @@ export function build(room: Room, spawn: Spawn, creeps: Creep[], State: RoomStat
           break;
         case RoomStates.STABLE:
           numBuilders = 1;
-          if (buildSum > 10000) {
+          if (buildSum > 50000) {
             numBuilders = 3;
-          } else if (buildSum > 5000) {
+          } else if (buildSum > 10000) {
             numBuilders = 2;
           }
           break;
       }
 
       if (_builders.length < numBuilders) {
-        // console.log(_builders.length + "/" + numBuilders + " - " + room.name);
-        return CreepManager.createCreep(spawn, getBody(spawn.room), "builder", {}, room);
+        console.log(room.name + ": builders: " + _builders.length + "/" + numBuilders + " - " + room.name);
+        return spawn.createCreep(getBody(spawn.room), "builder", {}, room);
       }
     } else {
       // No more need for builders, recycle them

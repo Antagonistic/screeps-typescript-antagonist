@@ -1,6 +1,7 @@
 import * as creepActions from "../creepActions";
 
-import * as CreepManager from "../creepManager";
+// import * as CreepManager from "../creepManager";
+import {SpawnRoom} from "../../rooms/SpawnRoom";
 
 /**
  * Runs all creep actions.
@@ -29,7 +30,7 @@ export function getBody(room: Room): string[] | null {
   return [CLAIM, MOVE];
 }
 
-export function build(room: Room, spawn: Spawn, creeps: Creep[],
+export function build(room: Room, spawn: SpawnRoom, creeps: Creep[],
                       State: RoomStates, spawnAction: boolean): boolean {
   if (spawnAction === false) {
     if (State === RoomStates.MINE) {
@@ -39,7 +40,7 @@ export function build(room: Room, spawn: Spawn, creeps: Creep[],
           const _claims = _.filter(creeps, (creep) => creep.memory.role === "claim" && creep.memory.room === room.name);
           if (!_claims || _claims.length === 0) {
             // Need to reserve
-            return CreepManager.createCreep(spawn, getBody(spawn.room), "claim", {reserve: true}, room);
+            return spawn.createCreep(getBody(spawn.room), "claim", {reserve: true}, room);
           }
         }
       }

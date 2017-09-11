@@ -1,6 +1,7 @@
 import * as creepActions from "../creepActions";
 
-import * as CreepManager from "../creepManager";
+import {SpawnRoom} from "../../rooms/SpawnRoom";
+// import * as CreepManager from "../creepManager";
 
 /**
  * Runs all creep actions.
@@ -46,13 +47,13 @@ export function getBody(subrole: string): string[] | null {
   return null;
 }
 
-export function build(room: Room, spawn: Spawn, subrole: string, squad: string,
+export function build(room: Room, spawn: SpawnRoom, subrole: string, squad: string,
                       spawnAction: boolean): boolean {
   if (spawnAction === false) {
     if (!squad) {
       squad = "null";
     }
-    return CreepManager.createCreep(spawn, getBody(subrole), "soldier",
+    return spawn.createCreep(getBody(subrole), "soldier",
      {subrole, squad}, room, squad + " - " + subrole);
   }
   return spawnAction;

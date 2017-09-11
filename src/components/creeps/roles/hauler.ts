@@ -1,6 +1,7 @@
 import * as creepActions from "../creepActions";
 
-import * as CreepManager from "../creepManager";
+import {SpawnRoom} from "../../rooms/SpawnRoom";
+// import * as CreepManager from "../creepManager";
 
 /**
  * Runs all creep actions.
@@ -34,7 +35,7 @@ export function getBody(room: Room): string[] | null {
     } else if (room.energyCapacityAvailable >= 600) {
       // Big hauler
       return [MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY];
-    } else if (room.energyAvailable >= 450) {
+    } else if (room.energyCapacityAvailable >= 450) {
       // Medium hauler
       return [MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY];
     } else {
@@ -43,25 +44,27 @@ export function getBody(room: Room): string[] | null {
     }
   }
 
-export function build(room: Room, spawn: Spawn, sources: Source[], creeps: Creep[],
+export function build(room: Room, spawn: SpawnRoom, sources: Source[], creeps: Creep[],
                       State: RoomStates, spawnAction: boolean): boolean {
   if (spawnAction === false) {
     let numHaulers = 0;
-    switch (State) {
-      case RoomStates.MINE:
-        numHaulers = sources.length * 2 + 1;
-        break;
-      case RoomStates.TRANSITION:
-        numHaulers = sources.length;
-        break;
-      case RoomStates.STABLE:
-        numHaulers = sources.length * 2 + 1;
-        break;
+    if (_.filter(creeps, (c) => c.memory.role === "miner").length > 0) {
+      switch (State) {
+        case RoomStates.MINE:
+          numHaulers = sources.length * 2 - 1;
+          break;
+        case RoomStates.TRANSITION:
+          numHaulers = sources.length;
+          break;
+        case RoomStates.STABLE:
+          numHaulers = sources.length * 2 - 1;
+          break;
+      }
     }
     const _haulers = _.filter(creeps, (creep) => creep.memory.role === "hauler" && creep.memory.room === room.name);
     if (_haulers.length < numHaulers) {
       // console.log(_haulers.length + "/" + numHaulers + " - " + room.name);
-      return CreepManager.createCreep(spawn, getBody(spawn.room), "hauler", {}, room);
+      return spawn.createCreep(getBody(spawn.room), "hauler", {}, room);
     }
   }
   return spawnAction;

@@ -9,6 +9,10 @@ import * as WarManager from "./components/war/warManager";
 import * as Profiler from "screeps-profiler";
 import { log } from "./lib/logger/log";
 
+import {empire} from "./Empire";
+
+import {SpawnRoom} from "./components/rooms/SpawnRoom";
+
 import {commandConsole} from "./commandConsole";
 
 // Any code written outside the `loop()` method is executed only when the
@@ -38,6 +42,10 @@ function mloop() {
     Memory.uuid = 0;
   }
 
+  // empire = new Empire();
+  empire.init();
+  global.emp = empire;
+
   let creeps: Creep[] = [];
   for (const i in Game.rooms) {
     const room: Room = Game.rooms[i];
@@ -66,7 +74,8 @@ function mloop() {
     StructureManager.run(room);
   }
 
-  WarManager.spawnWarCreeps(Game.spawns[Config.homeSpawnName], creeps, spawnAction);
+  const spawn: SpawnRoom = empire.spawnRooms.W9N38;
+  WarManager.spawnWarCreeps(spawn, creeps, spawnAction);
 
   // Clears any non-existing creep memory.
   for (const name in Memory.creeps) {

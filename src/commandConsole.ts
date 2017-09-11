@@ -3,6 +3,10 @@ import * as soldier from "./components/creeps/roles/soldier";
 
 import { log } from "./lib/logger/log";
 
+import {empire} from "./Empire";
+
+import {SpawnRoom} from "./components/rooms/SpawnRoom";
+
 export const commandConsole = {
   ping() {
     console.log("PONG!");
@@ -19,10 +23,10 @@ export const commandConsole = {
   spawnSoldier(roomName: string, subrole: string = "archer", roomTarget?: string): boolean {
     const room = Game.rooms[roomName];
     if (room) {
-      const spawns: Spawn[] = room.find(FIND_MY_SPAWNS);
-      if (spawns && spawns.length) {
-        const spawn: Spawn = spawns[0];
-        if (!spawn.spawning) {
+      const spawn: SpawnRoom = empire.spawnRooms.W9N38;
+      if (spawn && spawn.availableSpawnCount) {
+        // const spawn: Spawn = spawns[0];
+        if (spawn.availableSpawnCount) {
           let creepRoom: Room = room;
           if (roomTarget) {
             const rT: Room = Game.rooms[roomTarget];
