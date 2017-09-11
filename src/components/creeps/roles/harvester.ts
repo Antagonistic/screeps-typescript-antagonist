@@ -57,6 +57,7 @@ export function build(spawn: Spawn, creeps: Creep[], State: RoomStates, spawnAct
     }
     const harvesters = _.filter(creeps, (creep) => creep.memory.role === "harvester");
     if (harvesters.length < numHarvesters) {
+      console.log(spawn.room.name + ": harvester: " + harvesters.length + "/" + numHarvesters);
       return CreepManager.createCreep(spawn, getBody(), "harvester");
     }
     /*if (numHarvesters === 0 && harvesters.length) {

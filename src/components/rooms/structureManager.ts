@@ -290,6 +290,16 @@ function _findLinks(room: Room): void {
         room.memory.controllerlinks = undefined;
       }
     }
+  } else {
+    if (room.memory.mininglinks) {
+      room.memory.mininglinks = undefined;
+    }
+    if (room.memory.spawnlinks) {
+      room.memory.spawnlinks = undefined;
+    }
+    if (room.memory.controllerlinks) {
+      room.memory.controllerlinks = undefined;
+    }
   }
 }
 
