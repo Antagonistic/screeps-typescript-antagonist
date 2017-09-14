@@ -2,7 +2,7 @@ import * as Config from "../../config/config";
 
 import { log } from "../../lib/logger/log";
 
-export class SpawnRoom {
+export class SpawnRoom implements ISpawnRoom {
   public spawns: Spawn[];
   public room: Room;
   public availableSpawnCount: number;

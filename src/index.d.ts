@@ -3,8 +3,47 @@ declare namespace NodeJS {
   interface Global {
     log: any;
     cc: any;
-    emp: any;
+    emp: IEmpire;
   }
+}
+
+interface IWorldMap {
+  controlledRooms: {[roomName: string]: Room };
+  init(): {[roomName: string]: ISpawnRoom};
+}
+
+interface ISpawnRoom {
+  spawns: Spawn[];
+  room: Room;
+  availableSpawnCount: number;
+  availableSpawnEnergy: number;
+  createCreep(bodyParts: string[] | null, role: string, memory?: any, room?: Room, creepName?: string): boolean;
+}
+
+interface IMission {
+  name: string;
+  operation: IOperation;
+
+  roles: {[roleName: string]: Creep[]};
+}
+
+interface IOperation {
+  name: string;
+  type: string;
+
+  flag: Flag;
+  room: Room | undefined;
+
+  missions: {[missionName: string]: IMission};
+
+  init(): void;
+}
+
+interface IEmpire {
+  spawnRooms: {[roomName: string]: ISpawnRoom};
+  map: IWorldMap;
+  operations: {[operationName: string]: IOperation};
+  init(): void;
 }
 
 interface SquadComposition {
@@ -40,5 +79,4 @@ declare const enum RoomStates {
     STABLE = 7
   }
 
-
-declare const __REVISION__: string
+declare const __REVISION__: string;

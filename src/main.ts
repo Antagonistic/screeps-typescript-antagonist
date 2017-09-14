@@ -2,6 +2,7 @@ import * as Config from "./config/config";
 
 import * as CreepManager from "./components/creeps/creepManager";
 import * as FlagManager from "./components/flags/flagManager";
+// import * as OperationManager from "./components/operation/operationManager";
 import * as StateManager from "./components/rooms/stateManager";
 import * as StructureManager from "./components/rooms/structureManager";
 import * as WarManager from "./components/war/warManager";
@@ -45,6 +46,8 @@ function mloop() {
   // empire = new Empire();
   empire.init();
   global.emp = empire;
+
+  // OperationManager.init();
 
   let creeps: Creep[] = [];
   for (const i in Game.rooms) {

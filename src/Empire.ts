@@ -3,18 +3,20 @@ import {WorldMap} from "./components/rooms/WorldMap";
 
 // export let empire: Empire;
 
-export class Empire {
+export class Empire implements IEmpire {
   public spawnRooms: {[roomName: string]: SpawnRoom};
   public map: WorldMap;
+  public operations: {[operationName: string]: IOperation};
 
   constructor() {
     if (!Memory.empire) Memory.empire = {};
+    this.operations = {};
   }
 
-  public init() {
+  public init(): void {
     this.map = new WorldMap();
     this.spawnRooms = this.map.init();
   }
 }
 
-export let empire: Empire = new Empire();
+export const empire: Empire = new Empire();

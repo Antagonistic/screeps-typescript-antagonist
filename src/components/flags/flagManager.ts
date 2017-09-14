@@ -2,7 +2,7 @@
 export function run(): void {
   for (const f in Game.flags) {
     const flag: Flag = Game.flags[f];
-    const roomState: RoomStates = Memory.rooms[flag.pos.roomName].state;
+    // const roomState: RoomStates = Memory.rooms[flag.pos.roomName].state;
     const roomName: string = flag.pos.roomName;
 
     if (flag.name.toLowerCase() === "rally") {
@@ -26,7 +26,7 @@ export function run(): void {
       return;
     }
 
-    console.log(flag.pos.roomName + " state is " + roomState);
-    flag.remove();
+    // console.log(flag.pos.roomName + " state is " + roomState);
+    // flag.remove();
   }
 }
