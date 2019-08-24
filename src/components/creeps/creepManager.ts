@@ -13,9 +13,9 @@ import * as upgrader from "./roles/upgrader";
 
 // import { log } from "../../lib/logger/log";
 
-import {SpawnRoom} from "../rooms/SpawnRoom";
+import { SpawnRoom } from "../rooms/SpawnRoom";
 
-import {empire} from "../../Empire";
+import { empire } from "../../Empire";
 
 import * as StructureManager from "../rooms/structureManager";
 
@@ -29,36 +29,36 @@ import * as StructureManager from "../rooms/structureManager";
 export function runCreeps(creeps: Creep[]): void {
   _.each(creeps, (creep: Creep) => {
     switch (creep.memory.role) {
-    case "harvester":
-      harvester.run(creep);
-      break;
-    case "builder":
-      builder.run(creep);
-      break;
-    case "upgrader":
-      upgrader.run(creep);
-      break;
-    case "miner":
-      miner.run(creep);
-      break;
-    case "hauler":
-      hauler.run(creep);
-      break;
-    case "repair":
-      repair.run(creep);
-      break;
-    case "scout":
-      scout.run(creep);
-      break;
-    case "guard":
-      guard.run(creep);
-      break;
-    case "claim":
-      claim.run(creep);
-      break;
-    case "soldier":
-      soldier.run(creep);
-      break;
+      case "harvester":
+        harvester.run(creep);
+        break;
+      case "builder":
+        builder.run(creep);
+        break;
+      case "upgrader":
+        upgrader.run(creep);
+        break;
+      case "miner":
+        miner.run(creep);
+        break;
+      case "hauler":
+        hauler.run(creep);
+        break;
+      case "repair":
+        repair.run(creep);
+        break;
+      case "scout":
+        scout.run(creep);
+        break;
+      case "guard":
+        guard.run(creep);
+        break;
+      case "claim":
+        claim.run(creep);
+        break;
+      case "soldier":
+        soldier.run(creep);
+        break;
     }
   });
 }
@@ -87,17 +87,17 @@ export function run(room: Room, creeps: Creep[], spawnAction: boolean): boolean 
   }
 
   const spawnRoom: SpawnRoom = empire.spawnRooms.W9N38;
-  const spawns: Spawn[] = room.find<Spawn>(FIND_MY_SPAWNS);
+  const spawns: StructureSpawn[] = room.find(FIND_MY_SPAWNS);
   const State: RoomStates = room.memory.state as RoomStates;
   if (spawns.length) {
     // for (const spawn of spawns) {
-      spawnAction = _spawnAllCreeps(room, spawnRoom, creeps, spawnAction);
+    spawnAction = _spawnAllCreeps(room, spawnRoom, creeps, spawnAction);
     // }
   } else if (room.memory.home && State === RoomStates.MINE) {
     // const homeSpawns: Spawn[] = Game.rooms[room.memory.home].find<Spawn>(FIND_MY_SPAWNS);
     // if (homeSpawns && homeSpawns[0] && !homeSpawns[0].spawning) {
-      spawnAction = _spawnRemoteCreeps(room, spawnRoom, creeps, spawnAction);
-      // console.log("RemoteSpawn!");
+    spawnAction = _spawnRemoteCreeps(room, spawnRoom, creeps, spawnAction);
+    // console.log("RemoteSpawn!");
     // }
   }
   return spawnAction;
@@ -128,7 +128,7 @@ function _spawnRemoteCreeps(room: Room, spawn: SpawnRoom, creeps: Creep[], spawn
   const sources: Source[] = room.find(FIND_SOURCES);
   const State: RoomStates = room.memory.state as RoomStates;
   if (spawn && spawn.availableSpawnCount && State === RoomStates.MINE) {
-    const hostiles = room.find<Creep>(FIND_HOSTILE_CREEPS);
+    const hostiles = room.find(FIND_HOSTILE_CREEPS);
     if (hostiles && hostiles.length) {
       // spawnAction = guard.build(room, spawn, creeps, spawnAction);
     } else {

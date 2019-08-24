@@ -7,6 +7,7 @@ import * as ClaimState from "./states/claim";
 import * as MineState from "./states/mine";
 import * as StableState from "./states/stable";
 import * as TransitionState from "./states/transition";
+import { initNewControllerOperation } from "components/operation/operations/ControllerOperation";
 
 export function run(room: Room): void {
   const roomstate = room.memory.state;
@@ -14,6 +15,7 @@ export function run(room: Room): void {
   if (!State) {
     if (room.controller && room.controller.my) {
       room.memory.state = RoomStates.CLAIM;
+      initNewControllerOperation(room);
     } else {
       room.memory.state = RoomStates.NEUTRAL;
     }

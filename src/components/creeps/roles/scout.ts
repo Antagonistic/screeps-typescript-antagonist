@@ -1,6 +1,6 @@
 import * as creepActions from "../creepActions";
 
-import {SpawnRoom} from "../../rooms/SpawnRoom";
+import { SpawnRoom } from "../../rooms/SpawnRoom";
 // import * as CreepManager from "../creepManager";
 
 /**
@@ -12,7 +12,7 @@ import {SpawnRoom} from "../../rooms/SpawnRoom";
 export function run(creep: Creep): void {
   let action: boolean = false;
 
-  if (creep.ticksToLive >= 1499) {
+  if (creep.ticksToLive && creep.ticksToLive >= 1499) {
     creep.notifyWhenAttacked(false);
   }
 
@@ -21,12 +21,12 @@ export function run(creep: Creep): void {
 
 }
 
-export function getBody(): string[] | null {
+export function getBody(): BodyPartConstant[] | null {
   return [MOVE];
 }
 
 export function build(room: Room, spawn: SpawnRoom, creeps: Creep[],
-                      State: RoomStates, spawnAction: boolean): boolean {
+  State: RoomStates, spawnAction: boolean): boolean {
   if (spawnAction === false) {
     if (State === RoomStates.STABLE) {
       const exits = Game.map.describeExits(room.name);
@@ -41,7 +41,7 @@ export function build(room: Room, spawn: SpawnRoom, creeps: Creep[],
 
 function _needSpawnScout(roomID: string | undefined, spawn: SpawnRoom, creeps: Creep[], spawnAction: boolean) {
   if (!spawnAction && roomID !== undefined && _needScout(roomID, creeps)) {
-    spawn.createCreep(getBody(), "scout", {room: roomID});
+    spawn.createCreep(getBody(), "scout", { room: roomID });
     return true;
   }
   return spawnAction;
@@ -49,10 +49,10 @@ function _needSpawnScout(roomID: string | undefined, spawn: SpawnRoom, creeps: C
 
 function _needScout(roomID: string, creeps: Creep[]) {
   if (Game.rooms[roomID] === undefined &&
-      Game.map.isRoomAvailable(roomID) &&
-      (Memory.rooms[roomID] === undefined ||
-        Memory.rooms[roomID].state === undefined ||
-        Memory.rooms[roomID].state !== RoomStates.NONE)) {
+    Game.map.isRoomAvailable(roomID) &&
+    (Memory.rooms[roomID] === undefined ||
+      Memory.rooms[roomID].state === undefined ||
+      Memory.rooms[roomID].state !== RoomStates.NONE)) {
     const _scouts = _.filter(creeps, (creep) => creep.memory.role === "scout" && creep.memory.room === roomID);
     if (_scouts.length) {
       return false;

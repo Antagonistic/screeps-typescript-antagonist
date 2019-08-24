@@ -1,7 +1,7 @@
 import * as StateManager from "../stateManager";
 
 export function run(room: Room): void {
-  const creeps = room.find<Creep>(FIND_MY_CREEPS);
+  const creeps = room.find(FIND_MY_CREEPS);
   const numMiners = _.filter(creeps, (creep) => creep.memory.role === "miner").length;
   const numHaulers = _.filter(creeps, (creep) => creep.memory.role === "hauler").length;
   if (numMiners > 1 && numHaulers > 1) {

@@ -1,6 +1,6 @@
 import * as creepActions from "../creepActions";
 
-import {SpawnRoom} from "../../rooms/SpawnRoom";
+import { SpawnRoom } from "../../rooms/SpawnRoom";
 // import * as CreepManager from "../creepManager";
 
 /**
@@ -25,19 +25,19 @@ export function run(creep: Creep): void {
   }
 }
 
-export function getBody(room: Room): string[] | null {
-    if (room.energyCapacityAvailable > 600) {
-        // Big hauler
-        return [MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY];
-    } else {
-        // Small hauler
-        return [MOVE, MOVE, CARRY, CARRY, CARRY, CARRY];
-    }
-
+export function getBody(room: Room): BodyPartConstant[] | null {
+  if (room.energyCapacityAvailable > 600) {
+    // Big hauler
+    return [MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY];
+  } else {
+    // Small hauler
+    return [MOVE, MOVE, CARRY, CARRY, CARRY, CARRY];
   }
 
+}
+
 export function build(room: Room, spawn: SpawnRoom, sources: Source[], creeps: Creep[],
-                      State: RoomStates, spawnAction: boolean): boolean {
+  State: RoomStates, spawnAction: boolean): boolean {
   if (spawnAction === false) {
     let numHaulers = 0;
     switch (State) {
@@ -49,7 +49,7 @@ export function build(room: Room, spawn: SpawnRoom, sources: Source[], creeps: C
     }
     const _haulers = _.filter(creeps, (creep) => creep.memory.role === "longhauler");
     if (_haulers.length < numHaulers) {
-       return spawn.createCreep(getBody(room), "hauler", {room: room.name, home: spawn.room.name});
+      return spawn.createCreep(getBody(room), "hauler", { room: room.name, home: spawn.room.name });
     }
   }
   return spawnAction;

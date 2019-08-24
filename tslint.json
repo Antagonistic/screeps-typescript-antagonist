@@ -1,17 +1,15 @@
 {
+  "rulesDirectory": "tslint-plugin-prettier",
   "extends" : [
-    "tslint:recommended"
+    "tslint:recommended",
+    "tslint-config-prettier"
   ],
   "rules": {
     "forin": false,
-    "interface-name": [false],
+    "interface-name": [true, "never-prefix"],
+    "member-ordering": [false],
     "no-console": [false],
     "no-namespace": [true, "allow-declarations"],
-    "curly": [true, "ignore-same-line"],
-    "trailing-comma": [
-      true,
-      "never"
-    ],
     "variable-name": [
       true,
       "ban-keywords",

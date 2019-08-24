@@ -1,6 +1,6 @@
 import * as creepActions from "../creepActions";
 
-import {SpawnRoom} from "../../rooms/SpawnRoom";
+import { SpawnRoom } from "../../rooms/SpawnRoom";
 // import * as CreepManager from "../creepManager";
 
 /**
@@ -31,7 +31,7 @@ export function run(creep: Creep): void {
   }
 }
 
-export function getBody(room: Room): string[] | null {
+export function getBody(room: Room): BodyPartConstant[] {
   const availableEnergy: number = room.energyCapacityAvailable;
   if (availableEnergy >= 650) {
     return [MOVE, MOVE, MOVE, WORK, WORK, WORK, WORK, CARRY, CARRY];

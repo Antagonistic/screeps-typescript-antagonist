@@ -10,7 +10,7 @@ export function run(room: Room): void {
   if (towerIDs && towerIDs.length > 0) {
     const hostiles: Creep[] = room.find(FIND_HOSTILE_CREEPS);
     for (const towerID of towerIDs) {
-      const tower: Tower | null = Game.getObjectById(towerID);
+      const tower: StructureTower | null = Game.getObjectById(towerID);
       if (tower) {
         TowerHandler.run(tower, hostiles);
       }
@@ -18,7 +18,7 @@ export function run(room: Room): void {
   }
 
   // Handle spawns
-  const spawns: Spawn[] = room.find(FIND_MY_SPAWNS);
+  const spawns: StructureSpawn[] = room.find(FIND_MY_SPAWNS);
   for (const spawn of spawns) {
     SpawnHandler.run(spawn);
     if (spawn.hits < spawn.hitsMax) {
@@ -28,14 +28,16 @@ export function run(room: Room): void {
   }
 
   // Check for extention or lab damage
-  const extentions: Structure[] = room.find<StructureExtension>(FIND_MY_STRUCTURES, {filter:
-    (x: Structure) => (x.structureType === STRUCTURE_EXTENSION || x.structureType === STRUCTURE_LAB)
-    && x.hits < x.hitsMax});
+  const extentions: Structure[] = room.find<StructureExtension>(FIND_MY_STRUCTURES, {
+    filter:
+      (x: Structure) => (x.structureType === STRUCTURE_EXTENSION || x.structureType === STRUCTURE_LAB)
+        && x.hits < x.hitsMax
+  });
   if (extentions && extentions.length) {
     _safeMode(room);
   }
   // Check for terminal damage
-  const terminal: Terminal | undefined = room.terminal;
+  const terminal: StructureTerminal | undefined = room.terminal;
   if (terminal && terminal.hits < terminal.hitsMax) {
     _safeMode(room);
   }
@@ -60,7 +62,8 @@ export function run(room: Room): void {
   }
 
   if (Game.time % 50 === 20) {
-    _findRemoteRooms(room);
+    if (room.name != "sim")
+      _findRemoteRooms(room);
   }
 
   if (Game.time % 50 === 25) {
@@ -74,7 +77,7 @@ export function run(room: Room): void {
 
 function _safeMode(room: Room) {
   // EMERGENCY, SAFE MODE!
-  const hostiles: Creep[] = room.find(FIND_HOSTILE_CREEPS, {filter: (x: Creep) => x.owner.username !== "Invader"});
+  const hostiles: Creep[] = room.find(FIND_HOSTILE_CREEPS, { filter: (x: Creep) => x.owner.username !== "Invader" });
   if (room.controller && room.controller.my && room.controller.safeModeAvailable && hostiles && hostiles.length) {
     if (!room.controller.safeMode) {
       room.controller.activateSafeMode();
@@ -88,15 +91,19 @@ export function getRoomEnergy(room: Room): number {
   if (room.storage && room.storage.my && room.storage.store.energy) {
     energy += room.storage.store.energy;
   }
-  const containers: Container[] = room.find<Container>(FIND_STRUCTURES, {filter:
-    (x: Structure) => x.structureType === STRUCTURE_CONTAINER});
+  const containers: StructureContainer[] = room.find<StructureContainer>(FIND_STRUCTURES, {
+    filter:
+      (x: Structure) => x.structureType === STRUCTURE_CONTAINER
+  });
   if (containers && containers.length) {
     for (const container of containers) {
       energy += container.store.energy;
     }
   }
-  const dropped: Resource[] = room.find<Resource>(FIND_DROPPED_RESOURCES, {filter:
-    (x: Resource) => x.resourceType === RESOURCE_ENERGY});
+  const dropped: Resource[] = room.find<FIND_DROPPED_RESOURCES>(FIND_DROPPED_RESOURCES, {
+    filter:
+      (x: Resource) => x.resourceType === RESOURCE_ENERGY
+  });
   if (dropped && dropped.length) {
     for (const res of dropped) {
       energy += res.amount;
@@ -110,8 +117,10 @@ export function getRoomEnergyCapacity(room: Room): number {
   if (room.storage && room.storage.my && room.storage.store.energy) {
     energy += room.storage.storeCapacity;
   }
-  const containers: Container[] = room.find<Container>(FIND_STRUCTURES, {filter:
-    (x: Structure) => x.structureType === STRUCTURE_CONTAINER});
+  const containers: StructureContainer[] = room.find<StructureContainer>(FIND_STRUCTURES, {
+    filter:
+      (x: Structure) => x.structureType === STRUCTURE_CONTAINER
+  });
   if (containers && containers.length) {
     for (const container of containers) {
       energy += container.storeCapacity;
@@ -122,7 +131,7 @@ export function getRoomEnergyCapacity(room: Room): number {
 
 function _buildStructures(room: Room) {
   const state: RoomStates = room.memory.state;
-  switch  (state) {
+  switch (state) {
     case RoomStates.MINE:
       if (room.memory.mine_structures) {
         return;
@@ -130,7 +139,7 @@ function _buildStructures(room: Room) {
       log.info(room.name + ": Placing mining room layouts!");
       const home = room.memory.home;
       if (home) {
-        const homeSpawn: Spawn[] = Game.rooms[home].find(FIND_MY_SPAWNS);
+        const homeSpawn: StructureSpawn[] = Game.rooms[home].find(FIND_MY_SPAWNS);
         const mineSources: Source[] = room.find(FIND_SOURCES);
         if (homeSpawn && homeSpawn.length && mineSources && mineSources.length) {
           for (const s of mineSources) {
@@ -146,7 +155,7 @@ function _buildStructures(room: Room) {
         return;
       }
       log.info(room.name + ": Placing stable room layouts!");
-      const spawns: Spawn[] = room.find(FIND_MY_SPAWNS);
+      const spawns: StructureSpawn[] = room.find(FIND_MY_SPAWNS);
       const spawnPos: RoomPosition[] = _.map(spawns, (x) => x.pos);
       const sources: Source[] = room.find(FIND_SOURCES);
       const sourcePos: RoomPosition[] = _.map(sources, (x) => x.pos);
@@ -156,8 +165,8 @@ function _buildStructures(room: Room) {
       }
       // Place a container per source
       // for (const source of sources) {
-        // const path: Path = room.findPath(source.pos, spawns[0].pos,
-        //  {ignoreCreeps: true, ignoreRoads: true, swampCost: 1 })
+      // const path: Path = room.findPath(source.pos, spawns[0].pos,
+      //  {ignoreCreeps: true, ignoreRoads: true, swampCost: 1 })
       // }
 
       for (const spawn of spawnPos) {
@@ -174,7 +183,7 @@ function _buildStructures(room: Room) {
 }
 
 function _findTowers(room: Room) {
-  const towers: Tower[] = room.find(FIND_STRUCTURES, {filter: (x: Structure) => x.structureType === STRUCTURE_TOWER});
+  const towers: StructureTower[] = room.find<StructureTower>(FIND_STRUCTURES, { filter: (x: Structure) => x.structureType === STRUCTURE_TOWER });
   if (towers && towers.length) {
     const towerIds: string[] = _.map(towers, (tower) => tower.id);
     if (!_.isEqual(towerIds, room.memory.towers)) {
@@ -185,8 +194,10 @@ function _findTowers(room: Room) {
 }
 
 function _findBufferChests(room: Room) {
-  const containers: Container[] = room.find<Container>(FIND_STRUCTURES, {filter:
-    (x: Structure) => x.structureType === STRUCTURE_CONTAINER});
+  const containers: StructureContainer[] = room.find<StructureContainer>(FIND_STRUCTURES, {
+    filter:
+      (x: Structure) => x.structureType === STRUCTURE_CONTAINER
+  });
   if (containers && containers.length) {
     const bufferChests: string[] = [];
     for (const container of containers) {
@@ -237,9 +248,9 @@ function _validRoom(roomName: string): boolean {
 function _buildRoad(from: RoomPosition, goal: RoomPosition, rangeOne: boolean = true, placeContainer: boolean = true) {
   let foundpath: PathFinderPath;
   if (rangeOne) {
-    foundpath = PathFinder.search(from, { pos: goal, range: 1 }, {swampCost: 1});
+    foundpath = PathFinder.search(from, { pos: goal, range: 1 }, { swampCost: 1 });
   } else {
-    foundpath = PathFinder.search(from, { pos: goal, range: 0 }, {swampCost: 1});
+    foundpath = PathFinder.search(from, { pos: goal, range: 0 }, { swampCost: 1 });
   }
   if (placeContainer) {
     const contPos = foundpath.path.pop();
@@ -253,10 +264,12 @@ function _buildRoad(from: RoomPosition, goal: RoomPosition, rangeOne: boolean = 
 }
 
 function _findLinks(room: Room): void {
-  const links: Link[] = room.find<Link>(FIND_STRUCTURES, {filter:
-     (x: Structure) => x.structureType === STRUCTURE_LINK});
+  const links: StructureLink[] = room.find<StructureLink>(FIND_STRUCTURES, {
+    filter:
+      (x: Structure) => x.structureType === STRUCTURE_LINK
+  });
   if (links && links.length) {
-    const mininglinks: Link[] = _.filter(links, (l) => l.pos.findInRange(FIND_SOURCES, 2).length);
+    const mininglinks: StructureLink[] = _.filter(links, (l) => l.pos.findInRange(FIND_SOURCES, 2).length);
     if (mininglinks && mininglinks.length) {
       const mininglinkIDs = _.map(mininglinks, (l) => l.id);
       if (!_.isEqual(room.memory.mininglinks, mininglinkIDs)) {
@@ -266,8 +279,10 @@ function _findLinks(room: Room): void {
     } else {
       room.memory.mininglinks = undefined;
     }
-    const spawnlinks: Link[] = _.filter(links, (l) => l.pos.findInRange(FIND_MY_STRUCTURES, 2, {filter:
-      (x: Structure) => x.structureType === STRUCTURE_SPAWN}).length);
+    const spawnlinks: StructureLink[] = _.filter(links, (l) => l.pos.findInRange(FIND_MY_STRUCTURES, 2, {
+      filter:
+        (x: Structure) => x.structureType === STRUCTURE_SPAWN
+    }).length);
     if (spawnlinks && spawnlinks.length) {
       const spawnlinkIDs = _.map(spawnlinks, (l) => l.id);
       if (!_.isEqual(room.memory.spawnlinks, spawnlinkIDs)) {
@@ -279,7 +294,7 @@ function _findLinks(room: Room): void {
     }
     const controller = room.controller;
     if (controller) {
-      const controllerlinks: Link[] = _.filter(links, (l) => l.pos.findInRange([controller.pos], 3).length);
+      const controllerlinks: StructureLink[] = _.filter(links, (l) => l.pos.findInRange([controller.pos], 3).length);
       if (controllerlinks && controllerlinks.length) {
         const controllerlinkIDs = _.map(controllerlinks, (l) => l.id);
         if (!_.isEqual(room.memory.controllerlinks, controllerlinkIDs)) {
@@ -304,7 +319,7 @@ function _findLinks(room: Room): void {
 }
 
 function _findBoostLabs(room: Room) {
-  const labs: Lab[] = room.find(FIND_STRUCTURES, {filter: (x: Structure) => x.structureType === STRUCTURE_LAB});
+  const labs: StructureLab[] = room.find<StructureLab>(FIND_STRUCTURES, { filter: (x: Structure) => x.structureType === STRUCTURE_LAB });
   if (labs && labs.length) {
     const availBoost: { [name: string]: string; } = {};
     for (const lab of labs) {

@@ -1,120 +1,58 @@
-# screeps-typescript-starter v2.0
+# Screeps Typescript Starter
 
-> Starter kit for [TypeScript](http://www.typescriptlang.org/)-based [Screeps](https://screeps.com/) AI codes.
+Screeps Typescript Starter is a starting point for a Screeps AI written in Typescript. It provides everything you need to start writing your AI whilst leaving `main.ts` as empty as possible.
 
------
+## Basic Usage
 
-**screeps-typescript-starter** is a starter kit for building [Screeps](https://screeps.com/) AIs in [TypeScript](http://www.typescriptlang.org/).
-It is based on [the original starter kit](https://github.com/MarkoSulamagi/Screeps-typescript-sample-project) by [Marko Sulamägi](https://github.com/MarkoSulamagi), but with extra tools for easy compiling/deploying of scripts to the Screeps server, as well as a base framework for running tests.
+You will need:
 
-[Download the latest zipped copy here.](https://github.com/screepers/screeps-typescript-starter/archive/master.zip)
+ - [Node.JS](https://nodejs.org/en/download) (>= 8.0.0)
+ - A Package Manager ([Yarn](https://yarnpkg.com/en/docs/getting-started) or [npm](https://docs.npmjs.com/getting-started/installing-node))
+ - Rollup CLI (Optional, install via `npm install -g rollup`) 
+ - Python 2 (for node-gyp, [Python 3 is not supported](https://github.com/nodejs/node-gyp/issues/193))
+ - Build tools (`apt install build-essential` for Ubuntu, [Visual Studio](https://www.visualstudio.com/vs/) for Windows, etc) 
 
-## What's new
 
-* [@bonzaiferroni](https://github.com/bonzaiferroni) has put out some really useful guides to get started with TypeScript development on Screeps. Go read them! ([Guide #1](https://screepsworld.com/2017/07/typescreeps-getting-started-with-ts-in-screeps/), [Guide #2](https://screepsworld.com/2017/07/typescreeps-installing-everything-you-need/))
-* We've consolidated all of our guides into the [wiki page](https://github.com/screepers/screeps-typescript-starter/wiki). This README will be simplified to include the essentials to get you up and running. Feel free to contribute to the wiki as well!
+Download the latest source [here](https://github.com/screepers/screeps-typescript-starter/archive/master.zip) and extract it to a folder.
 
----
-
-## Table of contents
-
-* [Features](#features)
-* [Quick start](#quick-start)
-* [Initial configuration](#initial-configuration)
-* [Running the compiler](#running-the-compiler)
-* [Further reading](#further-reading)
-* [Contributing](#contributing)
-* [Special thanks](#special-thanks)
-
-## Features
-
-- Automated deploy to public and private Screeps servers
-- Live reload compiling of typescript code
-- Highly configurable environment with sane defaults
-- Pre-configured linting rules customized for screeps
-- Typescript Screeps typings
-- Logger which links with source code and git repo
-- Screeps profiler
-- "Snippets" directory for code you want to save, but don't want compiled or linted
-- Modest starter code to get you started, but not hold your hand
-
-## Quick start
-
-By far, the easiest and quickest way to get started with TypeScript development on Screeps is to follow @bonzaiferroni's guides on Screeps World. Go read them!
-
-* https://screepsworld.com/2017/07/typescreeps-getting-started-with-ts-in-screeps/
-* https://screepsworld.com/2017/07/typescreeps-installing-everything-you-need/
-
-### Requirements
-
-We'll assume you have already downloaded/cloned the starter kit.
-
-* [Node.js](https://nodejs.org/en/) (latest LTS is recommended)
-* [Typings](https://github.com/typings/typings)
-* [Yarn](https://yarnpkg.com/en/) - Optional. You can use `npm` if you don't want to, but this is for your own sanity.
-
-### Installing the modules
-
-Run the following the command to install the required packages and TypeScript declaration files if you are using yarn:
+Open the folder in your terminal and run your package manager to install install the required packages and TypeScript declaration files:
 
 ```bash
-$ yarn
+# npm
+npm install
+
+# yarn
+yarn
 ```
 
-or, for npm:
+Fire up your preferred editor with typescript installed and you are good to go!
 
-```bash
-$ npm install
-```
+### Rollup and code upload
 
-## Initial configuration
+Screeps Typescript Starter uses rollup to compile your typescript and upload it to a screeps server.
 
-### Configuring Screeps credentials
+Move or copy `screeps.sample.json` to `screeps.json` and edit it, changing the credentials and optionally adding or removing some of the destinations.
 
-Create a copy of `config/credentials.example.json` and rename it to `config/credentials.json`.
+Running `rollup -c` will compile your code and do a "dry run", preparing the code for upload but not actually pushing it. Running `rollup -c --environment DEST:main` will compile your code, and then upload it to a screeps server using the `main` config from `screeps.json`.
 
-**WARNING:** This file contains your secret credentials. **DO NOT** commit it into your repository!
+You can use `-cw` instead of `-c` to automatically re-run when your source code changes - for example, `rollup -cw --environment DEST:main` will automatically upload your code to the `main` configuration every time your code is changed.
 
-```bash
-# config/credentials.json
-$ cp config/credentials.example.json config/credentials.json
-```
+Finally, there are also NPM scripts that serve as aliases for these commands in `package.json` for IDE integration. Running `npm run push-main` is equivalent to `rollup -c --environment DEST:main`, and `npm run watch-sim` is equivalent to `rollup -cw --dest sim`.
 
-In the newly created `credentials.json` file, change the `email` and `password` properties with your Screeps credentials.  The `serverPassword`, `token`, and `gzip` options are only for private servers that support them.  If you are uploading to the public Screeps server, you should delete these fields from your credentials file.
+#### Important! To upload code to a private server, you must have [screepsmod-auth](https://github.com/ScreepsMods/screepsmod-auth) installed and configured!
 
-### Changing the upload branch
+## Typings
 
-Go to `config/config.dev.ts`, and you'll find the following lines:
+The type definitions for Screeps come from [typed-screeps](https://github.com/screepers/typed-screeps). If you find a problem or have a suggestion, please open an issue there.
 
-```ts
-const credentials: Credentials = require("./credentials.json");
-credentials.branch = "dev";
-```
+## Documentation
 
-Change the `credentials.branch` property you want to initially build and upload to, e.g. `"default"`. Note that due to the Screeps API limitations, you still have to create a branch with a matching name in the Screeps client by cloning an existing branch. The compiler will yell at you when you forgot to do so.
+We've also spent some time reworking the documentation from the ground-up, which is now generated through [Gitbooks](https://www.gitbook.com/). Includes all the essentials to get you up and running with Screeps AI development in TypeScript, as well as various other tips and tricks to further improve your development workflow.
 
-### Advanced configuration
+Maintaining the docs will also become a more community-focused effort, which means you too, can take part in improving the docs for this starter kit.
 
-See [Configuration page](https://github.com/screepers/screeps-typescript-starter/wiki/Configuration) on the screeps-typescript-starter wiki for more in-depth info on configuration options.
-
-## Running the compiler
-
-```bash
-# To compile and upload your TypeScript files on the fly in "watch mode":
-$ npm start
-
-# To compile and deploy once:
-$ npm run deploy
-```
-
-## Further reading
-
-To find out more about what else you can do with screeps-typescript-starter, head over to the [screeps-typescript-starter wiki](https://github.com/screepers/screeps-typescript-starter/wiki) to find more guides, tips and tricks.
+To visit the docs, [click here](https://screepers.gitbooks.io/screeps-typescript-starter/).
 
 ## Contributing
 
-Issues, Pull Requests, and Wiki contributions are welcome! Please read the [Contributing Guidelines](CONTRIBUTING.md) beforehand.
-
-## Special thanks
-
-[Marko Sulamägi](https://github.com/MarkoSulamagi), for the original [Screeps/TypeScript sample project](https://github.com/MarkoSulamagi/Screeps-typescript-sample-project).
+Issues, Pull Requests, and contribution to the docs are welcome! See our [Contributing Guidelines](CONTRIBUTING.md) for more details.

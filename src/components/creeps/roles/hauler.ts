@@ -1,6 +1,6 @@
 import * as creepActions from "../creepActions";
 
-import {SpawnRoom} from "../../rooms/SpawnRoom";
+import { SpawnRoom } from "../../rooms/SpawnRoom";
 // import * as CreepManager from "../creepManager";
 
 /**
@@ -28,24 +28,24 @@ export function run(creep: Creep): void {
   }
 }
 
-export function getBody(room: Room): string[] | null {
-    if (room.energyCapacityAvailable >= 750) {
-      // Huge hauler
-      return [MOVE, MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY];
-    } else if (room.energyCapacityAvailable >= 600) {
-      // Big hauler
-      return [MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY];
-    } else if (room.energyCapacityAvailable >= 450) {
-      // Medium hauler
-      return [MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY];
-    } else {
-      // Small hauler
-      return [MOVE, MOVE, CARRY, CARRY, CARRY, CARRY];
-    }
+export function getBody(room: Room): BodyPartConstant[] {
+  if (room.energyCapacityAvailable >= 750) {
+    // Huge hauler
+    return [MOVE, MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY];
+  } else if (room.energyCapacityAvailable >= 600) {
+    // Big hauler
+    return [MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY];
+  } else if (room.energyCapacityAvailable >= 450) {
+    // Medium hauler
+    return [MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY];
+  } else {
+    // Small hauler
+    return [MOVE, MOVE, CARRY, CARRY, CARRY, CARRY];
   }
+}
 
 export function build(room: Room, spawn: SpawnRoom, sources: Source[], creeps: Creep[],
-                      State: RoomStates, spawnAction: boolean): boolean {
+  State: RoomStates, spawnAction: boolean): boolean {
   if (spawnAction === false) {
     let numHaulers = 0;
     if (_.filter(creeps, (c) => c.memory.role === "miner").length > 0) {

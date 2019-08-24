@@ -1,6 +1,6 @@
 import * as creepActions from "../creepActions";
 
-import {SpawnRoom} from "../../rooms/SpawnRoom";
+import { SpawnRoom } from "../../rooms/SpawnRoom";
 // import * as CreepManager from "../creepManager";
 
 /**
@@ -35,7 +35,7 @@ export function run(creep: Creep): void {
   }
 }
 
-export function getBody(room: Room): string[] | null {
+export function getBody(room: Room): BodyPartConstant[] {
   if (room.memory.stable_structures) {
     return [WORK, WORK, CARRY, MOVE];
   }

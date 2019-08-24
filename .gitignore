@@ -6,17 +6,19 @@
 
 # Ignore basic folders
 /dist
+/.rpt2_cache
+/tsc-out
 /node_modules
+/_book
 
 # TypeScript definitions installed by Typings
 /typings
 
-# Screeps config file
-/config.json
+# Screeps Config
+screeps.json
 
-# code coverage directory
-/coverage
-.nyc_output/
+# ScreepsServer data from integration tests
+/server
 
 # Numerous always-ignore extensions
 *.diff

@@ -1,6 +1,6 @@
 import * as creepActions from "../creepActions";
 
-import {SpawnRoom} from "../../rooms/SpawnRoom";
+import { SpawnRoom } from "../../rooms/SpawnRoom";
 // import * as CreepManager from "../creepManager";
 
 /**
@@ -33,7 +33,7 @@ export function run(creep: Creep): void {
   action = creepActions.actionRally(creep, action);
 }
 
-export function getBody(subrole: string): string[] | null {
+export function getBody(subrole: string): BodyPartConstant[] | null {
   switch (subrole) {
     case "archer":
       return [RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, MOVE, MOVE, MOVE, MOVE];
@@ -48,13 +48,13 @@ export function getBody(subrole: string): string[] | null {
 }
 
 export function build(room: Room, spawn: SpawnRoom, subrole: string, squad: string,
-                      spawnAction: boolean): boolean {
+  spawnAction: boolean): boolean {
   if (spawnAction === false) {
     if (!squad) {
       squad = "null";
     }
     return spawn.createCreep(getBody(subrole), "soldier",
-     {subrole, squad}, room, squad + " - " + subrole);
+      { subrole, squad }, room, squad + " - " + subrole);
   }
   return spawnAction;
 }

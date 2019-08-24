@@ -1,4 +1,4 @@
-import { LogLevels } from "../lib/logger/logLevels";
+import { LogLevels } from "lib/logger/logLevels";
 
 export const homeSpawnName: string = "Antagonist";
 
@@ -49,12 +49,12 @@ export const LOG_MAX_PAD: number = 100;
  * VSC location, used to create links back to source.
  * Repo and revision are filled in at build time for git repositories.
  */
-// export const LOG_VSC = { repo: "@@_repo_@@", revision: "@@_revision_@@", valid: false };
-export const LOG_VSC = { repo: "@@_repo_@@", revision: __REVISION__, valid: false };
+export const LOG_VSC = { repo: "@@_repo_@@", revision: "@@_revision_@@", valid: false };
+// export const LOG_VSC = { repo: "@@_repo_@@", revision: __REVISION__, valid: false };
 
 /**
  * URL template for VSC links, this one works for github and gitlab.
  */
 export const LOG_VSC_URL_TEMPLATE = (path: string, line: string) => {
-  return `${LOG_VSC.repo}/blob/${LOG_VSC.revision}/${path}#${line}`;
+    return `${LOG_VSC.repo}/blob/${LOG_VSC.revision}/${path}#${line}`;
 };

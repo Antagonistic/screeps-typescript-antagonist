@@ -1,6 +1,6 @@
 import * as creepActions from "../creepActions";
 
-import {SpawnRoom} from "../../rooms/SpawnRoom";
+import { SpawnRoom } from "../../rooms/SpawnRoom";
 // import * as CreepManager from "../creepManager";
 
 /**
@@ -45,7 +45,7 @@ export function run(creep: Creep): void {
   }
 }
 
-export function getBody(room: Room): string[] | null {
+export function getBody(room: Room): BodyPartConstant[] | null {
   if (room.energyCapacityAvailable >= 550) {
     return [MOVE, MOVE, MOVE, WORK, WORK, WORK, CARRY, CARRY];
   } else {
@@ -64,8 +64,10 @@ export function build(room: Room, spawn: SpawnRoom, creeps: Creep[], State: Room
       case RoomStates.STABLE:
         numReps = 1;
         if (room.controller && room.controller.my && room.controller.level >= 3) {
-          const walls: StructureWall[] = room.find(FIND_STRUCTURES, {filter: (x: Structure) =>
-            x.structureType === STRUCTURE_WALL});
+          const walls: StructureWall[] = room.find<StructureWall>(FIND_STRUCTURES, {
+            filter: (x: Structure) =>
+              x.structureType === STRUCTURE_WALL
+          });
           if (walls.length > 0) {
             numReps = 2;
           }
