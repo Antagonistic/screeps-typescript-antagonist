@@ -18,16 +18,18 @@ export function run(creep: Creep): void {
       action = creepActions.actionUpgrade(creep, action);
     }
     action = creepActions.actionBuild(creep, action);
+    action = creepActions.actionRepair(creep, action);
+    action = creepActions.actionUpgrade(creep, action);
   } else {
     action = creepActions.actionGetStorageEnergy(creep, action);
-    action = creepActions.actionGetContainerEnergy(creep, action, 2, true);
-    if (creep.room.energyCapacityAvailable < 550) {
-      action = creepActions.actionGetDroppedEnergy(creep, action);
-      action = creepActions.actionGetSourceEnergy(creep, action);
-    } else {
-      action = creepActions.actionGetDroppedEnergy(creep, action);
-    }
-    action = creepActions.actionMoveToRoom(creep, action, creep.memory.home);
+    action = creepActions.actionGetBatteryEnergy(creep, action);
+    // if (creep.room.energyCapacityAvailable < 550) {
+    //   action = creepActions.actionGetDroppedEnergy(creep, action);
+    //   action = creepActions.actionGetSourceEnergy(creep, action);
+    // } else {
+    //   action = creepActions.actionGetDroppedEnergy(creep, action);
+    // }
+    // action = creepActions.actionMoveToRoom(creep, action, creep.memory.home);
   }
 }
 

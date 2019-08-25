@@ -62,8 +62,9 @@ export function run(room: Room): void {
   }
 
   if (Game.time % 50 === 20) {
-    if (room.name != "sim")
+    if (room.name !== "sim") {
       _findRemoteRooms(room);
+    }
   }
 
   if (Game.time % 50 === 25) {
@@ -245,7 +246,7 @@ function _validRoom(roomName: string): boolean {
   }
 }
 
-function _buildRoad(from: RoomPosition, goal: RoomPosition, rangeOne: boolean = true, placeContainer: boolean = true) {
+export function _buildRoad(from: RoomPosition, goal: RoomPosition, rangeOne: boolean = true, placeContainer: boolean = true) {
   let foundpath: PathFinderPath;
   if (rangeOne) {
     foundpath = PathFinder.search(from, { pos: goal, range: 1 }, { swampCost: 1 });

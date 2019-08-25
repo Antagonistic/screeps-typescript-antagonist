@@ -10,7 +10,7 @@ import * as Config from "../../config/config";
  * @param {(Structure | RoomPosition)} target
  * @returns {number}
  */
-export function moveTo(creep: Creep, target: Structure | Creep | RoomPosition, visual: boolean = false): number {
+export function moveTo(creep: Creep, target: Structure | Creep | RoomPosition, visual: boolean = true): number {
   if (visual) {
     return creep.moveTo(target, { visualizePathStyle: { stroke: "#ffffff" } });
   } else {
@@ -255,16 +255,29 @@ export function actionUpgrade(creep: Creep, action: boolean): boolean {
       if (creep.upgradeController(target) === ERR_NOT_IN_RANGE) {
         creep.moveTo(target);
       }
-      creep.moveTo(target);
+      // creep.moveTo(target);
       return true;
     }
   }
   return action;
 }
 
-export function actionBuild(creep: Creep, action: boolean): boolean {
+export function actionBuildStill(creep: Creep, action: boolean): boolean {
   if (action === false) {
-    const target: ConstructionSite | null = creep.pos.findClosestByRange(FIND_MY_CONSTRUCTION_SITES);
+    const targets: ConstructionSite[] | null = creep.pos.findInRange(FIND_MY_CONSTRUCTION_SITES, 3);
+    if (targets && targets.length > 0) {
+      creep.build(targets[0]);
+      return true;
+    }
+  }
+  return action;
+}
+
+export function actionBuild(creep: Creep, action: boolean, target?: ConstructionSite | null): boolean {
+  if (action === false) {
+    if (!target) {
+      target = creep.pos.findClosestByRange(FIND_MY_CONSTRUCTION_SITES);
+    }
     if (target) {
       moveToBuildSite(creep, target);
       return true;
@@ -315,6 +328,20 @@ export function actionRepairCritical(creep: Creep, action: boolean): boolean {
   return action;
 }
 
+export function actionRepairStill(creep: Creep, action: boolean, factor: number = 2): boolean {
+  if (action === false) {
+    const targets = creep.pos.findInRange<Structure>(FIND_STRUCTURES, 3, {
+      filter:
+        (x: Structure) => ((x.hits < x.hitsMax / factor) || x.hits === 1)
+    });
+    if (targets && targets.length > 0) {
+      creep.repair(targets[0]);
+      return true;
+    }
+  }
+  return action;
+}
+
 export function actionRepair(creep: Creep, action: boolean,
   repWalls: boolean = false, factor: number = 3): boolean {
   if (action === false) {
@@ -345,6 +372,23 @@ export function actionRepair(creep: Creep, action: boolean,
   return action;
 }
 
+export function actionRepairRoad(creep: Creep, action: boolean, factor: number = 3): boolean {
+  if (action === false) {
+    const targets: Structure[] = creep.room.find<Structure>(FIND_STRUCTURES, {
+      filter:
+        (x: Structure) => (x.structureType === STRUCTURE_ROAD) &&
+          x.hits < (x.hitsMax / factor)
+    });
+    if (targets && targets.length) {
+      const target = _.min(targets, (t) => t.hits);
+      creep.memory.target = target.id;
+      moveToRepair(creep, target);
+      return true;
+    }
+  }
+  return action;
+}
+
 export function actionRepairWeakestWall(creep: Creep, action: boolean, maxHits: number = 500000): boolean {
   if (action === false) {
     const targets: Structure[] = creep.room.find<Structure>(FIND_STRUCTURES, {
@@ -357,6 +401,49 @@ export function actionRepairWeakestWall(creep: Creep, action: boolean, maxHits: 
       creep.memory.target = target.id;
       moveToRepair(creep, target);
       return true;
+    }
+  }
+  return action;
+}
+
+export function actionTransferStill(creep: Creep, action: boolean, target?: Structure | Creep | null): boolean {
+  if (action === false) {
+    if (target || creep.memory.target) {
+      if (!target) {
+        target = Game.getObjectById<Structure | Creep>(creep.memory.target);
+      }
+      if (target) {
+        if (creep.transfer(target, RESOURCE_ENERGY)) {
+          // transfer all resources
+          for (const resourceType in creep.carry) {
+            creep.transfer(target, resourceType as ResourceConstant);
+          }
+          return true;
+        }
+      }
+    }
+  }
+  return action;
+}
+
+export function actionTransfer(creep: Creep, action: boolean, target?: Structure | AnyCreep): boolean {
+  if (action === false) {
+    if (target || creep.memory.target) {
+      if (!target) {
+        const obj = Game.getObjectById<Structure | Creep>(creep.memory.target);
+        if (obj != null) {
+          target = obj;
+        }
+      }
+      if (target) {
+        if (creep.transfer(target, RESOURCE_ENERGY)) {
+          // transfer all resources
+          for (const resourceType in creep.carry) {
+            creep.transfer(target, resourceType as ResourceConstant);
+          }
+          return true;
+        }
+      }
     }
   }
   return action;
@@ -411,11 +498,41 @@ export function actionFillEnergyStorage(creep: Creep, action: boolean): boolean 
   return action;
 }
 
+export function actionFillBuilder(creep: Creep, action: boolean): boolean {
+  if (action === false) {
+    const targets: Creep[] = creep.room.find(FIND_MY_CREEPS, {
+      filter:
+        (x: Creep) => x.memory.role === "builder" && x.carry.energy < (x.carryCapacity / 2)
+    });
+    if (targets.length) {
+      const salt: number = (creep.memory.uuid || 0) % targets.length;
+      moveToTransfer(creep, targets[salt]);
+      return true;
+    }
+  }
+  return action;
+}
+
+export function actionFillRefiller(creep: Creep, action: boolean): boolean {
+  if (action === false) {
+    const targets: Creep[] = creep.room.find(FIND_MY_CREEPS, {
+      filter:
+        (x: Creep) => x.memory.role === "refill" && x.carry.energy < (x.carryCapacity / 2)
+    });
+    if (targets.length) {
+      const salt: number = (creep.memory.uuid || 0) % targets.length;
+      moveToTransfer(creep, targets[salt]);
+      return true;
+    }
+  }
+  return action;
+}
+
 export function actionFillUpgrader(creep: Creep, action: boolean): boolean {
   if (action === false) {
     const targets: Creep[] = creep.room.find(FIND_MY_CREEPS, {
       filter:
-        (x: Creep) => x.memory.role === "upgrader"
+        (x: Creep) => x.memory.role === "upgrader" && x.carry.energy < (x.carryCapacity / 2)
     });
     if (targets.length) {
       const salt: number = (creep.memory.uuid || 0) % targets.length;
@@ -436,6 +553,19 @@ export function actionFillBufferChest(creep: Creep, action: boolean): boolean {
           moveToTransfer(creep, chest);
           return true;
         }
+      }
+    }
+  }
+  return action;
+}
+
+export function actionFillBattery(creep: Creep, action: boolean): boolean {
+  if (action === false) {
+    if (creep.room.memory.battery) {
+      const chest: StructureContainer | null = Game.getObjectById(creep.room.memory.battery);
+      if (chest && ((chest.store.energy || 0) + (_.sum(chest.store) || 0)) < chest.storeCapacity) {
+        moveToTransfer(creep, chest);
+        return true;
       }
     }
   }
@@ -524,6 +654,28 @@ export function actionGetSourceEnergy(creep: Creep, action: boolean, factor: num
       // creep.memory.target = sources[salt].id;
       if (creep.harvest(sources[salt]) === ERR_NOT_IN_RANGE) {
         creep.moveTo(sources[salt]);
+      }
+    }
+  }
+  return action;
+}
+
+export function actionGetBatteryEnergy(creep: Creep, action: boolean, factor: number = 1): boolean {
+  if (action === false) {
+    if (creep.room.memory.battery) {
+      const obj = Game.getObjectById(creep.room.memory.battery);
+
+      if (obj) {
+        if (obj instanceof StructureContainer) {
+          if (obj.store.energy < creep.carryCapacity) { return false; }
+        }
+        if (obj instanceof StructureStorage) {
+          if (obj.store.energy < creep.carryCapacity * factor) {
+            return false;
+          }
+        }
+        moveToWithdraw(creep, obj as Structure);
+        return true;
       }
     }
   }

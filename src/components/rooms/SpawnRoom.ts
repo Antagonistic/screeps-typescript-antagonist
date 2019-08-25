@@ -19,14 +19,23 @@ export class SpawnRoom implements ISpawnRoom {
     this.energyCapacityAvailable = this.room.energyCapacityAvailable;
   }
 
-  spawn(build: BodyPartConstant[], name: string, memory?: any): boolean {
-    if (SpawnRoom.calculateBodyCost(build) > this.energyCapacityAvailable) return false;
+  public spawn(build: BodyPartConstant[], name: string, memory?: any): boolean {
+    if (SpawnRoom.calculateBodyCost(build) > this.energyCapacityAvailable) { return false; }
     this.isAvailable = false;
-    for (let spawn of this.spawns) {
+    for (const spawn of this.spawns) {
       if (spawn.spawning == null) {
-        let status: number | string = spawn.spawnCreep(build, name, memory);
+        const uuid: number = Memory.uuid;
+        Memory.uuid = uuid + 1;
 
-        if (status == OK) {
+        const properties: CreepMemory = {
+          uuid,
+          working: false
+        }
+        if (memory) { _.assign(properties, memory); }
+
+        const status: number | string = spawn.spawnCreep(build, name, { memory: properties });
+
+        if (status === OK) {
           // success!
           this.availableSpawnCount = 0;
           return true;
@@ -50,7 +59,7 @@ export class SpawnRoom implements ISpawnRoom {
 
   public static calculateBodyCost(body: BodyPartConstant[]): number {
     let sum = 0;
-    for (let part of body) {
+    for (const part of body) {
       sum += BODYPART_COST[part];
     }
     return sum;
@@ -58,7 +67,7 @@ export class SpawnRoom implements ISpawnRoom {
 
   public createCreep(bodyParts: BodyPartConstant[], role: string, memory?: any,
     room: Room = this.room, creepName?: string): boolean {
-    if (!bodyParts || !this.availableSpawnCount) return false;
+    if (!bodyParts || !this.availableSpawnCount) { return false; }
     for (const spawn of this.spawns) {
       if (!spawn.spawning) {
         let status: number | string = spawn.canCreateCreep(bodyParts, undefined);
@@ -79,7 +88,7 @@ export class SpawnRoom implements ISpawnRoom {
             uuid,
             working: false,
           };
-          if (memory) _.assign(properties, memory);
+          if (memory) { _.assign(properties, memory); }
 
           log.info("Started creating new creep: " + creepName);
           if (Config.ENABLE_DEBUG_MODE) {

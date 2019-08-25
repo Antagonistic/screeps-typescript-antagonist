@@ -1,21 +1,24 @@
-import { Mission } from "../missions/Mission";
 import { SpawnRoom } from "components/rooms/SpawnRoom";
+import { Mission } from "../missions/Mission";
 
 export enum OperationPriority { Emergency, OwnedRoom, VeryHigh, High, Medium, Low, VeryLow }
 
 export abstract class Operation {
-  name: string;
-  type: string;
+  public name: string;
+  public type: string;
 
-  flag: Flag;
-  room: Room | undefined;
+  public flag: Flag;
+  public room: Room | undefined;
+  public roomName: string;
 
-  memory: any;
-  priority: OperationPriority;
+  public memory: any;
+  public priority: OperationPriority;
 
-  spawnRoom: SpawnRoom;
+  public spawnRoom: SpawnRoom;
 
-  missions: { [roleName: string]: Mission } = {};
+  public missions: { [roleName: string]: Mission } = {};
+
+  public stableOperation: boolean;
 
   constructor(flag: Flag, name: string, type: string) {
     this.flag = flag;
@@ -24,19 +27,22 @@ export abstract class Operation {
     this.room = flag.room;
     this.memory = flag.memory;
     this.priority = OperationPriority.Medium;
+    this.stableOperation = true;
     if (flag.room) {
       this.spawnRoom = global.emp.getSpawnRoom(flag.room.name);
+      this.roomName = flag.room.name;
     }
     else {
+      this.roomName = flag.pos.roomName;
       this.spawnRoom = global.emp.getSpawnRoom(null);
     }
     this.missions = {};
   }
 
-  abstract initOperation(): void;
-  abstract finalizeOperation(): void;
+  public abstract initOperation(): void;
+  public abstract finalizeOperation(): void;
 
-  init(): void {
+  public init(): void {
     // console.log("Operation " + this.name + " initialized!");
     try {
       this.initOperation();
@@ -46,7 +52,7 @@ export abstract class Operation {
     }
 
 
-    for (let missionName in this.missions) {
+    for (const missionName in this.missions) {
       try {
         // this.missions[]
         this.missions[missionName].initMission();
@@ -59,8 +65,8 @@ export abstract class Operation {
     }
   }
 
-  spawn(): void {
-    for (let missionName in this.missions) {
+  public spawn(): void {
+    for (const missionName in this.missions) {
       try {
         this.missions[missionName].spawn();
       } catch (e) {
@@ -70,8 +76,8 @@ export abstract class Operation {
     }
   }
 
-  work(): void {
-    for (let missionName in this.missions) {
+  public work(): void {
+    for (const missionName in this.missions) {
       try {
         this.missions[missionName].work();
       } catch (e) {
@@ -81,8 +87,8 @@ export abstract class Operation {
     }
   }
 
-  finalize(): void {
-    for (let missionName in this.missions) {
+  public finalize(): void {
+    for (const missionName in this.missions) {
       try {
         this.missions[missionName].finalize();
         //  this.memory[missionName] = this.missions[missionName].memory;
@@ -94,14 +100,14 @@ export abstract class Operation {
 
     try {
       this.finalizeOperation();
-      //this.flag.memory = this.memory;
+      // this.flag.memory = this.memory;
     } catch (e) {
       console.log("error caught in finalize phase, operation:", this.name);
       console.log(e.stack);
     }
   }
 
-  addMission(mission: Mission) {
+  public addMission(mission: Mission) {
     // it is important for every mission belonging to an operation to have
     // a unique name or they will be overwritten here
     this.missions[mission.name] = mission;

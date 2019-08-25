@@ -9,7 +9,7 @@ export class Empire implements IEmpire {
   // public operations: { [operationName: string]: Operation };
 
   constructor() {
-    if (!Memory.empire) Memory.empire = {};
+    if (!Memory.empire) { Memory.empire = {}; }
     // this.operations = {};
     this.spawnRooms = {};
     this.map = new WorldMap();
@@ -20,8 +20,8 @@ export class Empire implements IEmpire {
     this.spawnRooms = this.map.init();
   }
 
-  getSpawnRoom(roomName: string | null): SpawnRoom {
-    if (roomName == null) return this.spawnRooms[0];
+  public getSpawnRoom(roomName: string | null): SpawnRoom {
+    if (roomName == null) { return this.spawnRooms[0]; }
     if (this.spawnRooms[roomName]) {
       return this.spawnRooms[roomName];
     }

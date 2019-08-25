@@ -14,9 +14,9 @@ interface Game {
 
 // memory extension samples
 interface CreepMemory {
-  home: string;
-  role: string;
-  room: string;
+  home?: string;
+  role?: string;
+  room?: string;
   working: boolean;
   uuid: number;
   recycle?: boolean;
@@ -41,6 +41,7 @@ interface RoomMemory {
   controllerlinks: string[] | undefined;
   availBoost?: { [name: string]: string; };
   rally: RoomPosition;
+  battery?: string;
 }
 
 interface Memory {

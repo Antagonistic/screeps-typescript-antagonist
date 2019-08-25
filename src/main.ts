@@ -7,14 +7,18 @@ import * as StateManager from "./components/rooms/stateManager";
 import * as StructureManager from "./components/rooms/structureManager";
 // import * as WarManager from "./components/war/warManager";
 
-import * as Profiler from "screeps-profiler";
 import { log } from "lib/logger/log";
+import * as Profiler from "screeps-profiler";
 
 import { empire } from "./Empire";
 
 import { ErrorMapper } from "utils/ErrorMapper";
 
 import { commandConsole } from "./commandConsole";
+
+// var Traveler = require('Traveler');
+
+import { Traveler } from "utils/Traveler"
 
 if (Config.USE_PROFILER) {
   Profiler.enable();
@@ -31,8 +35,9 @@ global.cc = commandConsole;
 // When compiling TS to JS and bundling with rollup, the line numbers and file names in error messages change
 // This utility uses source maps to get the line numbers and file names of the original, TS source code
 export const loop = ErrorMapper.wrapLoop(() => {
-  if (Game.time % 10 == 0)
+  if (Game.time % 10 === 0) {
     console.log(`Current game tick is ${Game.time}`);
+  }
 
   // Check memory for null or out of bounds custom objects
   if (!Memory.uuid || Memory.uuid > 100) {
@@ -52,18 +57,16 @@ export const loop = ErrorMapper.wrapLoop(() => {
   // }
   // }
 
-  let operations = OperationManager.init()
-  for (let op of operations) {
+  const operations = OperationManager.init()
+  for (const op of operations) {
     op.spawn();
   }
-  for (let op of operations) {
+  for (const op of operations) {
     op.work();
   }
-  for (let op of operations) {
+  for (const op of operations) {
     op.finalize();;
   }
-
-  let spawnAction: boolean = false;
 
   for (const i in Game.rooms) {
     const room: Room = Game.rooms[i];

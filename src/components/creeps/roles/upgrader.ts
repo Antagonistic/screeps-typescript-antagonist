@@ -17,14 +17,15 @@ export function run(creep: Creep): void {
   // action = creepActions.actionRenew(creep, action);
 
   if (!action && creepActions.canWork(creep)) {
+    action = creepActions.actionBuildStill(creep, action);
     action = creepActions.actionUpgrade(creep, action);
   } else {
-    action = creepActions.actionGetStorageEnergy(creep, action, 4);
-    action = creepActions.actionGetContainerEnergy(creep, action, 4, true);
-    if (creep.room.energyCapacityAvailable < 550) {
-      action = creepActions.actionGetSourceEnergy(creep, action, 2);
-    }
-    action = creepActions.actionGetDroppedEnergy(creep, action, false);
+    action = creepActions.actionGetBatteryEnergy(creep, action, 4);
+    // action = creepActions.actionGetContainerEnergy(creep, action, 4, true);
+    // if (creep.room.energyCapacityAvailable < 550) {
+    //   action = creepActions.actionGetSourceEnergy(creep, action, 2);
+    // }
+    // action = creepActions.actionGetDroppedEnergy(creep, action, false);
   }
 }
 

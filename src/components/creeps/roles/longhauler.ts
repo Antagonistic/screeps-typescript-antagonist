@@ -25,7 +25,7 @@ export function run(creep: Creep): void {
   }
 }
 
-export function getBody(room: Room): BodyPartConstant[] | null {
+export function getBody(room: Room): BodyPartConstant[] {
   if (room.energyCapacityAvailable > 600) {
     // Big hauler
     return [MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY];

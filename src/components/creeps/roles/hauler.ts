@@ -20,7 +20,10 @@ export function run(creep: Creep): void {
     action = creepActions.actionFillTower(creep, action);
     action = creepActions.actionFillBufferChest(creep, action);
     action = creepActions.actionFillEnergyStorage(creep, action);
+    action = creepActions.actionFillBuilder(creep, action);
     action = creepActions.actionFillUpgrader(creep, action);
+    // action = creepActions.actionBuild(creep, action);
+    // action = creepActions.actionUpgrade(creep, action);
   } else {
     action = creepActions.actionMoveToRoom(creep, action);
     action = creepActions.actionGetDroppedEnergy(creep, action, true);

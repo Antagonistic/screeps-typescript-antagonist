@@ -22,7 +22,9 @@ export function run(creep: Creep): void {
         if (ret === ERR_NOT_IN_RANGE) {
           _findBox(creep, source);
         } else if (ret === ERR_NOT_ENOUGH_RESOURCES) {
-
+          action = creepActions.actionBuildStill(creep, action);
+          action = creepActions.actionRepairStill(creep, action);
+          action = creepActions.actionTransferStill(creep, action);
         } else {
           // In case its not on box cos of obstruction
           if (creep.ticksToLive && creep.ticksToLive % 50 === 0) {
