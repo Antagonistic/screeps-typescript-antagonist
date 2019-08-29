@@ -40,7 +40,7 @@ export class ControllerOperation extends Operation {
 
             this.addMission(new MiningMission(this, "mining" + i, this.sources[i], active))
 
-            if (i == 0) {
+            if (i === 0) {
                 this.addMission(new GuardMission(this));
             }
         }

@@ -64,6 +64,7 @@ export class UpgradeMission extends Mission {
     }
 
     public getMaxUpgraders = (): number => {
+        if (!this.container) { return 0; }
         if (this.room && this.room.controller && this.room.controller.level < 2) {
             return 1;
         }

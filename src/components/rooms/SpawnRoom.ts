@@ -3,12 +3,13 @@ import * as Config from "../../config/config";
 import { log } from "lib/logger/log";
 
 export class SpawnRoom implements ISpawnRoom {
-  spawns: StructureSpawn[];
-  room: Room;
-  availableSpawnCount: number;
-  availableSpawnEnergy: number;
-  isAvailable: boolean;
-  energyCapacityAvailable: number;
+  public spawns: StructureSpawn[];
+  public room: Room;
+  public availableSpawnCount: number;
+  public availableSpawnEnergy: number;
+  public isAvailable: boolean;
+  public energyCapacityAvailable: number;
+  public rclLevel: number;
 
   constructor(room: Room) {
     this.room = room;
@@ -17,6 +18,7 @@ export class SpawnRoom implements ISpawnRoom {
     this.availableSpawnEnergy = this.room.energyAvailable;
     this.isAvailable = this.availableSpawnCount > 0;
     this.energyCapacityAvailable = this.room.energyCapacityAvailable;
+    this.rclLevel = this.room.controller === undefined ? 0 : this.room.controller.level;
   }
 
   public spawn(build: BodyPartConstant[], name: string, memory?: any): boolean {

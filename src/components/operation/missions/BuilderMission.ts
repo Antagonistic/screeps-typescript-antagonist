@@ -32,7 +32,7 @@ export class BuilderMission extends Mission {
             this.roadsites = this.room.find(FIND_MY_CONSTRUCTION_SITES,
                 { filter: (x: ConstructionSite) => x.structureType === STRUCTURE_ROAD });
             this.prioritySites = _.filter(this.sites, s => PRIORITY_BUILD.indexOf(s.structureType) > -1);
-            //console.log(this.sites.length);
+            // console.log(this.sites.length);
         }
     }
     public spawn(): void {
@@ -55,7 +55,7 @@ export class BuilderMission extends Mission {
         if (this.sites.length === 0) {
             return 0;
         }
-        return 2;
+        return 1;
     }
 
     public maxPavers = (): number => {

@@ -47,7 +47,7 @@ export function init(): Operation[] {
     }
   }
 
-  if (Game.time % 100 == 0) {
+  if (Game.time % 100 === 0) {
     for (const roomName in Game.rooms) {
       const room = Game.rooms[roomName];
       if (room.controller && room.controller.my) {

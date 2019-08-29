@@ -96,6 +96,7 @@ export class MiningMission extends Mission {
     };
 
     public getMaxCarts = () => {
+        if (this.storage.pos.inRangeTo(this.source, 5)) { return 1; }
         let maxc = this.active ? Math.min(this.minersNeeded(), 2) : 0;
         if (!this.container && maxc > 1) { maxc = 1; }
         if (this.container && this.container.store.energy >= 1900) { maxc++; }
@@ -172,7 +173,7 @@ export class MiningMission extends Mission {
                     creepActions.moveTo(creep, this.source.pos, true);
                 }
             }
-            //else {
+            // else {
             if (creep.carry.energy > 40) {
                 const haulers = creep.pos.findInRange(FIND_MY_CREEPS, 1, { filter: (c: Creep) => c.memory.role && c.memory.role === "hauler" });
                 if (haulers.length > 0) {
@@ -185,7 +186,7 @@ export class MiningMission extends Mission {
                     }
                 }
             }
-            //}
+            // }
         }
     }
 
@@ -224,7 +225,7 @@ export class MiningMission extends Mission {
                     }
                 }
 
-                //action = creepActions.actionGetDroppedEnergy(creep, action, true);
+                // action = creepActions.actionGetDroppedEnergy(creep, action, true);
                 // action = creepActions.actionGetContainerEnergy(creep, action, 2, true);
             }
         }
