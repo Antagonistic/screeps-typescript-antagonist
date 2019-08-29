@@ -49,7 +49,7 @@ export function run(room: Room): void {
 
   // Check to build structures
   if (Game.time % 50 === 5) {
-    _buildStructures(room);
+    // _buildStructures(room);
   }
 
   // Regen room's tower list

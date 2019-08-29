@@ -115,4 +115,25 @@ export abstract class Mission {
             return this.workerBody(0, 4, 2);
         }
     };
+
+    public buildRoads(path: RoomPosition[]): boolean {
+        let action = false;
+
+        for (const pos of path) {
+            let pass = false;
+            if (pos.lookFor(LOOK_STRUCTURES).length > 0) {
+                // Has a structure
+                pass = true;
+            }
+            if (pos.lookFor(LOOK_CONSTRUCTION_SITES).length > 0) {
+                // Has a construction site
+                pass = true;
+            }
+            if (!pass) {
+                pos.createConstructionSite(STRUCTURE_ROAD);
+                action = true;
+            }
+        }
+        return action;
+    }
 }

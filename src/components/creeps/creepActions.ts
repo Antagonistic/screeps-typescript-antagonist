@@ -129,6 +129,12 @@ export function getStoredEnergy(creep: Creep, factor: number = 4): boolean {
   return action;
 }
 
+export function moveToPickup(creep: Creep, target: Resource) {
+  if (creep.pickup(target) === ERR_NOT_IN_RANGE) {
+    moveTo(creep, target.pos, true);
+  }
+}
+
 export function moveToUpgrade(creep: Creep): void {
   const controller: StructureController | void = creep.room.controller;
   if (controller && creep.upgradeController(controller) === ERR_NOT_IN_RANGE) {
@@ -449,6 +455,35 @@ export function actionTransfer(creep: Creep, action: boolean, target?: Structure
   return action;
 }
 
+export function actionFillCache(creep: Creep, action: boolean): boolean {
+  if (action === false) {
+    if (creep.memory.target) {
+      const obj = Game.getObjectById(creep.memory.target);
+      if (obj) {
+        if (obj instanceof StructureContainer || obj instanceof StructureStorage) {
+          if (_.sum(obj.store) < obj.storeCapacity) {
+            moveToTransfer(creep, obj);
+            return true;
+          } else {
+            creep.memory.target = undefined;
+          }
+        }
+        if (obj instanceof Creep) {
+          if (_.sum(obj.carry) < obj.carryCapacity) {
+            moveToTransfer(creep, obj);
+            return true;
+          } else {
+            creep.memory.target = undefined;
+          }
+        }
+      } else {
+        creep.memory.target = undefined;
+      }
+    }
+  }
+  return action;
+}
+
 export function actionFillEnergy(creep: Creep, action: boolean): boolean {
   if (action === false) {
     const spawn: Structure[] = creep.room.find(FIND_MY_SPAWNS, {
@@ -464,6 +499,7 @@ export function actionFillEnergy(creep: Creep, action: boolean): boolean {
     if (targets.length) {
       const target: Structure | null = creep.pos.findClosestByRange(targets);
       if (target) {
+        creep.memory.target = target.id;
         if (creep.transfer(target, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
           creep.moveTo(target);
         }
@@ -482,7 +518,9 @@ export function actionFillTower(creep: Creep, action: boolean): boolean {
         (x: Structure) => x.structureType === STRUCTURE_TOWER && (x as StructureTower).energy < (x as StructureTower).energyCapacity
     });
     if (towers.length) {
+      creep.memory.target = towers[0].id;
       moveToTransfer(creep, towers[0]);
+      return true;
     }
   }
   return action;
@@ -492,7 +530,9 @@ export function actionFillEnergyStorage(creep: Creep, action: boolean): boolean 
   if (action === false) {
     const storage: StructureStorage | undefined = creep.room.storage;
     if (storage) {
+      creep.memory.target = storage.id;
       moveToTransfer(creep, storage);
+      return true;
     }
   }
   return action;
@@ -506,6 +546,7 @@ export function actionFillBuilder(creep: Creep, action: boolean): boolean {
     });
     if (targets.length) {
       const salt: number = (creep.memory.uuid || 0) % targets.length;
+      creep.memory.target = targets[salt].id;
       moveToTransfer(creep, targets[salt]);
       return true;
     }
@@ -521,6 +562,7 @@ export function actionFillRefiller(creep: Creep, action: boolean): boolean {
     });
     if (targets.length) {
       const salt: number = (creep.memory.uuid || 0) % targets.length;
+      creep.memory.target = targets[salt].id;
       moveToTransfer(creep, targets[salt]);
       return true;
     }
@@ -536,6 +578,7 @@ export function actionFillUpgrader(creep: Creep, action: boolean): boolean {
     });
     if (targets.length) {
       const salt: number = (creep.memory.uuid || 0) % targets.length;
+      creep.memory.target = targets[salt].id;
       moveToTransfer(creep, targets[salt]);
       return true;
     }
@@ -550,6 +593,7 @@ export function actionFillBufferChest(creep: Creep, action: boolean): boolean {
       for (const id of chestIDs) {
         const chest: StructureContainer | null = Game.getObjectById(id);
         if (chest && ((chest.store.energy || 0) + (_.sum(chest.store) || 0)) < chest.storeCapacity) {
+          creep.memory.target = chest.id;
           moveToTransfer(creep, chest);
           return true;
         }
@@ -564,6 +608,7 @@ export function actionFillBattery(creep: Creep, action: boolean): boolean {
     if (creep.room.memory.battery) {
       const chest: StructureContainer | null = Game.getObjectById(creep.room.memory.battery);
       if (chest && ((chest.store.energy || 0) + (_.sum(chest.store) || 0)) < chest.storeCapacity) {
+        creep.memory.target = chest.id;
         moveToTransfer(creep, chest);
         return true;
       }

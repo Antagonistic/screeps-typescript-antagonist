@@ -19,7 +19,7 @@ export class EmergencyMission extends Mission {
     }
 
     public finalize(): void {
-        // console.log("emergencyMission!")
+        // console.log("emergencyMission! " + this.emergency);
     }
 
     public spawn(): void {

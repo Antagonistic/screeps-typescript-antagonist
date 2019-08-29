@@ -39,24 +39,28 @@ export class ControllerOperation extends Operation {
             let active = true;
 
             this.addMission(new MiningMission(this, "mining" + i, this.sources[i], active))
+
+            if (i == 0) {
+                this.addMission(new GuardMission(this));
+            }
         }
 
         this.addMission(new BuilderMission(this));
 
         this.addMission(new UpgradeMission(this));
 
-        // this.addMission(new GuardMission(this));
         if (Game.time % 50 === 1) {
             console.log("Operation stable: " + this.stableOperation);
             if (this.stableOperation) {
-                this.buildMineRoads();
+                // this.buildMineRoads();
             }
         }
 
     }
 
     public finalizeOperation() {
-        this.memory.emergency = !this.findMinersBySources();
+        this.memory.emergency = this.emergency = (this.spawnRoom.room.find(FIND_MY_CREEPS).length < 6);
+        //this.memory.emergency = ;
     }
 
     private findMinersBySources() {
