@@ -461,7 +461,7 @@ export function actionFillCache(creep: Creep, action: boolean): boolean {
       const obj = Game.getObjectById(creep.memory.target);
       if (obj) {
         if (obj instanceof StructureContainer || obj instanceof StructureStorage) {
-          if (_.sum(obj.store) < obj.storeCapacity) {
+          if (_.sum(obj.store) < obj.storeCapacity - 10) {
             moveToTransfer(creep, obj);
             return true;
           } else {
@@ -469,7 +469,7 @@ export function actionFillCache(creep: Creep, action: boolean): boolean {
           }
         }
         if (obj instanceof Creep) {
-          if (_.sum(obj.carry) < obj.carryCapacity) {
+          if (_.sum(obj.carry) < obj.carryCapacity - 10) {
             moveToTransfer(creep, obj);
             return true;
           } else {
