@@ -1,6 +1,8 @@
 import { MiningMission } from "../missions/MiningMission";
 import { ScoutMission } from "../missions/ScoutMission";
 import { Operation } from "./Operation";
+import { BuilderMission } from "../missions/BuilderMission";
+import { ReserveMission } from "../missions/ReserveMission";
 
 export class MiningOperation extends Operation {
     public sources: Source[] = [];
@@ -16,11 +18,15 @@ export class MiningOperation extends Operation {
         ;
     }
     public initOperation() {
-        if (this.spawnRoom.rclLevel < 4) { return; }
+        if (!this.spawnRoom || this.spawnRoom.rclLevel < 4) { return; }
         this.addMission(new ScoutMission(this));
+        if (this.room && this.room.controller) {
+            this.addMission(new ReserveMission(this));
+        }
         for (let i = 0; i < this.sources.length; i++) {
             ;
-            this.addMission(new MiningMission(this, "mining" + i, this.sources[i], false));
+            this.addMission(new MiningMission(this, "mining" + i, this.sources[i], true));
         }
+        // this.addMission(new BuilderMission(this));
     }
 }

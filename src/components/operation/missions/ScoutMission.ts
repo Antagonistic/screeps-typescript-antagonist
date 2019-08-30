@@ -23,7 +23,7 @@ export class ScoutMission extends Mission {
                 creep.notifyWhenAttacked(false);
             }
 
-            creepActions.actionMoveToRoom(creep, false, this.roomName);
+            creepActions.moveTo(creep, this.operation.flag.pos);
         }
     }
     public finalize(): void {

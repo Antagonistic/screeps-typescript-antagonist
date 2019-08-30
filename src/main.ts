@@ -10,7 +10,7 @@ import * as StructureManager from "./components/rooms/structureManager";
 import { log } from "lib/logger/log";
 import * as Profiler from "screeps-profiler";
 
-import { empire } from "./Empire";
+import { Empire } from "./Empire";
 
 import { ErrorMapper } from "utils/ErrorMapper";
 
@@ -45,8 +45,8 @@ export const loop = ErrorMapper.wrapLoop(() => {
   }
 
   // empire = new Empire();
-  empire.init();
-  global.emp = empire;
+  // empire.init();
+  global.emp = new Empire();
 
   // let creeps: Creep[] = [];
   // for (const i in Game.rooms) {

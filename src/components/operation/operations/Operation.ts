@@ -34,7 +34,7 @@ export abstract class Operation {
     }
     else {
       this.roomName = flag.pos.roomName;
-      this.spawnRoom = global.emp.getSpawnRoom(null);
+      this.spawnRoom = global.emp.getSpawnRoom(this.roomName);
     }
     this.missions = {};
   }

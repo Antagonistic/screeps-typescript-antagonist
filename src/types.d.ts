@@ -19,6 +19,7 @@ interface CreepMemory {
   room?: string;
   working: boolean;
   uuid: number;
+  hasworkpart?: boolean;
   recycle?: boolean;
   reserve?: any;
   sourceID?: string;
@@ -89,8 +90,8 @@ interface IEmpire {
   spawnRooms: { [roomName: string]: ISpawnRoom };
   map: IWorldMap;
   // operations: { [operationName: string]: IOperation };
-  init(): void;
-  getSpawnRoom(roomName: string | null): any;
+  //init(): void;
+  getSpawnRoom(roomName: string): any;
 }
 
 interface SquadComposition {

@@ -3,7 +3,7 @@
 
 import { log } from "./lib/logger/log";
 
-import { empire } from "./Empire";
+// import { empire } from "./Empire";
 
 import { SpawnRoom } from "./components/rooms/SpawnRoom";
 

@@ -2,7 +2,7 @@ import { ControllerOperation, initNewControllerOperation } from "./operations/Co
 import { MiningOperation } from "./operations/MiningOperation";
 import { Operation } from "./operations/Operation";
 
-import { empire } from "../../Empire";
+import { Empire } from "../../Empire";
 
 import { log } from "../../lib/logger/log";
 

@@ -18,7 +18,7 @@ export abstract class Mission {
         if (!this.memory.hc) { this.memory.hc = {}; }
         this.room = operation.room;
         this.hasVision = this.room ? true : false;
-        this.remoteSpawning = false;
+        this.remoteSpawning = !this.room || this.room != this.spawnRoom.room;
     }
 
     public abstract initMission(): void;
@@ -116,6 +116,22 @@ export abstract class Mission {
         }
     };
 
+    public getLongCartBody = () => {
+        if (this.spawnRoom.energyCapacityAvailable >= 900) {
+            // Huge hauler
+            return this.workerBody(1, 10, 6);
+        } else if (this.spawnRoom.energyCapacityAvailable >= 750) {
+            // Big hauler
+            return this.workerBody(1, 8, 5);
+        } else if (this.spawnRoom.energyCapacityAvailable >= 450) {
+            // Medium hauler
+            return this.workerBody(0, 6, 3);
+        } else {
+            // Small hauler
+            return this.workerBody(0, 4, 2);
+        }
+    }
+
     public buildRoads(path: RoomPosition[]): boolean {
         let action = false;
 
@@ -130,8 +146,9 @@ export abstract class Mission {
                 pass = true;
             }
             if (!pass) {
-                pos.createConstructionSite(STRUCTURE_ROAD);
-                action = true;
+                if (pos.createConstructionSite(STRUCTURE_ROAD) == OK) {
+                    action = true;
+                }
             }
         }
         return action;
