@@ -1,6 +1,7 @@
 import * as Config from "../../config/config";
 
 import { log } from "lib/logger/log";
+import { LogisticsManager } from "components/operation/LogisticsManager";
 
 export class SpawnRoom implements ISpawnRoom {
   public spawns: StructureSpawn[];
@@ -10,6 +11,7 @@ export class SpawnRoom implements ISpawnRoom {
   public isAvailable: boolean;
   public energyCapacityAvailable: number;
   public rclLevel: number;
+  public logistics: LogisticsManager;
 
   constructor(room: Room) {
     this.room = room;
@@ -19,6 +21,7 @@ export class SpawnRoom implements ISpawnRoom {
     this.isAvailable = this.availableSpawnCount > 0;
     this.energyCapacityAvailable = this.room.energyCapacityAvailable;
     this.rclLevel = this.room.controller === undefined ? 0 : this.room.controller.level;
+    this.logistics = new LogisticsManager(this);
   }
 
   public spawn(build: BodyPartConstant[], name: string, memory?: any): boolean {
