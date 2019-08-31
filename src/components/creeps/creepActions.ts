@@ -442,12 +442,15 @@ export function actionTransfer(creep: Creep, action: boolean, target?: Structure
         }
       }
       if (target) {
-        if (creep.transfer(target, RESOURCE_ENERGY)) {
+        let ret = creep.transfer(target, RESOURCE_ENERGY);
+        if (ret == OK) {
           // transfer all resources
           for (const resourceType in creep.carry) {
             creep.transfer(target, resourceType as ResourceConstant);
           }
           return true;
+        } else if (ret == ERR_NOT_IN_RANGE) {
+          creep.moveTo(target);
         }
       }
     }

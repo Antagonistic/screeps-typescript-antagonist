@@ -20,6 +20,8 @@ export abstract class Operation {
 
   public stableOperation: boolean;
 
+  public rallyPos: RoomPosition;
+
   constructor(flag: Flag, name: string, type: string) {
     this.flag = flag;
     this.name = name;
@@ -35,6 +37,12 @@ export abstract class Operation {
     else {
       this.roomName = flag.pos.roomName;
       this.spawnRoom = global.emp.getSpawnRoom(this.roomName);
+    }
+    const rallyFlag = Game.flags["rally_" + this.roomName];
+    if (rallyFlag) {
+      this.rallyPos = rallyFlag.pos;
+    } else {
+      this.rallyPos = new RoomPosition(25, 25, this.roomName);
     }
     this.missions = {};
   }

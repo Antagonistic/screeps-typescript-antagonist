@@ -8,12 +8,12 @@ import { MiningMission } from "../missions/MiningMission";
 import { UpgradeMission } from "../missions/UpgradeMission";
 
 import * as StructureManager from "components/rooms/structureManager";
+import { RefillMission } from "../missions/RefillMission";
 
 export class ControllerOperation extends Operation {
     public sources: Source[] = [];
     public emergency: boolean;
     public controllerCrate?: StructureContainer;
-    public rallyPos: RoomPosition;
 
     constructor(flag: Flag, name: string, type: string) {
         super(flag, name, type)
@@ -22,12 +22,6 @@ export class ControllerOperation extends Operation {
         }
         this.emergency = this.memory.emergency === undefined ? true : this.memory.emergency;
 
-        const rallyFlag = Game.flags["rally_" + this.roomName];
-        if (rallyFlag) {
-            this.rallyPos = rallyFlag.pos;
-        } else {
-            this.rallyPos = new RoomPosition(25, 25, this.roomName);
-        }
         new RoomVisual(this.roomName).circle(this.rallyPos, { radius: 0.5, fill: "#FF2121" });
         // console.log("Emergency: " + this.emergency);
     }
@@ -44,6 +38,8 @@ export class ControllerOperation extends Operation {
                 this.addMission(new GuardMission(this));
             }
         }
+
+        this.addMission(new RefillMission(this));
 
         this.addMission(new BuilderMission(this));
 

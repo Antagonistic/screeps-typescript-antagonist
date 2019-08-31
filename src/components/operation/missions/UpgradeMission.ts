@@ -28,7 +28,8 @@ export class UpgradeMission extends Mission {
     public spawn(): void {
         this.upgraders = this.spawnRole(this.name, this.getMaxUpgraders, this.getUpgraderBody, { role: "upgrader" });
 
-        // this.haulers = this.spawnRole(this.name+ "cart", () => 1, this.getCartBody, { role: "refill" });
+        const numCarts = (): number => { return this.room && this.room.storage ? 1 : 0; };
+        this.haulers = this.spawnRole(this.name + "cart", numCarts, this.getCartBody, { role: "refill" });
 
         if (Game.time % 50 == 20) {
             if (this.operation.stableOperation) {
@@ -37,12 +38,14 @@ export class UpgradeMission extends Mission {
                 }
             }
         }
+        // console.log("upgrade carts: " + numCarts() + " " + this.haulers.length + " " + this.haulers[0].name);
     }
     public work(): void {
         // for (const u of this.upgraders) {
         // upgrader.run(u);
         // }
         this.runUpgraders(this.upgraders);
+        this.runHaulers(this.haulers);
     }
     public finalize(): void {
         ;
@@ -73,13 +76,13 @@ export class UpgradeMission extends Mission {
             const energy: number | undefined = this.room.storage.store.energy;
             if (energy) {
                 if (energy > 100000) {
-                    numUpgraders += 5;
-                } else if (energy > 50000) {
-                    numUpgraders += 4;
-                } else if (energy > 30000) {
                     numUpgraders += 3;
-                } else if (energy > 20000) {
+                } else if (energy > 50000) {
                     numUpgraders += 2;
+                } else if (energy > 30000) {
+                    numUpgraders += 2;
+                } else if (energy > 20000) {
+                    numUpgraders += 1;
                 } else if (energy > 10000) {
                     numUpgraders += 1;
                 }
@@ -104,7 +107,6 @@ export class UpgradeMission extends Mission {
 
     public runUpgraders(creeps: Creep[]): void {
         for (const u of this.upgraders) {
-
             let action: boolean = false;
             // action = creepActions.actionRenew(creep, action);
 
@@ -129,12 +131,15 @@ export class UpgradeMission extends Mission {
 
     public runHaulers(creeps: Creep[]): void {
         for (const h of this.haulers) {
+
             let action: boolean = false;
             action = creepActions.actionRecycle(h, action);
 
             if (!action && creepActions.canWork(h)) {
                 if (this.container) {
                     action = creepActions.actionTransfer(h, action, this.container);
+                } else {
+                    if (!action) { creepActions.moveTo(h, this.operation.rallyPos); };
                 }
                 // if (this.upgraders.length > 0) {
                 //     _.min(this.upgraders,
@@ -149,9 +154,12 @@ export class UpgradeMission extends Mission {
                 // action = creepActions.actionBuild(creep, action);
                 // action = creepActions.actionUpgrade(creep, action);
             } else {
-                action = creepActions.actionMoveToRoom(h, action);
-                action = creepActions.actionGetDroppedEnergy(h, action, true);
-                action = creepActions.actionGetContainerEnergy(h, action, 2, true);
+                // action = creepActions.actionMoveToRoom(h, action);
+                // action = creepActions.actionGetDroppedEnergy(h, action, true);
+                // action = creepActions.actionGetContainerEnergy(h, action, 2, true);
+                action = creepActions.actionGetStorageEnergy(h, action, 20);
+                if (!action) { creepActions.moveTo(h, this.operation.rallyPos); };
+
             }
         }
     }

@@ -6,6 +6,10 @@ import * as guard from "components/creeps/roles/guard";
 export class GuardMission extends Mission {
     public defenders: Creep[] = [];
     public towers: StructureTower[] = [];
+    public hostiles: Creep[] = [];
+    public hostileHealers: Creep[] = [];
+    public active: Boolean = false;
+
     constructor(operation: Operation) {
         super(operation, "Guard");
     }
@@ -14,6 +18,7 @@ export class GuardMission extends Mission {
             this.towers = this.room.find<StructureTower>(FIND_MY_STRUCTURES,
                 { filter: (x: Structure) => x.structureType === STRUCTURE_TOWER });
         }
+        this.findHostiles();
     }
 
     public spawn(): void {
@@ -23,6 +28,7 @@ export class GuardMission extends Mission {
         for (const g of this.defenders) {
             guard.run(g);
         }
+        this.runTowers();
     }
     public finalize(): void { ; }
 
@@ -38,6 +44,43 @@ export class GuardMission extends Mission {
     protected defenderBody = (): BodyPartConstant[] => {
         return this.configBody({ [TOUGH]: 1, [RANGED_ATTACK]: 1, [MOVE]: 2 });
     }
+
+
+    protected runTowers(): void {
+        if (this.active) {
+            for (const tower of this.towers) {
+                const hostileHealer: Creep | null = tower.pos.findClosestByRange(this.hostileHealers);
+                if (hostileHealer) {
+                    tower.attack(hostileHealer);
+                    return;
+                }
+                const hostile: Creep | null = tower.pos.findClosestByRange(this.hostiles);
+                if (hostile) {
+                    tower.attack(hostile);
+                }
+            }
+        } else {
+            for (const tower of this.towers) {
+                if (tower.energy > tower.energyCapacity / 2) {
+                    const structure = tower.pos.findClosestByRange(FIND_MY_STRUCTURES, { filter: (x) => x.hits < x.hitsMax / 2 });
+                    if (structure) {
+                        tower.repair(structure);
+                    }
+                }
+            }
+        }
+    }
+
+    protected findHostiles() {
+        if (this.room) {
+            this.hostiles = this.room.find(FIND_HOSTILE_CREEPS);
+            if (this.hostiles.length > 0) {
+                this.hostileHealers = this.room.find(FIND_HOSTILE_CREEPS, { filter: (c: Creep) => c.getActiveBodyparts(HEAL) });
+                this.active = true;
+            }
+        }
+    }
+
 
     public triggerSafeMode() {
         if (this.room) {

@@ -216,13 +216,21 @@ export class MiningMission extends Mission {
                     creepActions.actionRepairStill(creep, false);
                 }
                 action = creepActions.actionFillCache(creep, action);
-                action = creepActions.actionFillEnergy(creep, action);
-                action = creepActions.actionFillTower(creep, action);
-                action = creepActions.actionFillBufferChest(creep, action);
-                action = creepActions.actionFillEnergyStorage(creep, action);
-                action = creepActions.actionFillBattery(creep, action);
-                action = creepActions.actionFillBuilder(creep, action);
-                action = creepActions.actionFillUpgrader(creep, action);
+                if (!action && !this.storage) {
+                    action = creepActions.actionFillEnergy(creep, action);
+                    action = creepActions.actionFillTower(creep, action);
+                    action = creepActions.actionFillEnergyStorage(creep, action);
+                    // action = creepActions.actionFillBufferChest(creep, action);
+                    action = creepActions.actionFillBattery(creep, action);
+                    action = creepActions.actionFillBuilder(creep, action);
+                    action = creepActions.actionFillUpgrader(creep, action);
+                } else {
+                    if (!this.operation.stableOperation) {
+                        action = creepActions.actionFillEnergy(creep, action);
+                    }
+                    action = creepActions.actionFillEnergyStorage(creep, action);
+                }
+
             } else {
                 action = creepActions.actionMoveToRoom(creep, action, this.operation.roomName);
                 if (droppedRes && droppedRes.length > pickupOrder) {

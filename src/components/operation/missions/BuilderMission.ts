@@ -94,9 +94,9 @@ export class BuilderMission extends Mission {
                 }
                 action = creepActions.actionRepairStill(b, action);
                 action = creepActions.actionRepairCache(b, action);
-                action = creepActions.actionRepairRoad(b, action);
+                action = creepActions.actionRepairRoad(b, action, 2);
                 action = creepActions.actionRepair(b, action);
-                action = creepActions.actionUpgrade(b, action);
+                // action = creepActions.actionUpgrade(b, action);
             } else {
                 action = creepActions.actionGetStorageEnergy(b, action);
                 action = creepActions.actionGetBatteryEnergy(b, action);
@@ -108,6 +108,7 @@ export class BuilderMission extends Mission {
                 // }
                 // action = creepActions.actionMoveToRoom(creep, action, creep.memory.home);
             }
+            if (!action) { creepActions.moveTo(b, this.operation.rallyPos); };
         }
     }
 
@@ -125,7 +126,7 @@ export class BuilderMission extends Mission {
                 }
                 action = creepActions.actionBuild(b, action);
                 action = creepActions.actionRepair(b, action);
-                action = creepActions.actionUpgrade(b, action);
+                // action = creepActions.actionUpgrade(b, action);
             } else {
                 action = creepActions.actionGetStorageEnergy(b, action);
                 action = creepActions.actionGetBatteryEnergy(b, action);
@@ -137,6 +138,7 @@ export class BuilderMission extends Mission {
                 // }
                 // action = creepActions.actionMoveToRoom(creep, action, creep.memory.home);
             }
+            if (!action) { creepActions.moveTo(b, this.operation.rallyPos); };
         }
     }
 

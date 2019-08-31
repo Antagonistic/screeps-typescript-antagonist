@@ -15,7 +15,7 @@ export class ScoutMission extends Mission {
         ;
     }
     public spawn(): void {
-        this.scouts = this.spawnRole("scout", () => this.room ? 0 : 1, () => this.workerBody(0, 0, 1));
+        this.scouts = this.spawnRole("scout", () => this.room ? 0 : 1, () => this.workerBody(0, 0, 1), 50);
     }
     public work(): void {
         for (const creep of this.scouts) {

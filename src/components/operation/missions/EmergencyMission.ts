@@ -23,7 +23,7 @@ export class EmergencyMission extends Mission {
     }
 
     public spawn(): void {
-        this.emergencyminers = this.spawnRole("harvester", this.getMaxHarvesters, () => this.workerBody(2, 1, 1), { role: "hauler" })
+        this.emergencyminers = this.spawnRole("harvester", this.getMaxHarvesters, () => this.workerBody(2, 1, 1), { role: "hauler" }, 0);
     }
 
     public getMaxHarvesters = () => this.emergency ? 2 : 0;

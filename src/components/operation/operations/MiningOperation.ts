@@ -20,12 +20,14 @@ export class MiningOperation extends Operation {
     public initOperation() {
         if (!this.spawnRoom || this.spawnRoom.rclLevel < 4) { return; }
         this.addMission(new ScoutMission(this));
-        if (this.room && this.room.controller) {
-            this.addMission(new ReserveMission(this));
-        }
+
         for (let i = 0; i < this.sources.length; i++) {
             ;
             this.addMission(new MiningMission(this, "mining" + i, this.sources[i], true));
+        }
+
+        if (this.room && this.room.controller) {
+            this.addMission(new ReserveMission(this));
         }
         // this.addMission(new BuilderMission(this));
     }
