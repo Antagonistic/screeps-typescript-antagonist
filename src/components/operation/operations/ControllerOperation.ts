@@ -56,7 +56,7 @@ export class ControllerOperation extends Operation {
 
     public finalizeOperation() {
         this.memory.emergency = this.emergency = (this.spawnRoom.room.find(FIND_MY_CREEPS).length < 6);
-        //this.memory.emergency = ;
+        // this.memory.emergency = ;
     }
 
     private findMinersBySources() {

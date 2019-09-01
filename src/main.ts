@@ -8,7 +8,8 @@ import * as StructureManager from "./components/rooms/structureManager";
 // import * as WarManager from "./components/war/warManager";
 
 import { log } from "lib/logger/log";
-import * as Profiler from "screeps-profiler";
+// import * as Profiler from "screeps-profiler";
+import { Profiler } from "./Profiler";
 
 import { Empire } from "./Empire";
 
@@ -20,9 +21,9 @@ import { commandConsole } from "./commandConsole";
 
 import { Traveler } from "utils/Traveler"
 
-if (Config.USE_PROFILER) {
+/*if (Config.USE_PROFILER) {
   Profiler.enable();
-}
+}*/
 
 // log.info(`Scripts bootstrapped`);
 // if (__REVISION__) {
@@ -46,28 +47,30 @@ export const loop = ErrorMapper.wrapLoop(() => {
 
   // empire = new Empire();
   // empire.init();
+  Profiler.start("init");
   global.emp = new Empire();
-
-  // let creeps: Creep[] = [];
-  // for (const i in Game.rooms) {
-  // const room: Room = Game.rooms[i];
-  // const roomCreeps: Creep[] = room.find(FIND_MY_CREEPS);
-  // if (roomCreeps && roomCreeps.length) {
-  // creeps = creeps.concat(roomCreeps);
-  // }
-  // }
-
   const operations = OperationManager.init()
+  Profiler.end("init");
+
+  Profiler.start("spawn");
   for (const op of operations) {
     op.spawn();
   }
+  Profiler.end("spawn");
+
+  Profiler.start("work");
   for (const op of operations) {
     op.work();
   }
+  Profiler.end("work")
+
+  Profiler.start("final");
   for (const op of operations) {
     op.finalize();;
   }
+  Profiler.end("final");
 
+  /*
   for (const i in Game.rooms) {
     const room: Room = Game.rooms[i];
 
@@ -87,6 +90,7 @@ export const loop = ErrorMapper.wrapLoop(() => {
       console.log(e.stack);
     }
   }
+  */
 
   // Automatically delete memory of missing creeps
   for (const name in Memory.creeps) {
@@ -94,4 +98,5 @@ export const loop = ErrorMapper.wrapLoop(() => {
       delete Memory.creeps[name];
     }
   }
+  try { Profiler.finalize(); } catch (e) { console.log("error checking Profiler:\n", e.stack); }
 });

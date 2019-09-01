@@ -28,10 +28,10 @@ export class UpgradeMission extends Mission {
     public spawn(): void {
         this.upgraders = this.spawnRole(this.name, this.getMaxUpgraders, this.getUpgraderBody, { role: "upgrader" });
 
-        const numCarts = (): number => { return this.room && this.room.storage ? 1 : 0; };
+        const numCarts = (): number => this.room && this.room.storage ? 1 : 0;
         this.haulers = this.spawnRole(this.name + "cart", numCarts, this.getCartBody, { role: "refill" });
 
-        if (Game.time % 50 == 20) {
+        if (Game.time % 50 === 20) {
             if (this.operation.stableOperation) {
                 if (this.buildRoads(this.haulPath())) {
                     console.log("Building controller roads!");

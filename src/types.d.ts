@@ -49,9 +49,24 @@ interface Memory {
   uuid: number;
   log: any;
   empire: any;
-  squads: {
-    [name: string]: Squad;
-  } | undefined;
+  profiler: { [identifier: string]: ProfilerData };
+  cpu: {
+    history: number[];
+    average: number;
+  };
+}
+
+interface ProfilerData {
+  startOfPeriod: number;
+  lastTickTracked: number;
+  total: number;
+  count: number;
+  costPerCall: number;
+  costPerTick: number;
+  callsPerTick: number;
+  cpu: number;
+  consoleReport: boolean;
+  period: number;
 }
 
 interface IWorldMap {

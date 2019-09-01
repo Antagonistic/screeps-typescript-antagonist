@@ -59,7 +59,7 @@ export class BuilderMission extends Mission {
     }
 
     public maxPavers = (): number => {
-        if ((this.room && this.room.memory.mine_structures) || this.roadsites.length !== 0) {
+        if (this.room && this.roadsites.length !== 0) {
             return 1;
         }
         return 0;
@@ -84,7 +84,7 @@ export class BuilderMission extends Mission {
             let action: boolean = false;
             action = creepActions.actionRecycle(b, action);
             if (creepActions.canWork(b)) {
-                // action = creepActions.actionMoveToRoom(b, action);
+                action = creepActions.actionMoveToRoom(b, action, this.operation.roomName);
                 if (b.room.controller && b.room.controller.ticksToDowngrade < 2000) {
                     action = creepActions.actionUpgrade(b, action);
                 }
@@ -98,6 +98,7 @@ export class BuilderMission extends Mission {
                 action = creepActions.actionRepair(b, action);
                 // action = creepActions.actionUpgrade(b, action);
             } else {
+                action = creepActions.actionMoveToRoom(b, action, this.spawnRoom.room.name);
                 action = creepActions.actionGetStorageEnergy(b, action);
                 action = creepActions.actionGetBatteryEnergy(b, action);
                 // if (creep.room.energyCapacityAvailable < 550) {
@@ -106,7 +107,6 @@ export class BuilderMission extends Mission {
                 // } else {
                 //   action = creepActions.actionGetDroppedEnergy(creep, action);
                 // }
-                // action = creepActions.actionMoveToRoom(creep, action, creep.memory.home);
             }
             if (!action) { creepActions.moveTo(b, this.operation.rallyPos); };
         }
@@ -117,7 +117,7 @@ export class BuilderMission extends Mission {
             let action: boolean = false;
             action = creepActions.actionRecycle(b, action);
             if (creepActions.canWork(b)) {
-                // action = creepActions.actionMoveToRoom(b, action);
+                action = creepActions.actionMoveToRoom(b, action, this.operation.roomName);
                 if (b.room.controller && b.room.controller.ticksToDowngrade < 2000) {
                     action = creepActions.actionUpgrade(b, action);
                 }
@@ -128,6 +128,7 @@ export class BuilderMission extends Mission {
                 action = creepActions.actionRepair(b, action);
                 // action = creepActions.actionUpgrade(b, action);
             } else {
+                action = creepActions.actionMoveToRoom(b, action, this.spawnRoom.room.name);
                 action = creepActions.actionGetStorageEnergy(b, action);
                 action = creepActions.actionGetBatteryEnergy(b, action);
                 // if (creep.room.energyCapacityAvailable < 550) {
@@ -136,7 +137,6 @@ export class BuilderMission extends Mission {
                 // } else {
                 //   action = creepActions.actionGetDroppedEnergy(creep, action);
                 // }
-                // action = creepActions.actionMoveToRoom(creep, action, creep.memory.home);
             }
             if (!action) { creepActions.moveTo(b, this.operation.rallyPos); };
         }
