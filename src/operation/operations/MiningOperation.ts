@@ -1,8 +1,8 @@
+import { BuilderMission } from "../missions/BuilderMission";
 import { MiningMission } from "../missions/MiningMission";
+import { ReserveMission } from "../missions/ReserveMission";
 import { ScoutMission } from "../missions/ScoutMission";
 import { Operation } from "./Operation";
-import { BuilderMission } from "../missions/BuilderMission";
-import { ReserveMission } from "../missions/ReserveMission";
 
 export class MiningOperation extends Operation {
     public sources: Source[] = [];

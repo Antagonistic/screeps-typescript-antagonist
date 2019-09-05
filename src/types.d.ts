@@ -97,6 +97,7 @@ interface ISpawnRoom {
   room: Room;
   availableSpawnCount: number;
   availableSpawnEnergy: number;
+  logistics: any;
   createCreep(bodyParts: string[] | null, role: string, memory?: any, room?: Room, creepName?: string): boolean;
 }
 

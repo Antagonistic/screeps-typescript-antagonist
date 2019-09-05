@@ -7,6 +7,7 @@ import { GuardMission } from "../missions/GuardMission";
 import { MiningMission } from "../missions/MiningMission";
 import { UpgradeMission } from "../missions/UpgradeMission";
 
+import { LogisticsManager } from "operation/LogisticsManager";
 import * as StructureManager from "rooms/structureManager";
 import { RefillMission } from "../missions/RefillMission";
 
@@ -14,6 +15,7 @@ export class ControllerOperation extends Operation {
     public sources: Source[] = [];
     public emergency: boolean;
     public controllerCrate?: StructureContainer;
+    public logistics: LogisticsManager;
 
     constructor(flag: Flag, name: string, type: string) {
         super(flag, name, type)
@@ -21,6 +23,8 @@ export class ControllerOperation extends Operation {
             this.sources = _.sortBy(flag.room.find(FIND_SOURCES), (s: Source) => s.pos.getRangeTo(flag));
         }
         this.emergency = this.memory.emergency === undefined ? true : this.memory.emergency;
+        this.logistics = this.spawnRoom.logistics;
+        this.logistics.registerOperation(this);
 
         new RoomVisual(this.roomName).circle(this.rallyPos, { radius: 0.5, fill: "#FF2121" });
         // console.log("Emergency: " + this.emergency);

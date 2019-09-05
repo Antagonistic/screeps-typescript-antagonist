@@ -6,6 +6,7 @@ import { log } from "./lib/logger/log";
 // import { empire } from "./Empire";
 
 import { SpawnRoom } from "./rooms/SpawnRoom";
+import { Empire } from "Empire";
 
 export const commandConsole = {
   ping() {
@@ -18,6 +19,11 @@ export const commandConsole = {
       if (state) {
         console.log(state);
       }
+    }
+  },
+  report(): void {
+    for (const _sR in global.emp.spawnRooms) {
+      global.emp.spawnRooms[_sR].logistics.report();
     }
   },
   // spawnSoldier(roomName: string, subrole: string = "archer", roomTarget?: string): boolean {
