@@ -1,4 +1,4 @@
-import * as Config from "../../config/config";
+import * as Config from "config/config";
 
 // import { log } from "../../lib/logger/log";
 
@@ -442,14 +442,14 @@ export function actionTransfer(creep: Creep, action: boolean, target?: Structure
         }
       }
       if (target) {
-        let ret = creep.transfer(target, RESOURCE_ENERGY);
-        if (ret == OK) {
+        const ret = creep.transfer(target, RESOURCE_ENERGY);
+        if (ret === OK) {
           // transfer all resources
           for (const resourceType in creep.carry) {
             creep.transfer(target, resourceType as ResourceConstant);
           }
           return true;
-        } else if (ret == ERR_NOT_IN_RANGE) {
+        } else if (ret === ERR_NOT_IN_RANGE) {
           creep.moveTo(target);
         }
       }

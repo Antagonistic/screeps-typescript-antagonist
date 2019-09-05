@@ -1,7 +1,7 @@
 import * as SpawnHandler from "./structure/spawn";
 import * as TowerHandler from "./structure/tower";
 
-import { log } from "../../lib/logger/log";
+import { log } from "../lib/logger/log";
 
 export function run(room: Room): void {
 

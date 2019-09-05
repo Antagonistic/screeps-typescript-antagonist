@@ -1,10 +1,10 @@
 import * as Config from "./config/config";
 
-import * as CreepManager from "./components/creeps/creepManager";
+import * as CreepManager from "creeps/creepManager";
 // import * as FlagManager from "./components/flags/flagManager";
-import * as OperationManager from "./components/operation/operationManager";
-import * as StateManager from "./components/rooms/stateManager";
-import * as StructureManager from "./components/rooms/structureManager";
+import * as OperationManager from "operation/operationManager";
+import * as StateManager from "rooms/stateManager";
+import * as StructureManager from "rooms/structureManager";
 // import * as WarManager from "./components/war/warManager";
 
 import { log } from "lib/logger/log";

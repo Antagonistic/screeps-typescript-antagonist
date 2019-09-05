@@ -1,11 +1,11 @@
-import { openAdjacentSpots } from "components/rooms/roomHelper";
+import { openAdjacentSpots } from "rooms/roomHelper";
 import { Operation } from "../operations/Operation";
 import { Mission } from "./mission";
 
-import * as creepActions from "components/creeps/creepActions";
+import * as creepActions from "creeps/creepActions";
 
-import * as hauler from "components/creeps/roles/hauler";
-import * as miner from "components/creeps/roles/miner";
+import * as hauler from "creeps/roles/hauler";
+import * as miner from "creeps/roles/miner";
 
 import { posix } from "path";
 import { Traveler } from "utils/Traveler"

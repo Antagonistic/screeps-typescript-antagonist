@@ -1,7 +1,7 @@
 import { Operation } from "../operations/Operation";
 import { Mission } from "./Mission";
 
-import * as creepActions from "components/creeps/creepActions";
+import * as creepActions from "creeps/creepActions";
 
 export class RefillMission extends Mission {
     public haulers: Creep[] = [];

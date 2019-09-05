@@ -1,5 +1,5 @@
-import { SpawnRoom } from "./components/rooms/SpawnRoom";
-import { WorldMap } from "./components/rooms/WorldMap";
+import { SpawnRoom } from "./rooms/SpawnRoom";
+import { WorldMap } from "./rooms/WorldMap";
 
 // export let empire: Empire;
 
@@ -14,7 +14,7 @@ export class Empire implements IEmpire {
     // this.operations = {};
     this.map = new WorldMap();
     this.spawnRooms = this.init();
-    this.defaultSpawn = _.sortByOrder(_.toArray(this.spawnRooms), x => x.rclLevel)[0];
+    this.defaultSpawn = _.sortByOrder(_.toArray(this.spawnRooms), (x: SpawnRoom) => x.rclLevel)[0];
   }
 
   protected init(): { [roomName: string]: SpawnRoom } {

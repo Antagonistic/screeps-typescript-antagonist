@@ -7,7 +7,7 @@ import { GuardMission } from "../missions/GuardMission";
 import { MiningMission } from "../missions/MiningMission";
 import { UpgradeMission } from "../missions/UpgradeMission";
 
-import * as StructureManager from "components/rooms/structureManager";
+import * as StructureManager from "rooms/structureManager";
 import { RefillMission } from "../missions/RefillMission";
 
 export class ControllerOperation extends Operation {
@@ -30,9 +30,8 @@ export class ControllerOperation extends Operation {
         this.addMission(new EmergencyMission(this, this.emergency));
 
         for (let i = 0; i < this.sources.length; i++) {
-            let active = true;
 
-            this.addMission(new MiningMission(this, "mining" + i, this.sources[i], active))
+            this.addMission(new MiningMission(this, "mining" + i, this.sources[i], true))
 
             if (i === 0) {
                 this.addMission(new GuardMission(this));

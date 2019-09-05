@@ -1,8 +1,8 @@
 import { Operation } from "../operations/Operation";
 import { Mission } from "./Mission";
 
-import * as creepActions from "components/creeps/creepActions";
-import * as upgrader from "components/creeps/roles/upgrader";
+import * as creepActions from "creeps/creepActions";
+import * as upgrader from "creeps/roles/upgrader";
 
 export class UpgradeMission extends Mission {
 

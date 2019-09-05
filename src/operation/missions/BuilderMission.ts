@@ -1,8 +1,8 @@
 import { Operation } from "../operations/Operation";
 import { Mission } from "./Mission";
 
-import * as creepActions from "components/creeps/creepActions";
-import * as builder from "components/creeps/roles/builder";
+import * as creepActions from "creeps/creepActions";
+import * as builder from "creeps/roles/builder";
 
 export const PRIORITY_BUILD: string[] = [
     STRUCTURE_SPAWN,

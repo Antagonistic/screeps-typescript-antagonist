@@ -1,14 +1,14 @@
 import { Operation } from "../operations/Operation";
 import { Mission } from "./Mission";
 
-import * as guard from "components/creeps/roles/guard";
+import * as guard from "creeps/roles/guard";
 
 export class GuardMission extends Mission {
     public defenders: Creep[] = [];
     public towers: StructureTower[] = [];
     public hostiles: Creep[] = [];
     public hostileHealers: Creep[] = [];
-    public active: Boolean = false;
+    public active: boolean = false;
 
     constructor(operation: Operation) {
         super(operation, "Guard");

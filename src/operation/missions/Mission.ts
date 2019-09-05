@@ -1,5 +1,5 @@
-import { SpawnRoom } from "components/rooms/SpawnRoom";
-import { Operation } from "../operations/Operation";
+import { Operation } from "operation/operations/Operation";
+import { SpawnRoom } from "rooms/SpawnRoom";
 
 export abstract class Mission {
     public name: string;
@@ -18,7 +18,7 @@ export abstract class Mission {
         if (!this.memory.hc) { this.memory.hc = {}; }
         this.room = operation.room;
         this.hasVision = this.room ? true : false;
-        this.remoteSpawning = !this.room || this.room != this.spawnRoom.room;
+        this.remoteSpawning = !this.room || this.room !== this.spawnRoom.room;
     }
 
     public abstract initMission(): void;
@@ -146,7 +146,7 @@ export abstract class Mission {
                 pass = true;
             }
             if (!pass) {
-                if (pos.createConstructionSite(STRUCTURE_ROAD) == OK) {
+                if (pos.createConstructionSite(STRUCTURE_ROAD) === OK) {
                     action = true;
                 }
             }

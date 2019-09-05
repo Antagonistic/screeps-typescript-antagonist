@@ -1,13 +1,13 @@
 // import * as Config from "../../config/config";
 
-import { log } from "../../lib/logger/log";
+import { log } from "../lib/logger/log";
 
+import { initNewControllerOperation } from "operation/operations/ControllerOperation";
 import * as BootStrapState from "./states/bootstrap";
 import * as ClaimState from "./states/claim";
 import * as MineState from "./states/mine";
 import * as StableState from "./states/stable";
 import * as TransitionState from "./states/transition";
-import { initNewControllerOperation } from "components/operation/operations/ControllerOperation";
 
 export function run(room: Room): void {
   const roomstate = room.memory.state;

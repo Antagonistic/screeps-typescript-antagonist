@@ -1,7 +1,7 @@
-import { Mission } from "./Mission";
 import { Operation } from "../operations/Operation";
+import { Mission } from "./Mission";
 
-import * as creepActions from "components/creeps/creepActions";
+import * as creepActions from "creeps/creepActions";
 
 export class ReserveMission extends Mission {
     public reservers: Creep[] = [];
@@ -18,7 +18,7 @@ export class ReserveMission extends Mission {
         ;
     }
     public spawn(): void {
-        let needReserver = () => this.controller && !this.controller.my && this.spawnRoom.availableSpawnEnergy >= 1300 && (!this.controller.reservation ||
+        const needReserver = () => this.controller && !this.controller.my && this.spawnRoom.availableSpawnEnergy >= 1300 && (!this.controller.reservation ||
             this.controller.reservation.ticksToEnd < 3000) ? 1 : 0;
         this.reservers = this.spawnRole("claim", needReserver, this.reserveBody);
     }
@@ -39,5 +39,5 @@ export class ReserveMission extends Mission {
         ;
     }
 
-    public reserveBody = (): BodyPartConstant[] => { return this.configBody({ claim: 2, move: 2 }) };
+    public reserveBody = (): BodyPartConstant[] => this.configBody({ claim: 2, move: 2 });
 }

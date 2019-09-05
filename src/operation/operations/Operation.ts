@@ -1,4 +1,4 @@
-import { SpawnRoom } from "components/rooms/SpawnRoom";
+import { SpawnRoom } from "rooms/SpawnRoom";
 import { Mission } from "../missions/Mission";
 
 export enum OperationPriority { Emergency, OwnedRoom, VeryHigh, High, Medium, Low, VeryLow }

@@ -1,5 +1,4 @@
 // example declaration file - remove these and add your own custom typings
-
 declare namespace NodeJS {
   interface Global {
     log: any;

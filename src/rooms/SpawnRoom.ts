@@ -1,7 +1,7 @@
-import * as Config from "../../config/config";
+import * as Config from "config/config";
 
 import { log } from "lib/logger/log";
-import { LogisticsManager } from "components/operation/LogisticsManager";
+import { LogisticsManager } from "operation/LogisticsManager";
 
 export class SpawnRoom implements ISpawnRoom {
   public spawns: StructureSpawn[];
@@ -16,7 +16,7 @@ export class SpawnRoom implements ISpawnRoom {
   constructor(room: Room) {
     this.room = room;
     this.spawns = this.room.find(FIND_MY_SPAWNS);
-    this.availableSpawnCount = _.filter(this.spawns, (s) => !s.spawning).length;
+    this.availableSpawnCount = _.filter(this.spawns, (s: StructureSpawn) => !s.spawning).length;
     this.availableSpawnEnergy = this.room.energyAvailable;
     this.isAvailable = this.availableSpawnCount > 0;
     this.energyCapacityAvailable = this.room.energyCapacityAvailable;

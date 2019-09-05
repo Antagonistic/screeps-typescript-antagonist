@@ -2,9 +2,9 @@ import { ControllerOperation, initNewControllerOperation } from "./operations/Co
 import { MiningOperation } from "./operations/MiningOperation";
 import { Operation } from "./operations/Operation";
 
-import { Empire } from "../../Empire";
+import { Empire } from "../Empire";
 
-import { log } from "../../lib/logger/log";
+import { log } from "../lib/logger/log";
 
 // interface IOPERATION_CLASSES {
 // {[opType: string]: IOperation; };
@@ -20,7 +20,7 @@ export function init(): Operation[] {
   const operationList: { [operationName: string]: Operation } = {};
   for (const flagName in Game.flags) {
     for (const typeName in OPERATION_CLASSES) {
-      if (!OPERATION_CLASSES.hasOwnProperty(typeName)) continue;
+      if (!OPERATION_CLASSES.hasOwnProperty(typeName)) { continue; }
       if (flagName.substring(0, typeName.length) === typeName) {
         const operationClass = OPERATION_CLASSES[typeName];
         const flag = Game.flags[flagName];
