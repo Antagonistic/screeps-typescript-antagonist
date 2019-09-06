@@ -42,6 +42,7 @@ interface RoomMemory {
   availBoost?: { [name: string]: string; };
   rally: RoomPosition;
   battery?: string;
+  buildState: number;
 }
 
 interface Memory {
@@ -107,6 +108,19 @@ interface IEmpire {
   // operations: { [operationName: string]: IOperation };
   //init(): void;
   getSpawnRoom(roomName: string): any;
+}
+
+interface RCLRoomLayout {
+  [RCL: number]: RoomLayout;
+}
+
+interface RoomLayout {
+  build: { [key: string]: LightRoomPos[] };
+}
+
+interface LightRoomPos {
+  x: number;
+  y: number;
 }
 
 interface SquadComposition {

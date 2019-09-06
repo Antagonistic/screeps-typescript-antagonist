@@ -10,12 +10,18 @@ export class LogisticsManager {
     public E: number;
     public C: number;
     public S: number;
+    public storage: StructureStorage | undefined;
+    public links: StructureLink[] = [];
+    public haslinks: boolean;
     constructor(spawnRoom: SpawnRoom) {
         this.spawnRoom = spawnRoom;
         this.room = spawnRoom.room;
         this.E = this.spawnRoom.availableSpawnEnergy;
         this.C = this.spawnRoom.energyCapacityAvailable;
-        this.S = (this.room.storage && this.room.storage.store.energy) ? this.room.storage.store.energy : 0;
+        this.storage = this.room.storage;
+        this.S = (this.storage) ? this.storage.store.energy : 0;
+        this.links = this.room.find<StructureLink>(FIND_MY_STRUCTURES, { filter: x => x.structureType === STRUCTURE_LINK });
+        this.haslinks = this.links.length > 0;
     }
 
     public registerOperation(operation: Operation) {
