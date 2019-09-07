@@ -1,18 +1,18 @@
 export class Profiler {
 
     public static start(identifier: string, consoleReport = false, period = 5) {
-        let profile = this.initProfile(identifier, consoleReport, period);
+        const profile = this.initProfile(identifier, consoleReport, period);
         profile.cpu = Game.cpu.getUsed();
     }
 
     public static end(identifier: string) {
-        let profile = Memory.profiler[identifier];
+        const profile = Memory.profiler[identifier];
         profile.total += Game.cpu.getUsed() - profile.cpu;
         profile.count++;
     }
 
     public static resultOnly(identifier: string, result: number, consoleReport = false, period = 5) {
-        let profile = this.initProfile(identifier, consoleReport, period);
+        const profile = this.initProfile(identifier, consoleReport, period);
         profile.total += result;
         profile.count++;
     }
@@ -29,8 +29,8 @@ export class Profiler {
     }
 
     public static finalize() {
-        for (let identifier in Memory.profiler) {
-            let profile = Memory.profiler[identifier];
+        for (const identifier in Memory.profiler) {
+            const profile = Memory.profiler[identifier];
             if (Game.time - profile.startOfPeriod >= profile.period) {
                 if (profile.count !== 0) {
                     profile.costPerCall = _.round(profile.total / profile.count, 2);

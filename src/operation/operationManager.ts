@@ -1,4 +1,4 @@
-import { ControllerOperation, initNewControllerOperation } from "./operations/ControllerOperation";
+import { ControllerOperation } from "./operations/ControllerOperation";
 import { MiningOperation } from "./operations/MiningOperation";
 import { Operation } from "./operations/Operation";
 
@@ -43,22 +43,6 @@ export function init(): Operation[] {
 
         // operationList[name] = operation;
         // global[name] = operation;
-      }
-    }
-  }
-
-  if (Game.time % 100 === 0) {
-    for (const roomName in Game.rooms) {
-      const room = Game.rooms[roomName];
-      if (room.controller && room.controller.my) {
-        let hasControllerOp = false;
-        const flags = room.find(FIND_FLAGS);
-        for (const flag of flags) {
-          if (flag.name.startsWith("controller")) {
-            hasControllerOp = true;
-          }
-        }
-        if (!hasControllerOp) { initNewControllerOperation(room); }
       }
     }
   }

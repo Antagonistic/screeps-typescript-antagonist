@@ -66,7 +66,11 @@ export const loop = ErrorMapper.wrapLoop(() => {
 
   Profiler.start("final");
   for (const op of operations) {
-    op.finalize();;
+    op.finalize();
+  }
+  for (const spawn in global.emp.spawnRooms) {
+    const logic = global.emp.spawnRooms[spawn].logistics;
+    logic.finalize();
   }
   Profiler.end("final");
 

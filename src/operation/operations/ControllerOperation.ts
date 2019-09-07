@@ -89,16 +89,19 @@ export class ControllerOperation extends Operation {
         }
     }
 
-
-}
-
-export function initNewControllerOperation(room: Room): void {
-    if (room.controller && room.controller.my) {
-        const pos: RoomPosition = room.controller.pos;
-        const name = room.createFlag(pos.x, pos.y, "controller_" + room.name, 1, 2)
-        if (name === ERR_NAME_EXISTS || name === ERR_INVALID_ARGS) {
-            log.error("Error initializing new controller operation!")
+    public static initNewControllerOperation(room: Room, pos?: RoomPosition): void {
+        if (room.controller && room.controller.my) {
+            if (!pos) {
+                pos = room.controller.pos;
+            }
+            const name = room.createFlag(pos.x, pos.y, "controller_" + room.name, 1, 2)
+            if (name === ERR_NAME_EXISTS || name === ERR_INVALID_ARGS) {
+                log.error("Error initializing new controller operation!")
+            }
         }
     }
+
 }
+
+
 

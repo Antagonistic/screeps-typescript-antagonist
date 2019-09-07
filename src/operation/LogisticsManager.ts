@@ -1,5 +1,6 @@
 import { SpawnRoom } from "rooms/SpawnRoom";
 import { MiningMission } from "./missions/MiningMission";
+import { ControllerOperation } from "./operations/ControllerOperation";
 import { Operation } from "./operations/Operation";
 
 
@@ -49,6 +50,13 @@ export class LogisticsManager {
         console.log("   Stable? : " + m.stableMission);
         console.log("   Miners  : " + m.miners.length + " W: " + numWork);
         console.log("   Haulers : " + m.carts.length + " C: " + numCarry);
+    }
+
+    public finalize(): void {
+        if (this.operations.length === 0) {
+            // No operations for this spawngroup? Fix it!
+            ControllerOperation.initNewControllerOperation(this.room, this.spawnRoom.spawns[0].pos);
+        }
     }
 
 }
