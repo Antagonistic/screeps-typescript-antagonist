@@ -8,6 +8,7 @@ import { MiningMission } from "../missions/MiningMission";
 import { UpgradeMission } from "../missions/UpgradeMission";
 
 import { LogisticsManager } from "operation/LogisticsManager";
+import { SupervisorMission } from "operation/missions/SupervisorMission";
 import * as StructureManager from "rooms/structureManager";
 import { RefillMission } from "../missions/RefillMission";
 
@@ -43,6 +44,8 @@ export class ControllerOperation extends Operation {
         }
 
         this.addMission(new RefillMission(this));
+
+        this.addMission(new SupervisorMission(this, this.logistics));
 
         this.addMission(new BuilderMission(this));
 

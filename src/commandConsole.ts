@@ -8,8 +8,10 @@ import { log } from "./lib/logger/log";
 import { Empire } from "Empire";
 import { SpawnRoom } from "./rooms/SpawnRoom";
 
+import * as layout from "rooms/layoutManager";
+
 export const commandConsole = {
-  ping() {
+  ping(): void {
     console.log("PONG!");
   },
   getState(roomName: string): void {
@@ -24,6 +26,14 @@ export const commandConsole = {
   report(): void {
     for (const _sR in global.emp.spawnRooms) {
       global.emp.spawnRooms[_sR].logistics.report();
+    }
+  },
+  runBuild(flagName: string, rcl: number = -1): void {
+    if (Game.flags[flagName]) {
+      const f = Game.flags[flagName];
+      if (f.room) {
+        layout.run(f.room, f.pos, rcl);
+      }
     }
   },
   // spawnSoldier(roomName: string, subrole: string = "archer", roomTarget?: string): boolean {

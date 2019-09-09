@@ -55,6 +55,7 @@ export class LogisticsManager {
     public finalize(): void {
         if (this.operations.length === 0) {
             // No operations for this spawngroup? Fix it!
+            console.log("No operations for this spawngroup? Fix it!");
             ControllerOperation.initNewControllerOperation(this.room, this.spawnRoom.spawns[0].pos);
         }
     }

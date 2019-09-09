@@ -43,6 +43,7 @@ interface RoomMemory {
   rally: RoomPosition;
   battery?: string;
   buildState: number;
+  supervisor: LightRoomPos[];
 }
 
 interface Memory {
@@ -111,11 +112,13 @@ interface IEmpire {
 }
 
 interface RCLRoomLayout {
+  anchor: LightRoomPos;
   [RCL: number]: RoomLayout;
 }
 
 interface RoomLayout {
   build: { [key: string]: LightRoomPos[] };
+  memory?: any;
 }
 
 interface LightRoomPos {

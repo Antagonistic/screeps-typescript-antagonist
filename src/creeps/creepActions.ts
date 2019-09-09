@@ -463,6 +463,14 @@ export function actionFillCache(creep: Creep, action: boolean): boolean {
     if (creep.memory.target) {
       const obj = Game.getObjectById(creep.memory.target);
       if (obj) {
+        if (obj instanceof StructureSpawn || obj instanceof StructureTower) {
+          if (obj.energy < obj.energyCapacity) {
+            moveToTransfer(creep, obj);
+            return true;
+          } else {
+            creep.memory.target = undefined;
+          }
+        }
         if (obj instanceof StructureContainer || obj instanceof StructureStorage) {
           if (_.sum(obj.store) < obj.storeCapacity - 10) {
             moveToTransfer(creep, obj);
@@ -610,7 +618,7 @@ export function actionFillBattery(creep: Creep, action: boolean): boolean {
   if (action === false) {
     if (creep.room.memory.battery) {
       const chest: StructureContainer | null = Game.getObjectById(creep.room.memory.battery);
-      if (chest && ((chest.store.energy || 0) + (_.sum(chest.store) || 0)) < chest.storeCapacity) {
+      if (chest && ((_.sum(chest.store) || 0)) < chest.storeCapacity) {
         creep.memory.target = chest.id;
         moveToTransfer(creep, chest);
         return true;

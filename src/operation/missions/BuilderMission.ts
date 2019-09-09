@@ -37,7 +37,7 @@ export class BuilderMission extends Mission {
     }
     public spawn(): void {
         this.builders = this.spawnRole(this.name, this.maxBuilders, this.builderBody, { role: "builder" });
-        this.pavers = this.spawnRole(this.name + "paver", () => 1, this.builderBody, { role: "builder" });
+        this.pavers = this.spawnRole(this.name + "paver", () => this.roadsites.length > 0 ? 1 : 0, this.builderBody, { role: "builder" });
     }
     public work(): void {
         // for (const b of this.builders) {

@@ -1,14 +1,14 @@
-import {SpawnRoom} from "./SpawnRoom";
+import { SpawnRoom } from "./SpawnRoom";
 
 export class WorldMap implements IWorldMap {
-  public controlledRooms: {[roomName: string]: Room } = {};
+  public controlledRooms: { [roomName: string]: Room } = {};
 
   // public foesMap: {[roomName: string]: RoomMemory } = {};
   // public foesRooms: Room[] = [];
 
-  public init(): {[roomName: string]: SpawnRoom } {
-    const spawnGroups: {[roomName: string]: SpawnRoom } = {};
-    for (const roomName in Memory.rooms) {
+  public init(): { [roomName: string]: SpawnRoom } {
+    const spawnGroups: { [roomName: string]: SpawnRoom } = {};
+    for (const roomName in Game.rooms) {
       // const memory = Memory.rooms[roomName];
       const room = Game.rooms[roomName];
 

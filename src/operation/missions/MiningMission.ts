@@ -133,9 +133,9 @@ export class MiningMission extends Mission {
     public haulPath = (): RoomPosition[] => {
         let goal;
         if (this.storage) {
-            goal = { pos: this.storage.pos, range: 1 }
+            goal = { pos: this.storage.pos, range: 6 }
         } else {
-            goal = { pos: this.storage, range: 1 }
+            goal = { pos: this.storage, range: 6 }
         }
         const path = PathFinder.search(this.source.pos, goal).path;
         return path;

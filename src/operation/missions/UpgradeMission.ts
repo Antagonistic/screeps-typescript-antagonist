@@ -52,6 +52,9 @@ export class UpgradeMission extends Mission {
     }
 
     public getUpgraderBody = (): BodyPartConstant[] => {
+        if (this.spawnRoom.rclLevel === 8) {
+            return this.workerBody(15, 6, 8);
+        }
         const energyAvailable: number = this.spawnRoom.energyCapacityAvailable;
         if (energyAvailable >= 1300) {
             return this.workerBody(8, 4, 6);
@@ -67,6 +70,7 @@ export class UpgradeMission extends Mission {
     }
 
     public getMaxUpgraders = (): number => {
+        if (this.spawnRoom.rclLevel === 8) { return 1; };
         if (!this.container) { return 0; }
         if (this.room && this.room.controller && this.room.controller.level < 2) {
             return 1;

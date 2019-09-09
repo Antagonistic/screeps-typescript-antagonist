@@ -32,6 +32,18 @@ import { Traveler } from "utils/Traveler"
 
 global.cc = commandConsole;
 
+function initMemory() {
+  _.defaultsDeep(Memory, {
+    cpu: {
+      average: Game.cpu.getUsed(),
+      history: []
+    },
+    profiler: {},
+    uuid: 0
+  });
+}
+
+initMemory();
 
 // When compiling TS to JS and bundling with rollup, the line numbers and file names in error messages change
 // This utility uses source maps to get the line numbers and file names of the original, TS source code
