@@ -8,6 +8,8 @@ import { MiningMission } from "../missions/MiningMission";
 import { UpgradeMission } from "../missions/UpgradeMission";
 
 import { LogisticsManager } from "operation/LogisticsManager";
+import { ClaimMission } from "operation/missions/ClaimMission";
+import { ScoutMission } from "operation/missions/ScoutMission";
 import * as StructureManager from "rooms/structureManager";
 import { RefillMission } from "../missions/RefillMission";
 
@@ -31,11 +33,15 @@ export class ControllerOperation extends Operation {
     }
 
     public initOperation() {
-        this.addMission(new EmergencyMission(this, this.emergency));
+        if (this.remoteSpawning) {
+            this.addMission(new ScoutMission(this));
+            this.addMission(new ClaimMission(this));
+        }
+        this.addMission(new EmergencyMission(this, this.emergency && !this.remoteSpawning));
 
         for (let i = 0; i < this.sources.length; i++) {
 
-            this.addMission(new MiningMission(this, "mining" + i, this.sources[i], true))
+            this.addMission(new MiningMission(this, "mining" + i, this.sources[i]))
 
             if (i === 0) {
                 this.addMission(new GuardMission(this));
@@ -54,8 +60,8 @@ export class ControllerOperation extends Operation {
                 // this.buildMineRoads();
             }
         }
-
     }
+
 
     public finalizeOperation() {
         this.memory.emergency = this.emergency = (this.spawnRoom.room.find(FIND_MY_CREEPS).length < 6);
@@ -88,8 +94,6 @@ export class ControllerOperation extends Operation {
             }
         }
     }
-
-
 }
 
 export function initNewControllerOperation(room: Room): void {

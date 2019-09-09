@@ -77,6 +77,31 @@ export function isPassible(pos: RoomPosition, ignoreCreeps?: boolean): boolean {
     return false;
 };
 
+export function hasStructure(pos: RoomPosition, struct: BuildableStructureConstant): boolean {
+    const structures = pos.lookFor("structure");
+    if (_.any(structures, x => x.structureType === struct)) { return true; }
+    const construct = pos.lookFor("constructionSite");
+    if (_.any(construct, x => x.structureType === struct)) { return true; }
+    return false;
+}
+
+export function buildIfNotExist(pos: RoomPosition, struct: BuildableStructureConstant, name?: string): ScreepsReturnCode {
+    if (hasStructure(pos, struct)) { return OK; }
+    let ret: ScreepsReturnCode;
+    if (struct === STRUCTURE_POWER_SPAWN) {
+        if (!name) {
+            name = "Spawn_" + pos.roomName + "_" + Memory.uuid++;
+        }
+        ret = pos.createConstructionSite(STRUCTURE_SPAWN, name)
+    } else {
+        ret = pos.createConstructionSite(struct);
+    }
+    if (ret !== OK) {
+        console.log("Failed to construct " + struct + " at " + pos.x + "," + pos.y + "!");
+    }
+    return ret;
+}
+
 export function isNearExit(pos: RoomPosition, range: number): boolean {
     return pos.x - range <= 0 || pos.x + range >= 49 || pos.y - range <= 0 || pos.y + range >= 49;
 };
