@@ -15,6 +15,7 @@ export abstract class Operation {
   public priority: OperationPriority;
 
   public spawnRoom: SpawnRoom;
+  public remoteSpawning: boolean;
 
   public missions: { [roleName: string]: Mission } = {};
 
@@ -38,6 +39,7 @@ export abstract class Operation {
       this.roomName = flag.pos.roomName;
       this.spawnRoom = global.emp.getSpawnRoom(this.roomName);
     }
+    this.remoteSpawning = this.spawnRoom.room.name !== this.roomName;
     const rallyFlag = Game.flags["rally_" + this.roomName];
     if (rallyFlag) {
       this.rallyPos = rallyFlag.pos;

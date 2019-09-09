@@ -116,8 +116,10 @@ export class UpgradeMission extends Mission {
 
             if (!action && creepActions.canWork(u)) {
                 // console.log("foo!");
-                action = creepActions.actionBuildStill(u, action);
-                action = creepActions.actionRepairStill(u, action);
+                if (!this.container) {
+                    action = creepActions.actionBuildStill(u, action);
+                    action = creepActions.actionRepairStill(u, action);
+                }
                 action = creepActions.actionUpgrade(u, action);
                 if (u.carry.energy === 0) { u.memory.working = false; }
             } else {

@@ -65,21 +65,8 @@ export class MiningMission extends Mission {
         }
     }
     public work(): void {
-        // for (const m of this.miners) {
-        // if (!m.memory.sourceID) { m.memory.sourceID = this.source.id; }
-        // if (!m.memory.target && this.container) { m.memory.sourceID = this.container.id; }
-        // miner.run(m);
-        // }
         this.runMiners(this.miners);
-
-        // for (const h of this.carts) {
-        // hauler.run(h);
-        // console.log(h.name);
-        // }
         this.runHaulers2(this.carts);
-        // if (this.room) {
-        //     new RoomVisual(this.room.name).poly(this.haulPath());
-        // }
     }
     public finalize(): void { ; }
 
@@ -170,32 +157,36 @@ export class MiningMission extends Mission {
     }
 
     public runMiners(creeps: Creep[]): void {
+        const sourceEnergy = this.source.energy > 0;
         for (const creep of creeps) {
-            // console.log(creep.name + " running");
             let action: boolean = false;
-            const sourceEnergy = this.source.energy > 0;
-            if (sourceEnergy) {
+            if (!creep.memory.inPosition) {
                 action = creepActions.actionMoveToRoom(creep, action, this.operation.roomName);
-                const ret: number = creep.harvest(this.source);
-                if (ret === ERR_NOT_IN_RANGE) {
-                    // action = creepActions.actionMoveToRoom(creep, action, this.source.room);
+                if (creep.pos.isNearTo(this.source.pos)) {
+                    creep.memory.inPosition = true;
+                } else {
                     creepActions.moveTo(creep, this.source.pos, true);
                 }
-            }
-            // else {
-            if (creep.carry.energy > 40) {
-                const haulers = creep.pos.findInRange(FIND_MY_CREEPS, 1, { filter: (c: Creep) => c.memory.role && c.memory.role === "hauler" });
-                if (haulers.length > 0) {
-                    action = creepActions.actionTransferStill(creep, action, haulers[0]);
-                } else {
-                    action = creepActions.actionBuildStill(creep, action);
-                    action = creepActions.actionRepairStill(creep, action);
-                    if (this.container) {
-                        action = creepActions.actionTransferStill(creep, action, this.container);
+            } else {
+                if (sourceEnergy) {
+                    const ret: number = creep.harvest(this.source);
+                    if (ret === ERR_NOT_IN_RANGE) {
+                        creepActions.moveTo(creep, this.source.pos, true);
+                    }
+                }
+                if (creep.carry.energy > 40) {
+                    const haulers = creep.pos.findInRange(FIND_MY_CREEPS, 1, { filter: (c: Creep) => c.memory.role && c.memory.role !== "miner" });
+                    if (haulers.length > 0) {
+                        action = creepActions.actionTransferStill(creep, action, haulers[0]);
+                    } else {
+                        action = creepActions.actionBuildStill(creep, action);
+                        action = creepActions.actionRepairStill(creep, action);
+                        if (this.container) {
+                            action = creepActions.actionTransferStill(creep, action, this.container);
+                        }
                     }
                 }
             }
-            // }
         }
     }
 

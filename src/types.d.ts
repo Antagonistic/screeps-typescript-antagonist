@@ -26,6 +26,7 @@ interface CreepMemory {
   renew?: boolean;
   target?: string;
   isBoosted?: boolean;
+  inPosition?: boolean;
 }
 
 interface RoomMemory {

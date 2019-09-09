@@ -128,15 +128,23 @@ export class BuilderMission extends Mission {
                 action = creepActions.actionRepair(b, action);
                 // action = creepActions.actionUpgrade(b, action);
             } else {
-                action = creepActions.actionMoveToRoom(b, action, this.spawnRoom.room.name);
-                action = creepActions.actionGetStorageEnergy(b, action);
-                action = creepActions.actionGetBatteryEnergy(b, action);
-                // if (creep.room.energyCapacityAvailable < 550) {
-                //   action = creepActions.actionGetDroppedEnergy(creep, action);
-                //   action = creepActions.actionGetSourceEnergy(creep, action);
-                // } else {
-                //   action = creepActions.actionGetDroppedEnergy(creep, action);
-                // }
+                if (this.remoteSpawning) {
+                    action = creepActions.actionGetDroppedEnergy(b, action, true);
+                    action = creepActions.actionGetContainerEnergy(b, action, 2, true);
+                    if (!action) {
+                        // No containers, so gonna go mine, hopefully have a miner refill
+                        const sources = this.room!.find(FIND_SOURCES);
+                        const source = sources[this.memory.uuid % sources.length];
+                        const ret: number = b.harvest(source);
+                        if (ret === ERR_NOT_IN_RANGE) {
+                            creepActions.moveTo(b, source.pos, true);
+                        }
+                    }
+                } else {
+                    action = creepActions.actionMoveToRoom(b, action, this.spawnRoom.room.name);
+                    action = creepActions.actionGetStorageEnergy(b, action);
+                    action = creepActions.actionGetBatteryEnergy(b, action);
+                }
             }
             if (!action) { creepActions.moveTo(b, this.operation.rallyPos); };
         }
