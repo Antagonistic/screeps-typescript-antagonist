@@ -5,8 +5,8 @@ import { log } from "./lib/logger/log";
 
 // import { empire } from "./Empire";
 
-import { SpawnRoom } from "./rooms/SpawnRoom";
 import { Empire } from "Empire";
+import { SpawnRoom } from "./rooms/SpawnRoom";
 
 export const commandConsole = {
   ping() {
