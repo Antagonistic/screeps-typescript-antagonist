@@ -1,4 +1,5 @@
 import { sealedLayout } from "./layout/sealedLayout"
+import * as roomHelper from "./roomHelper"
 
 export function run(room: Room, pos: RoomPosition, rcl: number = -1, force: boolean = false): void {
     const layout = sealedLayout;
@@ -35,21 +36,12 @@ function runConstruct(room: Room, layout: RoomLayout, anchor: LightRoomPos, pos:
             for (const p of build) {
                 const _x = p.x - anchor.x + pos.x;
                 const _y = p.y - anchor.y + pos.y;
-                if (key !== "road") {
-                    const struct = room.lookForAt(LOOK_STRUCTURES, _x, _y);
-                    if (struct.length > 0 && struct[0].structureType === "road") {
-                        struct[0].destroy();
-                    }
+                const _ret = roomHelper.buildIfNotExist(new RoomPosition(_x, _y, room.name), key as BuildableStructureConstant);
+                if (_ret !== OK) {
+                    console.log("Error construct: " + ret);
+                    if (ret === OK) { ret = _ret; }
                 }
-                if (room.lookForAt(LOOK_CONSTRUCTION_SITES, _x, _y).length === 0) {
-                    if (room.lookForAt(LOOK_STRUCTURES, _x, _y).length === 0) {
-                        const _ret: ScreepsReturnCode = room.createConstructionSite(_x, _y, _key) || ret;
-                        if (_ret !== OK) {
-                            console.log("LAYOUT: Error building " + _key + " at x:" + _x + ", y: " + _y + "  " + _ret);
-                            ret = _ret;
-                        }
-                    }
-                }
+
             }
         }
         if (layout.memory) {
@@ -65,4 +57,3 @@ function runConstruct(room: Room, layout: RoomLayout, anchor: LightRoomPos, pos:
     }
     return ret;
 }
-

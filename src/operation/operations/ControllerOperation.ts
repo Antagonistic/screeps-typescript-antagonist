@@ -37,30 +37,32 @@ export class ControllerOperation extends Operation {
         if (this.remoteSpawning) {
             this.addMission(new ScoutMission(this));
             this.addMission(new ClaimMission(this));
-        }
-        this.addMission(new EmergencyMission(this, this.emergency && !this.remoteSpawning));
+            this.addMission(new BuilderMission(this));
+        } else {
+            this.addMission(new EmergencyMission(this, this.emergency && !this.remoteSpawning));
 
-        for (let i = 0; i < this.sources.length; i++) {
+            for (let i = 0; i < this.sources.length; i++) {
 
-            this.addMission(new MiningMission(this, "mining" + i, this.sources[i]))
+                this.addMission(new MiningMission(this, "mining" + i, this.sources[i]))
 
-            if (i === 0) {
-                this.addMission(new GuardMission(this));
+                if (i === 0) {
+                    this.addMission(new GuardMission(this));
+                }
             }
-        }
 
-        this.addMission(new RefillMission(this));
+            this.addMission(new RefillMission(this));
 
-        this.addMission(new SupervisorMission(this, this.logistics));
+            this.addMission(new SupervisorMission(this, this.logistics));
 
-        this.addMission(new BuilderMission(this));
+            this.addMission(new BuilderMission(this));
 
-        this.addMission(new UpgradeMission(this));
+            this.addMission(new UpgradeMission(this));
 
-        if (Game.time % 50 === 1) {
-            console.log("Operation stable: " + this.stableOperation);
-            if (this.stableOperation) {
-                // this.buildMineRoads();
+            if (Game.time % 50 === 1) {
+                console.log("Operation stable: " + this.stableOperation);
+                if (this.stableOperation) {
+                    // this.buildMineRoads();
+                }
             }
         }
     }
@@ -78,24 +80,6 @@ export class ControllerOperation extends Operation {
             }
         }
         return false;
-    }
-
-    public buildMineRoads() {
-        if (this.room) {
-            if (this.room.memory.mine_structures) {
-                return;
-            }
-            log.info(this.room.name + ": Placing mining room layouts!");
-
-            const homeSpawn: StructureSpawn[] = this.room.find(FIND_MY_SPAWNS);
-            const mineSources: Source[] = this.room.find(FIND_SOURCES);
-            if (homeSpawn && homeSpawn.length && mineSources && mineSources.length) {
-                for (const s of mineSources) {
-                    StructureManager._buildRoad(homeSpawn[0].pos, s.pos, true, true);
-                }
-                this.room.memory.mine_structures = Game.time;
-            }
-        }
     }
 
     public static initNewControllerOperation(room: Room, pos?: RoomPosition): void {

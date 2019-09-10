@@ -35,6 +35,7 @@ export class ClaimMission extends Mission {
                 else {
                     // We've claimed, need a spawn
                     if (this.room) {
+                        this.clearRoom();
                         const ret = buildIfNotExist(this.operation.flag.pos, STRUCTURE_SPAWN);
                         if (ret === OK) {
                             creep.suicide();
@@ -49,4 +50,37 @@ export class ClaimMission extends Mission {
     }
 
     public claimBody = (): BodyPartConstant[] => this.configBody({ claim: 1, move: 1 });
+
+    public clearRoom(): void {
+        if (this.room && this.room.controller && this.room.controller.my) {
+            const struct = this.room.find(FIND_STRUCTURES);
+            for (const s of struct) {
+                switch (s.structureType) {
+                    case STRUCTURE_CONTROLLER: {
+                        continue;
+                    }
+                    case STRUCTURE_CONTAINER: {
+                        continue;
+                    }
+                    case STRUCTURE_ROAD: {
+                        continue;
+                    }
+                    case STRUCTURE_STORAGE: {
+                        continue;
+                    }
+                    case STRUCTURE_TERMINAL: {
+                        continue;
+                    }
+                    default: {
+                        if (s instanceof OwnedStructure) {
+                            if (s.my) {
+                                continue;
+                            }
+                        }
+                        s.destroy();
+                    }
+                }
+            }
+        }
+    }
 }

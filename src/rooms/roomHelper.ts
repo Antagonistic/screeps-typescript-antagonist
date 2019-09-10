@@ -1,9 +1,9 @@
 
 
 export function openAdjacentSpots(pos: RoomPosition, ignoreCreeps?: boolean): RoomPosition[] {
-    let positions = [];
+    const positions = [];
     for (let i = 1; i <= 8; i++) {
-        let testPosition = getPositionAtDirection(pos, i);
+        const testPosition = getPositionAtDirection(pos, i);
 
         if (isPassible(testPosition, ignoreCreeps)) {
             // passed all tests
@@ -19,7 +19,7 @@ export function getPositionAtDirection(pos: RoomPosition, direction: number, ran
     }
     let x = pos.x;
     let y = pos.y;
-    let room = pos.roomName;
+    const room = pos.roomName;
 
     if (direction === 1) {
         y -= range;
@@ -53,7 +53,7 @@ export function getPositionAtDirection(pos: RoomPosition, direction: number, ran
 };
 
 export function isPassible(pos: RoomPosition, ignoreCreeps?: boolean): boolean {
-    if (isNearExit(pos, 0)) return false;
+    if (isNearExit(pos, 0)) { return false; }
 
     // look for walls
     if (_.head(pos.lookFor(LOOK_TERRAIN)) !== "wall") {
@@ -82,6 +82,12 @@ export function hasStructure(pos: RoomPosition, struct: BuildableStructureConsta
     if (_.any(structures, x => x.structureType === struct)) { return true; }
     const construct = pos.lookFor("constructionSite");
     if (_.any(construct, x => x.structureType === struct)) { return true; }
+    if (struct !== "road" && struct !== "rampart" && struct !== "container") {
+        const road = _.findLast(structures, x => x.structureType === STRUCTURE_ROAD);
+        if (road) { road.destroy(); }
+        const constRoad = _.findLast(construct, x => x.structureType === STRUCTURE_ROAD);
+        if (constRoad) { constRoad.remove(); }
+    }
     return false;
 }
 

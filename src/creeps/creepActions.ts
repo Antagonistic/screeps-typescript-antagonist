@@ -103,6 +103,7 @@ export function canWork(creep: Creep): boolean {
     return false;
   } else if (!working && _.sum(creep.carry) === creep.carryCapacity) {
     creep.memory.working = true;
+    creep.memory.energyTarget = undefined;
     return true;
   } else {
     return creep.memory.working;
@@ -495,6 +496,38 @@ export function actionFillCache(creep: Creep, action: boolean): boolean {
   return action;
 }
 
+export function actionGetEnergyCache(creep: Creep, action: boolean): boolean {
+  if (!action) {
+    if (creep.memory.target) {
+      const target = Game.getObjectById(creep.memory.target) as _HasRoomPosition | null;
+      if (target && target.pos) {
+        if (creep.pos.isNearTo(target.pos)) {
+          if (target instanceof Resource) {
+            creep.pickup(target);
+          }
+          if (target instanceof StructureStorage || target instanceof StructureContainer || target instanceof StructureTerminal || target instanceof Tombstone) {
+            creep.withdraw(target, RESOURCE_ENERGY);
+          }
+          if (target instanceof Creep) {
+            target.transfer(creep, RESOURCE_ENERGY);
+          }
+          if (target instanceof Source) {
+            if (_.sum(creep.carry) < creep.carryCapacity) {
+              creep.harvest(target);
+              return true;
+            }
+          }
+          creep.memory.target = undefined;
+        } else {
+          moveTo(creep, target.pos);
+        }
+        return true;
+      } else { creep.memory.target = undefined; }
+    }
+  }
+  return action;
+}
+
 export function actionFillEnergy(creep: Creep, action: boolean): boolean {
   if (action === false) {
     const spawn: Structure[] = creep.room.find(FIND_MY_SPAWNS, {
@@ -643,6 +676,7 @@ export function actionGetDroppedEnergy(creep: Creep, action: boolean, scavange?:
     if (droppedRes) {
       if (creep.pickup(droppedRes) === ERR_NOT_IN_RANGE) {
         creep.moveTo(droppedRes);
+        creep.memory.target = droppedRes.id;
       } else {
         // Grab from container if nearby
         const minerContainer: StructureContainer[] = droppedRes.pos.findInRange<StructureContainer>(FIND_STRUCTURES, 1, {
@@ -685,12 +719,14 @@ export function actionGetContainerEnergy(creep: Creep, action: boolean,
             // console.log(nonBuffer);
             const salt: number = (creep.memory.uuid || 0) % nonBuffer.length;
             moveToWithdraw(creep, nonBuffer[salt]);
+            creep.memory.target = nonBuffer[salt].id;
             return true;
           }
         }
       } else {
         const salt: number = (creep.memory.uuid || 0) % energyCont.length;
         moveToWithdraw(creep, energyCont[salt]);
+        creep.memory.target = energyCont[salt].id;
         return true;
       }
     }
@@ -709,6 +745,7 @@ export function actionGetSourceEnergy(creep: Creep, action: boolean, factor: num
       // console.log(creep.name + " " + salt + " " + sources.length);
       // creep.memory.target = sources[salt].id;
       if (creep.harvest(sources[salt]) === ERR_NOT_IN_RANGE) {
+        creep.memory.target = sources[salt].id;
         creep.moveTo(sources[salt]);
       }
     }
@@ -746,6 +783,7 @@ export function actionGetStorageEnergy(creep: Creep, action: boolean, factor: nu
       if (energy && energy > creep.carryCapacity * factor) {
         if (creep.withdraw(storage, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
           creep.moveTo(storage);
+          creep.memory.target = storage.id;
         }
         return true;
       }

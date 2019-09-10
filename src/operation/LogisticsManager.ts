@@ -3,6 +3,7 @@ import { MiningMission } from "./missions/MiningMission";
 import { ControllerOperation } from "./operations/ControllerOperation";
 import { Operation } from "./operations/Operation";
 
+import * as creepActions from "creeps/creepActions";
 
 export class LogisticsManager {
     public spawnRoom: SpawnRoom;
@@ -58,6 +59,11 @@ export class LogisticsManager {
             console.log("No operations for this spawngroup? Fix it!");
             ControllerOperation.initNewControllerOperation(this.room, this.spawnRoom.spawns[0].pos);
         }
+    }
+
+    public creepGetEnergy(creep: Creep, operation: Operation, scavange: boolean = false, priority: boolean = false) {
+        ;
+
     }
 
 }

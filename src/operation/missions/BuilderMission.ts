@@ -66,7 +66,7 @@ export class BuilderMission extends Mission {
     }
 
     public builderBody = (): BodyPartConstant[] => {
-        const energyAvailable = this.spawnRoom.energyCapacityAvailable;
+        /*const energyAvailable = this.spawnRoom.energyCapacityAvailable;
         if (energyAvailable >= 650) {
             // return [MOVE, MOVE, MOVE, WORK, WORK, WORK, WORK, CARRY, CARRY];
             return this.workerBody(4, 2, 4);
@@ -76,7 +76,9 @@ export class BuilderMission extends Mission {
         } else {
             // return [MOVE, WORK, WORK, CARRY];
             return this.workerBody(2, 1, 1);
-        }
+        }*/
+        if (this.remoteSpawning) { return this.workerBodyOffRoad(); }
+        return this.workerBodyRoad();
     }
 
     public runPavers() {
@@ -98,15 +100,7 @@ export class BuilderMission extends Mission {
                 action = creepActions.actionRepair(b, action);
                 // action = creepActions.actionUpgrade(b, action);
             } else {
-                action = creepActions.actionMoveToRoom(b, action, this.spawnRoom.room.name);
-                action = creepActions.actionGetStorageEnergy(b, action);
-                action = creepActions.actionGetBatteryEnergy(b, action);
-                // if (creep.room.energyCapacityAvailable < 550) {
-                //   action = creepActions.actionGetDroppedEnergy(creep, action);
-                //   action = creepActions.actionGetSourceEnergy(creep, action);
-                // } else {
-                //   action = creepActions.actionGetDroppedEnergy(creep, action);
-                // }
+                this.operation.creepGetEnergy(b, true, false);
             }
             if (!action) { creepActions.moveTo(b, this.operation.rallyPos); };
         }
@@ -128,23 +122,7 @@ export class BuilderMission extends Mission {
                 action = creepActions.actionRepair(b, action);
                 // action = creepActions.actionUpgrade(b, action);
             } else {
-                if (this.remoteSpawning) {
-                    action = creepActions.actionGetDroppedEnergy(b, action, true);
-                    action = creepActions.actionGetContainerEnergy(b, action, 2, true);
-                    if (!action) {
-                        // No containers, so gonna go mine, hopefully have a miner refill
-                        const sources = this.room!.find(FIND_SOURCES);
-                        const source = sources[this.memory.uuid % sources.length];
-                        const ret: number = b.harvest(source);
-                        if (ret === ERR_NOT_IN_RANGE) {
-                            creepActions.moveTo(b, source.pos, true);
-                        }
-                    }
-                } else {
-                    action = creepActions.actionMoveToRoom(b, action, this.spawnRoom.room.name);
-                    action = creepActions.actionGetStorageEnergy(b, action);
-                    action = creepActions.actionGetBatteryEnergy(b, action);
-                }
+                this.operation.creepGetEnergy(b, true, false);
             }
             if (!action) { creepActions.moveTo(b, this.operation.rallyPos); };
         }

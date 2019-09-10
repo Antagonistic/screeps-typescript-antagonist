@@ -25,6 +25,7 @@ interface CreepMemory {
   squad?: string;
   renew?: boolean;
   target?: string;
+  energyTarget?: string;
   isBoosted?: boolean;
   inPosition?: boolean;
 }

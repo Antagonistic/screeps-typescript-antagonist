@@ -41,6 +41,7 @@ export class MiningMission extends Mission {
         // console.log(this.memory.fillcart)
     }
     public spawn(): void {
+        if (this.remoteSpawning && Game.cpu.bucket < 100) { return; } // Oh geez, CPU emergency, disable remote mining
         this.miners = this.spawnRole(this.name, this.getMaxMiners, this.getMinerBody, { role: "miner" }, 10);
 
         const cartBodyFunc = this.remoteSpawning ? this.getLongCartBody : this.getCartBody;
@@ -56,7 +57,7 @@ export class MiningMission extends Mission {
             }
         }
 
-        if (Game.time % 50 === 10 && this.memory.stableMission) {
+        if (Game.time % 50 === 10 && this.memory.stableMission && Game.cpu.bucket >= 1000) {
             // Check roads
             // console.log("Building mining roads!");
             if (this.buildRoads(this.haulPath())) {
@@ -65,6 +66,7 @@ export class MiningMission extends Mission {
         }
     }
     public work(): void {
+        if (this.remoteSpawning && Game.cpu.bucket < 100) { return; } // Oh geez, CPU emergency, disable remote mining
         this.runMiners(this.miners);
         this.runHaulers2(this.carts);
     }
@@ -92,6 +94,7 @@ export class MiningMission extends Mission {
         if (!this.active) { return 0; }
         if (this.remoteSpawning && !this.container) { return 0; }
         if (this.storage.pos.inRangeTo(this.source, 5)) { return 1; }
+        if (this.room && this.room.energyCapacityAvailable > 1500) { return 1; }
         let maxc = 2;
         if (!this.container && maxc > 1) { maxc = 1; }
         if (this.container && this.container.store.energy >= 1900) { maxc++; }
@@ -129,12 +132,21 @@ export class MiningMission extends Mission {
     }
 
     public findContainer(): StructureContainer {
+        if (this.memory.container && Game.time % 500 !== 40) {
+            const cont = Game.getObjectById<StructureContainer>(this.memory.container);
+            if (cont == null) {
+                this.memory.container = undefined;
+            } else {
+                return cont;
+            }
+        }
         const containers = this.source.pos.findInRange<StructureContainer>(FIND_STRUCTURES, 1,
             { filter: (x: Structure) => x.structureType === STRUCTURE_CONTAINER });
         // let containers = this.source.pos.findInRange(STRUCTURE_CONTAINER, 1);
-        if (!containers || containers.length === 0) {
+        if ((!containers || containers.length === 0) && Game.cpu.bucket > 1000) {
             this.placeContainer();
         }
+        this.memory.container = containers[0];
         return containers[0];
     }
 
@@ -174,7 +186,7 @@ export class MiningMission extends Mission {
                         creepActions.moveTo(creep, this.source.pos, true);
                     }
                 }
-                if (creep.carry.energy > 40) {
+                if (creep.carry.energy > 40 && Game.cpu.bucket > 800) {
                     const haulers = creep.pos.findInRange(FIND_MY_CREEPS, 1, { filter: (c: Creep) => c.memory.role && c.memory.role !== "miner" });
                     if (haulers.length > 0) {
                         action = creepActions.actionTransferStill(creep, action, haulers[0]);
@@ -202,7 +214,7 @@ export class MiningMission extends Mission {
 
             if (!action && creepActions.canWork(creep)) {
                 action = creepActions.actionMoveToRoom(creep, action, this.spawnRoom.room);
-                if (creep.memory.hasworkpart) {
+                if (creep.memory.hasworkpart && Game.cpu.bucket > 500) {
                     creepActions.actionBuildStill(creep, false);
                     creepActions.actionRepairStill(creep, false);
                 }
@@ -224,7 +236,8 @@ export class MiningMission extends Mission {
 
             } else {
                 action = creepActions.actionMoveToRoom(creep, action, this.operation.roomName);
-                if (droppedRes && droppedRes.length > pickupOrder) {
+                action = creepActions.actionGetEnergyCache(creep, action);
+                if (!action && droppedRes && droppedRes.length > pickupOrder) {
                     creepActions.moveToPickup(creep, droppedRes[pickupOrder]);
                     pickupOrder++;
                 } else {
