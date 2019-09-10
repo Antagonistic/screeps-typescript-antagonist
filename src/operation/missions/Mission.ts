@@ -89,14 +89,14 @@ export abstract class Mission {
         return body;
     }
 
-    protected workerBodyRoad(maxE: number = 2000): BodyPartConstant[] {
+    protected workerBodyRoad(maxE: number = 1600): BodyPartConstant[] {
         const E: number = Math.min(this.spawnRoom.energyCapacityAvailable, maxE);
         const P = Math.floor(E / 200);
         return this.workerBody(P, P, P);
 
     }
 
-    protected workerBodyOffRoad(maxE: number = 2500): BodyPartConstant[] {
+    protected workerBodyOffRoad(maxE: number = 1750): BodyPartConstant[] {
         const E: number = Math.min(this.spawnRoom.energyCapacityAvailable, maxE);
         const P = Math.floor(E / 250);
         return this.workerBody(P, P, P * 2);

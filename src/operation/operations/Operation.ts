@@ -133,9 +133,10 @@ export abstract class Operation {
     this.missions[mission.name] = mission;
   }
 
-  public creepGetEnergy(creep: Creep, scavange: boolean = false, priority: boolean = false) {
+  public creepGetEnergy(creep: Creep, action: boolean, scavange: boolean = false, priority: boolean = false): boolean {
+    if (action) { return action; }
     // if (!this.remoteSpawning) { return this.spawnRoom.logistics.creepGetEnergy(creep, this, scavange, priority); }
-    if (!this.room) { creepActions.moveTo(creep, this.flag.pos); return; }
+    if (!this.room) { creepActions.moveTo(creep, this.flag.pos); return true; }
     if (!creepActions.actionGetEnergyCache(creep, false)) {
       if (!this.initGetEnergy) {
         this.droppedEnergy = this.room.find(FIND_DROPPED_RESOURCES, { filter: x => x.resourceType === RESOURCE_ENERGY && x.amount >= 10 });
@@ -158,7 +159,7 @@ export abstract class Operation {
               }
             }
             case STRUCTURE_TERMINAL: {
-              if (s.store.energy >= creep.carryCapacity) {
+              if (s.store.energy >= creep.carryCapacity / 2) {
                 this.energyStructures.push(s);
               } else {
                 if (!s.my) { s.destroy(); }
@@ -182,16 +183,14 @@ export abstract class Operation {
           t = creep.pos.findClosestByRange(this.droppedEnergy);
           if (t) {
             creep.memory.energyTarget = t.id;
-            creepActions.actionGetEnergyCache(creep, false);
-            return;
+            return creepActions.actionGetEnergyCache(creep, false);
           }
         }
         if (this.tombStones.length > 0) {
           t = creep.pos.findClosestByRange(this.tombStones);
           if (t) {
             creep.memory.energyTarget = t.id;
-            creepActions.actionGetEnergyCache(creep, false);
-            return;
+            return creepActions.actionGetEnergyCache(creep, false);
           }
         }
       }
@@ -199,15 +198,14 @@ export abstract class Operation {
       if (t) {
         creep.memory.energyTarget = t.id;
         creepActions.actionGetEnergyCache(creep, false);
-        return;
+        return true;
       }
       if (!scavange) {
         if (this.droppedEnergy.length > 0) {
           t = creep.pos.findClosestByRange(this.droppedEnergy);
           if (t) {
             creep.memory.energyTarget = t.id;
-            creepActions.actionGetEnergyCache(creep, false);
-            return;
+            return creepActions.actionGetEnergyCache(creep, false);;
           }
         }
       }
@@ -220,5 +218,6 @@ export abstract class Operation {
       creepActions.moveTo(creep, this.rallyPos);
       creep.say("-energy");
     }
+    return false;
   }
 }

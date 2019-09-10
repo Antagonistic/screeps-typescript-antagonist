@@ -230,13 +230,13 @@ export function actionMoveToRoom(creep: Creep, action: boolean, roomID?: string 
         moveTo(creep, new RoomPosition(25, 25, roomID), true);
         return true;
       } else {
-        const pos: RoomPosition = creep.pos;
+        /*const pos: RoomPosition = creep.pos;
         const x: number = pos.x;
         const y: number = pos.y;
         if (x === 0 || y === 0 || x === 49 || y === 49) {
           creep.moveTo(25, 25);
           return true;
-        }
+        }*/
       }
     }
   }
@@ -498,8 +498,8 @@ export function actionFillCache(creep: Creep, action: boolean): boolean {
 
 export function actionGetEnergyCache(creep: Creep, action: boolean): boolean {
   if (!action) {
-    if (creep.memory.target) {
-      const target = Game.getObjectById(creep.memory.target) as _HasRoomPosition | null;
+    if (creep.memory.energyTarget) {
+      const target = Game.getObjectById(creep.memory.energyTarget) as _HasRoomPosition | null;
       if (target && target.pos) {
         if (creep.pos.isNearTo(target.pos)) {
           if (target instanceof Resource) {
@@ -517,12 +517,12 @@ export function actionGetEnergyCache(creep: Creep, action: boolean): boolean {
               return true;
             }
           }
-          creep.memory.target = undefined;
+          creep.memory.energyTarget = undefined;
         } else {
           moveTo(creep, target.pos);
         }
         return true;
-      } else { creep.memory.target = undefined; }
+      } else { creep.memory.energyTarget = undefined; }
     }
   }
   return action;
@@ -676,7 +676,7 @@ export function actionGetDroppedEnergy(creep: Creep, action: boolean, scavange?:
     if (droppedRes) {
       if (creep.pickup(droppedRes) === ERR_NOT_IN_RANGE) {
         creep.moveTo(droppedRes);
-        creep.memory.target = droppedRes.id;
+        creep.memory.energyTarget = droppedRes.id;
       } else {
         // Grab from container if nearby
         const minerContainer: StructureContainer[] = droppedRes.pos.findInRange<StructureContainer>(FIND_STRUCTURES, 1, {
@@ -719,14 +719,14 @@ export function actionGetContainerEnergy(creep: Creep, action: boolean,
             // console.log(nonBuffer);
             const salt: number = (creep.memory.uuid || 0) % nonBuffer.length;
             moveToWithdraw(creep, nonBuffer[salt]);
-            creep.memory.target = nonBuffer[salt].id;
+            creep.memory.energyTarget = nonBuffer[salt].id;
             return true;
           }
         }
       } else {
         const salt: number = (creep.memory.uuid || 0) % energyCont.length;
         moveToWithdraw(creep, energyCont[salt]);
-        creep.memory.target = energyCont[salt].id;
+        creep.memory.energyTarget = energyCont[salt].id;
         return true;
       }
     }
@@ -745,7 +745,7 @@ export function actionGetSourceEnergy(creep: Creep, action: boolean, factor: num
       // console.log(creep.name + " " + salt + " " + sources.length);
       // creep.memory.target = sources[salt].id;
       if (creep.harvest(sources[salt]) === ERR_NOT_IN_RANGE) {
-        creep.memory.target = sources[salt].id;
+        creep.memory.energyTarget = sources[salt].id;
         creep.moveTo(sources[salt]);
       }
     }
@@ -783,7 +783,7 @@ export function actionGetStorageEnergy(creep: Creep, action: boolean, factor: nu
       if (energy && energy > creep.carryCapacity * factor) {
         if (creep.withdraw(storage, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
           creep.moveTo(storage);
-          creep.memory.target = storage.id;
+          creep.memory.energyTarget = storage.id;
         }
         return true;
       }
