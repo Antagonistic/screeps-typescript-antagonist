@@ -15,7 +15,7 @@ import * as upgrader from "./roles/upgrader";
 
 import { SpawnRoom } from "../rooms/SpawnRoom";
 
-import { empire } from "../../Empire";
+import { Empire } from "Empire";
 
 import * as StructureManager from "../rooms/structureManager";
 

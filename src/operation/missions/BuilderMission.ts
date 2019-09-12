@@ -100,7 +100,7 @@ export class BuilderMission extends Mission {
                 action = creepActions.actionRepair(b, action);
                 // action = creepActions.actionUpgrade(b, action);
             } else {
-                if (this.remoteSpawning) {
+                /*if (this.remoteSpawning) {
                     action = creepActions.actionGetEnergyCache(b, action);
                     action = creepActions.actionGetDroppedEnergy(b, action, true);
                     action = creepActions.actionGetContainerEnergy(b, action, 2, true);
@@ -123,9 +123,9 @@ export class BuilderMission extends Mission {
                     action = creepActions.actionMoveToRoom(b, action, this.spawnRoom.room.name);
                     action = creepActions.actionGetStorageEnergy(b, action);
                     action = creepActions.actionGetBatteryEnergy(b, action);
-                }
+                }*/
                 // action = creepActions.actionMoveToRoom(b, action, this.operation.roomName);
-                // action = this.operation.creepGetEnergy(b, true, false);
+                action = this.operation.creepGetEnergy(b, action, true, false);
                 // b.say("" + action);
             }
             if (!action) { creepActions.moveTo(b, this.operation.rallyPos); };
@@ -148,7 +148,7 @@ export class BuilderMission extends Mission {
                 action = creepActions.actionRepair(b, action);
                 // action = creepActions.actionUpgrade(b, action);
             } else {
-                if (this.remoteSpawning) {
+                /*if (this.remoteSpawning) {
                     action = creepActions.actionGetEnergyCache(b, action);
                     action = creepActions.actionGetDroppedEnergy(b, action, true);
                     action = creepActions.actionGetContainerEnergy(b, action, 2, true);
@@ -171,7 +171,10 @@ export class BuilderMission extends Mission {
                     action = creepActions.actionMoveToRoom(b, action, this.spawnRoom.room.name);
                     action = creepActions.actionGetStorageEnergy(b, action);
                     action = creepActions.actionGetBatteryEnergy(b, action);
-                }
+                }*/
+                // action = creepActions.actionMoveToRoom(b, action, this.operation.roomName);
+                action = this.operation.creepGetEnergy(b, action, true, false);
+                // b.say("" + action);
             }
             if (!action) { creepActions.moveTo(b, this.operation.rallyPos); };
         }

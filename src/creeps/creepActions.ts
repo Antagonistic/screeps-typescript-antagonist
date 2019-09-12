@@ -170,6 +170,32 @@ export function moveToTransfer(creep: Creep, target: Structure | Creep): void {
   }
 }
 
+export function moveToWithdrawAll(creep: Creep, target: Structure): boolean {
+  if (_.sum(creep.carry) >= creep.carryCapacity) { return false; }
+  if (creep.pos.isNearTo(target.pos)) {
+    // console.log(target.structureType);
+    if (target instanceof StructureContainer || target instanceof StructureStorage || target instanceof StructureTerminal || target instanceof Tombstone) {
+      for (const resourceType in target.store) {
+        creep.say("get store");
+        creep.withdraw(target, resourceType as ResourceConstant);
+      }
+    }
+    if (target instanceof Creep) {
+      for (const resourceType in target.carry) {
+        creep.say("get creep");
+        target.transfer(creep, resourceType as ResourceConstant);
+      }
+    }
+    if (target instanceof StructureLab || target instanceof StructureExtension || target instanceof StructureSpawn || target instanceof StructureLink) {
+      creep.say("get struct");
+      creep.withdraw(target, RESOURCE_ENERGY);
+    }
+  } else {
+    moveTo(creep, target.pos);
+  }
+  return true;
+}
+
 export function moveToWithdraw(creep: Creep, target: Structure): void {
   if (creep.withdraw(target, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
     moveTo(creep, target.pos);
@@ -443,15 +469,19 @@ export function actionTransfer(creep: Creep, action: boolean, target?: Structure
         }
       }
       if (target) {
-        const ret = creep.transfer(target, RESOURCE_ENERGY);
-        if (ret === OK) {
+        if (creep.pos.isNearTo(target.pos)) {
+          // const ret = creep.transfer(target, RESOURCE_ENERGY);
+          // if (ret === OK) {
           // transfer all resources
           for (const resourceType in creep.carry) {
-            creep.transfer(target, resourceType as ResourceConstant);
+            // creep.say(resourceType);
+            if (creep.transfer(target, resourceType as ResourceConstant) === ERR_FULL) {
+              return false;
+            }
           }
           return true;
-        } else if (ret === ERR_NOT_IN_RANGE) {
-          creep.moveTo(target);
+        } else {
+          moveTo(creep, target.pos);
         }
       }
     }
@@ -504,21 +534,26 @@ export function actionGetEnergyCache(creep: Creep, action: boolean): boolean {
         if (creep.pos.isNearTo(target.pos)) {
           if (target instanceof Resource) {
             creep.pickup(target);
+            creep.say("Get drop");
           }
-          if (target instanceof StructureStorage || target instanceof StructureContainer || target instanceof StructureTerminal || target instanceof Tombstone) {
+          if (target instanceof StructureStorage || target instanceof StructureContainer || target instanceof StructureTerminal || target instanceof Tombstone || target instanceof StructureLink) {
             creep.withdraw(target, RESOURCE_ENERGY);
+            creep.say("Get store");
           }
           if (target instanceof Creep) {
             target.transfer(creep, RESOURCE_ENERGY);
+            creep.say("Get creep");
           }
           if (target instanceof Source) {
             if (_.sum(creep.carry) < creep.carryCapacity) {
               creep.harvest(target);
+              creep.say("Get Source");
               return true;
             }
           }
           creep.memory.energyTarget = undefined;
         } else {
+          // creep.say("" + target.pos.x + "," + target.pos.y);
           moveTo(creep, target.pos);
         }
         return true;

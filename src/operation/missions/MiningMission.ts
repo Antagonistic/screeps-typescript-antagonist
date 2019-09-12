@@ -219,7 +219,7 @@ export class MiningMission extends Mission {
                     creepActions.actionRepairStill(creep, false);
                 }
                 action = creepActions.actionFillCache(creep, action);
-                if (!action && !this.storage) {
+                if (!action && !this.spawnRoom.room.storage) {
                     action = creepActions.actionFillEnergy(creep, action);
                     action = creepActions.actionFillTower(creep, action);
                     action = creepActions.actionFillEnergyStorage(creep, action);

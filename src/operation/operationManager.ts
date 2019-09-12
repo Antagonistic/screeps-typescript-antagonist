@@ -5,6 +5,7 @@ import { Operation } from "./operations/Operation";
 import { Empire } from "../Empire";
 
 import { log } from "../lib/logger/log";
+import { LootOperation } from "./operations/LootOperation";
 
 // interface IOPERATION_CLASSES {
 // {[opType: string]: IOperation; };
@@ -13,6 +14,7 @@ import { log } from "../lib/logger/log";
 
 const OPERATION_CLASSES: any = {
   controller: ControllerOperation,
+  loot: LootOperation,
   mining: MiningOperation
 };
 

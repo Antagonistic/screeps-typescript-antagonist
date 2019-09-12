@@ -134,6 +134,7 @@ export abstract class Operation {
   }
 
   public creepGetEnergy(creep: Creep, action: boolean, scavange: boolean = false, priority: boolean = false): boolean {
+    // console.log("creepGetEnergy entry " + action);
     if (action) { return action; }
     // if (!this.remoteSpawning) { return this.spawnRoom.logistics.creepGetEnergy(creep, this, scavange, priority); }
     if (!this.room) { creepActions.moveTo(creep, this.flag.pos); return true; }
@@ -142,6 +143,7 @@ export abstract class Operation {
         this.droppedEnergy = this.room.find(FIND_DROPPED_RESOURCES, { filter: x => x.resourceType === RESOURCE_ENERGY && x.amount >= 10 });
         this.tombStones = this.room.find(FIND_TOMBSTONES, { filter: x => x.store.energy >= 10 });
         const structures = this.room.find(FIND_STRUCTURES);
+        // console.log("" + this.droppedEnergy.length);
         for (const s of structures) {
           switch (s.structureType) {
             case STRUCTURE_CONTAINER: {
@@ -197,8 +199,7 @@ export abstract class Operation {
       t = creep.pos.findClosestByRange(this.energyStructures);
       if (t) {
         creep.memory.energyTarget = t.id;
-        creepActions.actionGetEnergyCache(creep, false);
-        return true;
+        return creepActions.actionGetEnergyCache(creep, false);
       }
       if (!scavange) {
         if (this.droppedEnergy.length > 0) {
@@ -217,7 +218,9 @@ export abstract class Operation {
       }
       creepActions.moveTo(creep, this.rallyPos);
       creep.say("-energy");
+      return false;
+    } else {
+      return true;
     }
-    return false;
   }
 }
