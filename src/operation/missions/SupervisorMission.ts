@@ -17,7 +17,7 @@ export class SupervisorMission extends Mission {
     }
     public spawn(): void {
         const numSuper = (): number => {
-            return this.room && this.room.memory.supervisor ? this.room.memory.supervisor.length : 0;
+            return this.room && this.room.storage && this.room.memory.supervisor ? this.room.memory.supervisor.length : 0;
         }
         const superBody = (): BodyPartConstant[] => {
             const carryparts = Math.min((this.logistics.C / 50) - 1, 15);

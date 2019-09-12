@@ -50,7 +50,7 @@ function runConstruct(room: Room, layout: RoomLayout, anchor: LightRoomPos, pos:
                 for (const sup of layout.memory.supervisor) {
 
                     const _x = sup.x - anchor.x + pos.x;
-                    const _y = sup.y - anchor.x + pos.y;
+                    const _y = sup.y - anchor.y + pos.y;
                     room.memory.supervisor.push({ x: _x, y: _y });
                 }
             }

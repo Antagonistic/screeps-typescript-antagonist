@@ -214,7 +214,10 @@ export abstract class Operation {
         // Harvest for it
         const sources = this.room.find(FIND_SOURCES);
         creep.memory.energyTarget = sources[creep.memory.uuid % sources.length].id;
-        creepActions.actionGetEnergyCache(creep, false);
+        return creepActions.actionGetEnergyCache(creep, false);
+      }
+      if (creep.carry.energy > 0) {
+        creep.memory.working = true;
       }
       creepActions.moveTo(creep, this.rallyPos);
       creep.say("-energy");
