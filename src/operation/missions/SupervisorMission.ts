@@ -72,6 +72,17 @@ export class SupervisorMission extends Mission {
                         spent += amount;
                     }
                 }
+                if (link) {
+                    if (link.energy < 400) {
+                        const amount = 400 - link.energy;
+                        sup.transfer(link, RESOURCE_ENERGY, amount);
+                        spent += amount;
+                    } else if (link.energy > 400) {
+                        const amount = link.energy - 400;
+                        sup.withdraw(link, RESOURCE_ENERGY, amount);
+                        spent -= amount;
+                    }
+                }
                 if (storage) {
                     if (storage.store.energy > spent) {
                         sup.withdraw(storage, RESOURCE_ENERGY, spent);

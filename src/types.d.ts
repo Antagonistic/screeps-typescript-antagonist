@@ -46,6 +46,7 @@ interface RoomMemory {
   battery?: string;
   buildState: number;
   supervisor: LightRoomPos[];
+  spawnRoom?: string;
 }
 
 interface Memory {

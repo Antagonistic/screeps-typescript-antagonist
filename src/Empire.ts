@@ -22,11 +22,18 @@ export class Empire implements IEmpire {
     return this.map.init();
   }
 
-  public getSpawnRoom(roomName: string | Room): SpawnRoom {
-    if (roomName instanceof Room) { roomName = roomName.name; }
+  public getSpawnRoom(roomName: string): SpawnRoom {
     if (roomName == null) { return this.defaultSpawn; }
     if (this.spawnRooms[roomName]) {
       return this.spawnRooms[roomName];
+    }
+    if (Game.rooms[roomName] && Game.rooms[roomName].memory.spawnRoom && Game.time % 1000 !== 60) {
+      const memSpawn = Game.rooms[roomName].memory.spawnRoom!;
+      if (this.spawnRooms[memSpawn]) {
+        return this.spawnRooms[memSpawn];
+      } else {
+        Game.rooms[roomName].memory.spawnRoom = undefined;
+      }
     }
     let mindist = 999;
     let retSpawn: SpawnRoom = this.defaultSpawn;
@@ -37,6 +44,7 @@ export class Empire implements IEmpire {
         retSpawn = this.spawnRooms[sp];
       }
     }
+    if (Game.rooms[roomName]) { Game.rooms[roomName].memory.spawnRoom = retSpawn.room.name; }
     return retSpawn;
   }
 }

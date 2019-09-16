@@ -8,7 +8,8 @@ export class UpgradeMission extends Mission {
 
     public upgraders: Creep[] = [];
     public haulers: Creep[] = [];
-    public container?: StructureContainer;
+    public container?: StructureContainer | StructureLink;
+    public isLink: boolean;
     public storage?: StructureStorage;
     public controller?: StructureController;
 
@@ -17,6 +18,7 @@ export class UpgradeMission extends Mission {
         if (this.room) {
             this.controller = this.room.controller;
         }
+        this.isLink = false;
     }
     public initMission(): void {
         if (!this.room) { return; }
@@ -172,8 +174,8 @@ export class UpgradeMission extends Mission {
 
     public findContainer(): StructureContainer | undefined {
         if (!this.controller) { return undefined; }
-        const containers = this.controller.pos.findInRange<StructureContainer>(FIND_STRUCTURES, 4,
-            { filter: (x: Structure) => x.structureType === STRUCTURE_CONTAINER });
+        const containers = this.controller.pos.findInRange<StructureContainer>(FIND_STRUCTURES, 3,
+            { filter: (x: Structure) => x.structureType === STRUCTURE_CONTAINER || x.structureType === STRUCTURE_LINK });
         // let containers = this.source.pos.findInRange(STRUCTURE_CONTAINER, 1);
         if (!containers || containers.length === 0) {
             this.placeContainer();
