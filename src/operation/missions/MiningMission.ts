@@ -155,9 +155,11 @@ export class MiningMission extends Mission {
             { filter: (x: ConstructionSite) => x.structureType === STRUCTURE_CONTAINER });
         if (!boxSite || boxSite.length === 0) {
             const pos = this.haulPath()[0];
-            const ret = pos.createConstructionSite(STRUCTURE_CONTAINER);
-            if (ret !== OK) {
-                console.log("Placing mining box error: " + ret);
+            if (pos) {
+                const ret = pos.createConstructionSite(STRUCTURE_CONTAINER);
+                if (ret !== OK) {
+                    console.log("Placing mining box error: " + ret);
+                }
             }
             return;
         }
