@@ -36,6 +36,13 @@ export const commandConsole = {
       }
     }
   },
+  setSupervisorPos(roomName: string, pos?: LightRoomPos[]) {
+    if (!pos || pos.length === 0) { Game.rooms[roomName].memory.supervisor = undefined; return; }
+    Game.rooms[roomName].memory.supervisor = [];
+    for (const sup of pos) {
+      Game.rooms[roomName].memory.supervisor!.push({ x: sup.x, y: sup.y });
+    }
+  },
   // spawnSoldier(roomName: string, subrole: string = "archer", roomTarget?: string): boolean {
   //   const room = Game.rooms[roomName];
   //   if (room) {

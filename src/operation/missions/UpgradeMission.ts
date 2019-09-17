@@ -12,17 +12,19 @@ export class UpgradeMission extends Mission {
     public isLink: boolean;
     public storage?: StructureStorage;
     public controller?: StructureController;
+    public _hasEnergy: boolean;
 
     constructor(operation: Operation) {
         super(operation, "upgrade")
         if (this.room) {
             this.controller = this.room.controller;
+            this.container = this.findContainer();
         }
         this.isLink = false;
+        this._hasEnergy = this.hasEnergy();
     }
     public initMission(): void {
         if (!this.room) { return; }
-        this.container = this.findContainer();
         if (this.container) {
             this.room.memory.battery = this.container.id;
         }
@@ -30,7 +32,7 @@ export class UpgradeMission extends Mission {
     public spawn(): void {
         this.upgraders = this.spawnRole(this.name, this.getMaxUpgraders, this.getUpgraderBody, { role: "upgrader" });
 
-        const numCarts = (): number => this.room && this.room.storage ? 1 : 0;
+        const numCarts = (): number => this.room && this.room.storage && !this.isLink ? 1 : 0;
         this.haulers = this.spawnRole(this.name + "cart", numCarts, this.getCartBody, { role: "refill" });
 
         if (Game.time % 50 === 20) {
@@ -59,13 +61,13 @@ export class UpgradeMission extends Mission {
         }
         const energyAvailable: number = this.spawnRoom.energyCapacityAvailable;
         if (energyAvailable >= 1300) {
-            return this.workerBody(8, 4, 6);
+            return this.workerBody(8, 4, 4);
         } else if (energyAvailable >= 650) {
             return this.workerBody(4, 3, 2);
         } else if (energyAvailable >= 550) {
             return this.workerBody(3, 3, 2);
         } else if (energyAvailable >= 400) {
-            return this.workerBody(2, 2, 2);
+            return this.workerBody(2, 2, 1);
         } else {
             return this.workerBody(2, 1, 1);
         }
@@ -73,7 +75,7 @@ export class UpgradeMission extends Mission {
 
     public getMaxUpgraders = (): number => {
         if (this.spawnRoom.rclLevel === 8) { return 1; };
-        if (!this.container) { return 0; }
+        if (!this._hasEnergy) { return 0; }
         if (this.room && this.room.controller && this.room.controller.level < 2) {
             return 1;
         }
@@ -111,6 +113,19 @@ export class UpgradeMission extends Mission {
         return [];
     }
 
+    public hasEnergy(): boolean {
+        // console.log(JSON.stringify(this.container));
+        if (!this.container) { return false; }
+        if (this.room && this.room.storage && this.room.storage.store.energy < 10000) { return false; }
+        if (this.container.structureType === STRUCTURE_LINK) {
+            if (this.container.energy > 10) { return true; }
+        }
+        if (this.container.structureType === STRUCTURE_CONTAINER) {
+            if (this.container.store.energy > 10) { return true; }
+        }
+        return false;
+    }
+
     public runUpgraders(creeps: Creep[]): void {
         for (const u of this.upgraders) {
             let action: boolean = false;
@@ -126,8 +141,8 @@ export class UpgradeMission extends Mission {
                 if (u.carry.energy === 0) { u.memory.working = false; }
             } else {
                 // action = creepActions.actionGetStorageEnergy(u, action, 4);
-                if (this.container) {
-                    creepActions.moveToWithdraw(u, this.container);
+                if (this._hasEnergy) {
+                    creepActions.moveToWithdraw(u, this.container!);
                 }
                 // if (creep.room.energyCapacityAvailable < 550) {
                 //   action = creepActions.actionGetSourceEnergy(creep, action, 2);
@@ -172,16 +187,40 @@ export class UpgradeMission extends Mission {
         }
     }
 
-    public findContainer(): StructureContainer | undefined {
-        if (!this.controller) { return undefined; }
-        const containers = this.controller.pos.findInRange<StructureContainer>(FIND_STRUCTURES, 3,
+    public findContainer(): StructureContainer | StructureLink | undefined {
+
+        if (!this.room || !this.controller) { return undefined; }
+        let ret: StructureContainer | StructureLink | undefined | null;
+        if (this.room.memory.controllerBattery && Game.time % 1000 !== 77) {
+            ret = Game.getObjectById(this.room.memory.controllerBattery);
+            if (!ret) {
+                this.room.memory.controllerBattery = undefined;
+            } else {
+                if (ret.structureType === STRUCTURE_LINK) { this.isLink = true; }
+                return ret;
+            }
+        }
+
+        const containers = this.controller.pos.findInRange<StructureContainer | StructureLink>(FIND_STRUCTURES, 2,
             { filter: (x: Structure) => x.structureType === STRUCTURE_CONTAINER || x.structureType === STRUCTURE_LINK });
-        // let containers = this.source.pos.findInRange(STRUCTURE_CONTAINER, 1);
+
         if (!containers || containers.length === 0) {
             this.placeContainer();
         }
-        return containers[0];
+        for (const c of containers) {
+            ret = c;
+            if (ret.structureType === STRUCTURE_LINK) {
+                this.isLink = true;
+                break;
+            }
+        }
+        if (ret) {
+            this.room.memory.controllerBattery = ret.id;
+            return ret;
+        }
+        return undefined;
     }
+
 
     public placeContainer(): void {
         if (!this.controller) { return; }

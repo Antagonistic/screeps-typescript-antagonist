@@ -4,6 +4,7 @@ import { ControllerOperation } from "./operations/ControllerOperation";
 import { Operation } from "./operations/Operation";
 
 import * as creepActions from "creeps/creepActions";
+import { UpgradeMission } from "./missions/UpgradeMission";
 
 export class LogisticsManager {
     public spawnRoom: SpawnRoom;
@@ -41,6 +42,7 @@ export class LogisticsManager {
                 const m = op.missions[_m];
                 console.log("  * " + m.name);
                 if (m instanceof MiningMission) { this.reportMiningMission(m); }
+                if (m instanceof UpgradeMission) { this.reportUpgraderMission(m); }
             }
         }
     }
@@ -48,9 +50,18 @@ export class LogisticsManager {
     public reportMiningMission(m: MiningMission): void {
         const numWork = _.sum(m.miners, (x: Creep) => x.getActiveBodyparts(WORK));
         const numCarry = _.sum(m.carts, (x: Creep) => x.getActiveBodyparts(CARRY));
-        console.log("   Stable? : " + m.stableMission);
-        console.log("   Miners  : " + m.miners.length + " W: " + numWork);
-        console.log("   Haulers : " + m.carts.length + " C: " + numCarry);
+        console.log("   Stable?   : " + m.stableMission);
+        console.log("   Link?     : " + m.isLink);
+        console.log("   Miners    : " + m.miners.length + " W: " + numWork);
+        console.log("   Haulers   : " + m.carts.length + " C: " + numCarry);
+    }
+
+    public reportUpgraderMission(m: UpgradeMission): void {
+        const numWork = _.sum(m.upgraders, (x: Creep) => x.getActiveBodyparts(WORK));
+        const numCarry = _.sum(m.haulers, (x: Creep) => x.getActiveBodyparts(CARRY));
+        console.log("   Link?     : " + m.isLink);
+        console.log("   Upgraders : " + m.upgraders.length + " W: " + numWork);
+        console.log("   Haulers   : " + m.haulers.length + " C: " + numCarry);
     }
 
     public finalize(): void {

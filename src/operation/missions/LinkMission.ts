@@ -32,7 +32,25 @@ export class LinkMission extends Mission {
         ;
     }
     public work(): void {
-        ;
+        for (const l of this.links) {
+            if (!l.cooldown && l.energy > 200) {
+                // Need to send energy
+                if (this.cLink && this.cLink.energy <= 600) {
+                    l.transferEnergy(this.cLink);
+                } else {
+                    if (this.sLink && this.sLink.energy <= 600) {
+                        l.transferEnergy(this.sLink);
+                    } else {
+                        // Nowhere to send
+                    }
+                }
+            }
+        }
+        if (this.cLink && this.cLink.energy < 700) {
+            if (this.sLink && this.sLink.energy >= 400) {
+                this.sLink.transferEnergy(this.cLink);
+            }
+        }
     }
     public finalize(): void {
         ;

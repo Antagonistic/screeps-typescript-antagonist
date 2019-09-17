@@ -30,7 +30,6 @@ export class SpawnRoom implements ISpawnRoom {
     for (const spawn of this.spawns) {
       if (spawn.spawning == null) {
         const uuid: number = Memory.uuid;
-        Memory.uuid = uuid + 1;
 
         const properties: CreepMemory = {
           uuid,
@@ -42,6 +41,7 @@ export class SpawnRoom implements ISpawnRoom {
 
         if (status === OK) {
           // success!
+          Memory.uuid = uuid + 1;
           this.availableSpawnCount = 0;
           return true;
         }

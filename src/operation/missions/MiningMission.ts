@@ -20,8 +20,9 @@ export class MiningMission extends Mission {
 
     public _minersNeeded?: number;
 
-    public container?: StructureContainer;
+    public container?: StructureContainer | StructureLink;
     public storage: StructureStorage | StructureSpawn;
+    public isLink: boolean;
 
     constructor(operation: Operation, name: string, source: Source, active: boolean = true) {
         super(operation, name);
@@ -30,6 +31,7 @@ export class MiningMission extends Mission {
         if (!this.memory.stableMission) { this.memory.stableMission = false; }
         this.stableMission = this.memory.stableMission;
         this.operation.stableOperation = this.operation.stableOperation && this.stableMission;
+        this.isLink = false;
         this.storage = this.findStorage();
     }
 
@@ -79,12 +81,12 @@ export class MiningMission extends Mission {
     };
 
     public getMinerBody = () => {
-        if (this.remoteSpawning) { return this.workerBody(6, 1, 3); }
+        if (this.remoteSpawning) { return this.workerBody(6, 2, 3); }
         const minersSupported = this.minersSupported();
         if (minersSupported === 1) {
             const work = Math.ceil((Math.max(this.source.energyCapacity,
                 SOURCE_ENERGY_CAPACITY) / ENERGY_REGEN_TIME) / HARVEST_POWER) + 1;
-            return this.workerBody(work, 1, Math.ceil(work / 2));
+            return this.workerBody(work, 2, Math.ceil(work / 2));
         } else if (minersSupported === 2) {
             return this.workerBody(3, 1, 2);
         } else { return this.workerBody(2, 1, 1); }
@@ -92,12 +94,13 @@ export class MiningMission extends Mission {
 
     public getMaxCarts = () => {
         if (!this.active) { return 0; }
+        // if (this.isLink) { return 0; }
         if (this.remoteSpawning && !this.container) { return 0; }
         if (this.storage.pos.inRangeTo(this.source, 5)) { return 1; }
         if (this.room && this.room.energyCapacityAvailable > 1500) { return 1; }
         let maxc = 2;
         if (!this.container && maxc > 1) { maxc = 1; }
-        if (this.container && this.container.store.energy >= 1900) { maxc++; }
+        if (this.hasEnergy() >= 1900) { maxc++; }
         return maxc;
     }
 
@@ -131,23 +134,35 @@ export class MiningMission extends Mission {
         return path;
     }
 
-    public findContainer(): StructureContainer {
+    public findContainer(): StructureContainer | StructureLink | undefined {
         if (this.memory.container && Game.time % 500 !== 40) {
-            const cont = Game.getObjectById<StructureContainer>(this.memory.container);
+            const cont = Game.getObjectById<StructureContainer | StructureLink>(this.memory.container);
             if (cont == null) {
                 this.memory.container = undefined;
             } else {
+                if (cont.structureType === STRUCTURE_LINK) { this.isLink = true; }
                 return cont;
             }
         }
-        const containers = this.source.pos.findInRange<StructureContainer>(FIND_STRUCTURES, 1,
-            { filter: (x: Structure) => x.structureType === STRUCTURE_CONTAINER });
+        const containers = this.source.pos.findInRange<StructureContainer | StructureLink>(FIND_STRUCTURES, 2,
+            { filter: (x: Structure) => x.structureType === STRUCTURE_CONTAINER || x.structureType === STRUCTURE_LINK });
         // let containers = this.source.pos.findInRange(STRUCTURE_CONTAINER, 1);
         if ((!containers || containers.length === 0) && Game.cpu.bucket > 1000) {
             this.placeContainer();
         }
-        this.memory.container = containers[0];
-        return containers[0];
+        let ret;
+        for (const c of containers) {
+            ret = c;
+            if (ret.structureType === STRUCTURE_LINK) {
+                this.isLink = true;
+                break;
+            }
+        }
+        if (ret) {
+            this.memory.container = ret.id;
+            return ret;
+        }
+        return undefined;
     }
 
     public placeContainer(): void {
@@ -188,20 +203,39 @@ export class MiningMission extends Mission {
                         creepActions.moveTo(creep, this.source.pos, true);
                     }
                 }
-                if (creep.carry.energy > 40 && Game.cpu.bucket > 800) {
-                    const haulers = creep.pos.findInRange(FIND_MY_CREEPS, 1, { filter: (c: Creep) => c.memory.role && c.memory.role !== "miner" });
-                    if (haulers.length > 0) {
-                        action = creepActions.actionTransferStill(creep, action, haulers[0]);
+                if (creep.carry.energy > 40) {
+                    if (Game.cpu.bucket > 800) {
+                        const haulers = creep.pos.findInRange(FIND_MY_CREEPS, 1, { filter: (c: Creep) => c.memory.role && c.memory.role !== "miner" });
+                        if (haulers.length > 0) {
+                            action = creepActions.actionTransferStill(creep, action, haulers[0]);
+                        } else {
+                            action = creepActions.actionBuildStill(creep, action);
+                            action = creepActions.actionRepairStill(creep, action);
+                            if (this.container) {
+
+                                action = creepActions.actionTransferStill(creep, action, this.container);
+                            }
+                        }
                     } else {
-                        action = creepActions.actionBuildStill(creep, action);
-                        action = creepActions.actionRepairStill(creep, action);
                         if (this.container) {
-                            action = creepActions.actionTransferStill(creep, action, this.container);
+                            action = creepActions.actionTransfer(creep, action, this.container);
                         }
                     }
                 }
             }
         }
+    }
+
+    public hasEnergy(): number {
+        if (!this.container) { return 0; }
+        if (this.container instanceof StructureLink) {
+            if (this.container.energy > 50) { return this.container.energy; }
+        }
+        if (this.container instanceof StructureContainer) {
+            if (this.container.store.energy > 50) { return this.container.store.energy; }
+            return 0;
+        }
+        return 0;
     }
 
     public runHaulers2(creeps: Creep[]): void {
@@ -210,6 +244,7 @@ export class MiningMission extends Mission {
                 && x.amount >= 50
         })
         let pickupOrder = 0;
+        const hasEnergy = this.hasEnergy();
         for (const creep of this.carts) {
             let action: boolean = false;
             action = creepActions.actionRecycle(creep, action);
@@ -243,7 +278,7 @@ export class MiningMission extends Mission {
                     creepActions.moveToPickup(creep, droppedRes[pickupOrder]);
                     pickupOrder++;
                 } else {
-                    if (this.container && this.container.store.energy >= 50) {
+                    if (this.container && hasEnergy >= 50) {
                         creepActions.moveToWithdraw(creep, this.container);
                     } else {
                         if (this.miners.length > 0) {

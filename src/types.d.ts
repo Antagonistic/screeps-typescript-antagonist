@@ -45,8 +45,9 @@ interface RoomMemory {
   rally: RoomPosition;
   battery?: string;
   buildState: number;
-  supervisor: LightRoomPos[];
+  supervisor?: LightRoomPos[];
   spawnRoom?: string;
+  controllerBattery?: string;
 }
 
 interface Memory {

@@ -9,6 +9,7 @@ import { UpgradeMission } from "../missions/UpgradeMission";
 
 import { LogisticsManager } from "operation/LogisticsManager";
 import { ClaimMission } from "operation/missions/ClaimMission";
+import { LinkMission } from "operation/missions/LinkMission";
 import { ScoutMission } from "operation/missions/ScoutMission";
 import { SupervisorMission } from "operation/missions/SupervisorMission";
 import * as StructureManager from "rooms/structureManager";
@@ -53,6 +54,10 @@ export class ControllerOperation extends Operation {
             this.addMission(new RefillMission(this));
 
             this.addMission(new SupervisorMission(this, this.logistics));
+
+            if (Game.time % 5 === 3) {
+                this.addMission(new LinkMission(this));
+            }
 
             this.addMission(new BuilderMission(this));
 

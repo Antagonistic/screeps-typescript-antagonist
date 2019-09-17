@@ -46,6 +46,7 @@ export class BuilderMission extends Mission {
         // }
         this.runBuilders();
         this.runPavers();
+        // this.runTowers();
     }
     public finalize(): void {
         ;
@@ -79,6 +80,61 @@ export class BuilderMission extends Mission {
         }*/
         if (this.remoteSpawning) { return this.workerBodyOffRoad(); }
         return this.workerBodyRoad();
+    }
+
+    public towerRepairSite(tower: StructureTower, sites: Structure[]): boolean {
+        for (const site of sites) {
+            switch (site.structureType) {
+                case STRUCTURE_CONTAINER:
+                case STRUCTURE_ROAD:
+                    if (site.hits < site.hitsMax / 2) {
+                        tower.repair(site);
+                        return true;
+                    }
+                    continue;
+                case STRUCTURE_RAMPART:
+                case STRUCTURE_WALL:
+                    if (site.hits < 100000) {
+                        tower.repair(site);
+                        return true;
+                    }
+                    continue;
+                case STRUCTURE_EXTENSION:
+                case STRUCTURE_EXTRACTOR:
+                case STRUCTURE_LAB:
+                case STRUCTURE_LINK:
+                case STRUCTURE_NUKER:
+                case STRUCTURE_OBSERVER:
+                case STRUCTURE_SPAWN:
+                case STRUCTURE_STORAGE:
+                case STRUCTURE_TERMINAL:
+                case STRUCTURE_TOWER:
+                    tower.repair(site);
+                    return true;
+                default:
+                    continue;
+            }
+        }
+        return false;
+    }
+
+    public runTowers() {
+        if (!this.room) { return; }
+        if (Game.time % 20 !== 8) { return; }
+        const towers: StructureTower[] = this.room.find<StructureTower>(FIND_MY_STRUCTURES, { filter: x => x.structureType === STRUCTURE_TOWER });
+        if (towers && towers.length > 0) {
+            const sites = this.room.find(FIND_STRUCTURES, { filter: x => x.hits < x.hitsMax });
+            if (sites && sites.length > 0) {
+                for (const t of towers) {
+                    if (t.energy === t.energyCapacity) {
+                        if (this.towerRepairSite(t, sites)) {
+                            return;
+                        }
+                    }
+                }
+            }
+        }
+
     }
 
     public runPavers() {
