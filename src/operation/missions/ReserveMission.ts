@@ -2,7 +2,9 @@ import { Operation } from "../operations/Operation";
 import { Mission } from "./Mission";
 
 import * as creepActions from "creeps/creepActions";
+import { profile } from "Profiler";
 
+@profile
 export class ReserveMission extends Mission {
     public reservers: Creep[] = [];
     public roomName: string;

@@ -3,6 +3,7 @@ import { Mission } from "./Mission";
 
 import * as creepActions from "creeps/creepActions";
 import * as builder from "creeps/roles/builder";
+import { profile } from "Profiler";
 
 export const PRIORITY_BUILD: string[] = [
     STRUCTURE_SPAWN,
@@ -14,6 +15,7 @@ export const PRIORITY_BUILD: string[] = [
     STRUCTURE_STORAGE
 ];
 
+@profile
 export class BuilderMission extends Mission {
 
     public builders: Creep[] = [];

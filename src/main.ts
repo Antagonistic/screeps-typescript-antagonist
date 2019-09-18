@@ -1,3 +1,5 @@
+// __PROFILER_ENABLED__ = true;
+
 import * as Config from "./config/config";
 
 import * as CreepManager from "creeps/creepManager";
@@ -9,7 +11,8 @@ import * as StructureManager from "rooms/structureManager";
 
 import { log } from "lib/logger/log";
 // import * as Profiler from "screeps-profiler";
-import { Profiler } from "./Profiler";
+// import { Profiler } from "./Profiler";
+import * as Profiler from "./Profiler";
 
 import { Empire } from "./Empire";
 
@@ -21,6 +24,7 @@ import { commandConsole } from "./commandConsole";
 
 import { Traveler } from "utils/Traveler"
 
+
 /*if (Config.USE_PROFILER) {
   Profiler.enable();
 }*/
@@ -30,6 +34,7 @@ import { Traveler } from "utils/Traveler"
 // log.info(`Revision ID: ${__REVISION__}`);
 // }
 
+global.Profiler = Profiler.init();
 global.cc = commandConsole;
 
 function initMemory() {
@@ -45,6 +50,8 @@ function initMemory() {
 
 initMemory();
 
+// console.log(__PROFILER_ENABLED__);
+
 // When compiling TS to JS and bundling with rollup, the line numbers and file names in error messages change
 // This utility uses source maps to get the line numbers and file names of the original, TS source code
 export const loop = ErrorMapper.wrapLoop(() => {
@@ -59,24 +66,24 @@ export const loop = ErrorMapper.wrapLoop(() => {
 
   // empire = new Empire();
   // empire.init();
-  Profiler.start("init");
+  // Profiler.start("init");
   global.emp = new Empire();
   const operations = OperationManager.init()
-  Profiler.end("init");
+  // Profiler.end("init");
 
-  Profiler.start("spawn");
+  // Profiler.start("spawn");
   for (const op of operations) {
     op.spawn();
   }
-  Profiler.end("spawn");
+  // Profiler.end("spawn");
 
-  Profiler.start("work");
+  // Profiler.start("work");
   for (const op of operations) {
     op.work();
   }
-  Profiler.end("work")
+  // Profiler.end("work")
 
-  Profiler.start("final");
+  // Profiler.start("final");
   for (const op of operations) {
     op.finalize();
   }
@@ -84,7 +91,7 @@ export const loop = ErrorMapper.wrapLoop(() => {
     const logic = global.emp.spawnRooms[spawn].logistics;
     logic.finalize();
   }
-  Profiler.end("final");
+  // Profiler.end("final");
 
   /*
   for (const i in Game.rooms) {
@@ -114,5 +121,5 @@ export const loop = ErrorMapper.wrapLoop(() => {
       delete Memory.creeps[name];
     }
   }
-  try { Profiler.finalize(); } catch (e) { console.log("error checking Profiler:\n", e.stack); }
+  // try { Profiler.finalize(); } catch (e) { console.log("error checking Profiler:\n", e.stack); }
 });

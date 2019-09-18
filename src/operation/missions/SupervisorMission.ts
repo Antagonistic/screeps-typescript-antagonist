@@ -3,7 +3,7 @@ import { Operation } from "../operations/Operation";
 import { Mission } from "./mission";
 
 import * as creepActions from "creeps/creepActions";
-
+import { profile } from "Profiler";
 
 export class SupervisorMission extends Mission {
     public logistics: LogisticsManager;
@@ -25,6 +25,7 @@ export class SupervisorMission extends Mission {
         }
         this.supers = this.spawnRole("super", numSuper, superBody, { role: "super" }, 0);
     }
+
     public work(): void {
 
         if (this.room && this.room.memory.supervisor && this.room.memory.supervisor.length > 0) {

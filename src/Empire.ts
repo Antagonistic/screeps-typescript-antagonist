@@ -1,8 +1,10 @@
+import { profile } from "Profiler";
 import { SpawnRoom } from "./rooms/SpawnRoom";
 import { WorldMap } from "./rooms/WorldMap";
 
 // export let empire: Empire;
 
+@profile
 export class Empire implements IEmpire {
   public defaultSpawn: SpawnRoom;
   public spawnRooms: { [roomName: string]: SpawnRoom };
@@ -22,7 +24,7 @@ export class Empire implements IEmpire {
     return this.map.init();
   }
 
-  public getSpawnRoom(roomName: string): SpawnRoom {
+  public getSpawnRoom(roomName: string, minRCL?: number): SpawnRoom {
     if (roomName == null) { return this.defaultSpawn; }
     if (this.spawnRooms[roomName]) {
       return this.spawnRooms[roomName];
@@ -35,12 +37,17 @@ export class Empire implements IEmpire {
         Game.rooms[roomName].memory.spawnRoom = undefined;
       }
     }
-    let mindist = 999;
+    let minroomdist = 999;
     let retSpawn: SpawnRoom = this.defaultSpawn;
     for (const sp in this.spawnRooms) {
-      const dist = Game.map.getRoomLinearDistance(roomName, this.spawnRooms[sp].room.name, false);
-      if (dist < mindist) {
-        mindist = dist;
+      if (minRCL) {
+        if (this.spawnRooms[sp].rclLevel < minRCL) { continue; }
+      }
+      // const dist = Game.map.getRoomLinearDistance(roomName, this.spawnRooms[sp].room.name, false);
+      const route = Game.map.findRoute(roomName, this.spawnRooms[sp].room.name);
+      if (route === -2) { continue; }
+      if (route.length < minroomdist) {
+        minroomdist = route.length;
         retSpawn = this.spawnRooms[sp];
       }
     }

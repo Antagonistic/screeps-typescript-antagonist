@@ -2,7 +2,9 @@ import { Operation } from "operation/operations/Operation";
 import { Mission } from "./Mission";
 
 import * as creepActions from "creeps/creepActions";
+import { profile } from "Profiler";
 
+@profile
 export class LootMission extends Mission {
     public carts: Creep[] = [];
     public target?: Structure;

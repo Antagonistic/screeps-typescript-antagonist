@@ -1,5 +1,6 @@
 "use strict";
 
+import replace from 'rollup-plugin-replace';
 import clear from "rollup-plugin-clear";
 import resolve from "rollup-plugin-node-resolve";
 import commonjs from "rollup-plugin-commonjs";
@@ -23,10 +24,13 @@ export default {
   },
 
   plugins: [
+    replace({
+      __PROFILER_ENABLED__: JSON.stringify(false)
+    }),
     clear({ targets: ["dist"] }),
     resolve(),
     commonjs(),
-    typescript({tsconfig: "./tsconfig.json"}),
-    screeps({config: cfg, dryRun: cfg == null})
+    typescript({ tsconfig: "./tsconfig.json" }),
+    screeps({ config: cfg, dryRun: cfg == null })
   ]
 }

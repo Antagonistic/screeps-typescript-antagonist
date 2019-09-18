@@ -8,8 +8,10 @@ import * as hauler from "creeps/roles/hauler";
 import * as miner from "creeps/roles/miner";
 
 import { posix } from "path";
+import { profile } from "Profiler";
 import { Traveler } from "utils/Traveler"
 
+@profile
 export class MiningMission extends Mission {
 
     public source: Source;

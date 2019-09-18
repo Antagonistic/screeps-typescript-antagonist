@@ -1,4 +1,5 @@
 import * as Config from "config/config";
+import { Traveler } from "utils/Traveler";
 
 // import { log } from "../../lib/logger/log";
 
@@ -13,8 +14,10 @@ import * as Config from "config/config";
 export function moveTo(creep: Creep, target: Structure | Creep | RoomPosition, visual: boolean = true): number {
   if (visual) {
     return creep.moveTo(target, { visualizePathStyle: { stroke: "#ffffff" }, range: 1 });
+    // return Traveler.travelTo(creep, target, { range: 1 });
   } else {
-    return creep.moveTo(target);
+    return creep.moveTo(target, { range: 1 });
+    // return Traveler.travelTo(creep, target, { range: 1 });
   }
 }
 

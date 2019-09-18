@@ -2,13 +2,15 @@ import { Operation } from "../operations/Operation";
 import { Mission } from "./Mission";
 
 import * as guard from "creeps/roles/guard";
+import { profile } from "Profiler";
 
+@profile
 export class GuardMission extends Mission {
     public defenders: Creep[] = [];
     public towers: StructureTower[] = [];
     public hostiles: Creep[] = [];
     public hostileHealers: Creep[] = [];
-    public active: boolean = false;
+    public active: boolean = true;
 
     constructor(operation: Operation) {
         super(operation, "Guard");
@@ -52,7 +54,7 @@ export class GuardMission extends Mission {
                 const hostileHealer: Creep | null = tower.pos.findClosestByRange(this.hostileHealers);
                 if (hostileHealer) {
                     tower.attack(hostileHealer);
-                    return;
+                    continue;
                 }
                 const hostile: Creep | null = tower.pos.findClosestByRange(this.hostiles);
                 if (hostile) {

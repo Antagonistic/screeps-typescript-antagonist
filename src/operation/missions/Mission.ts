@@ -1,6 +1,8 @@
 import { Operation } from "operation/operations/Operation";
+import { profile } from "Profiler";
 import { SpawnRoom } from "rooms/SpawnRoom";
 
+@profile
 export abstract class Mission {
     public name: string;
     public memory: any;

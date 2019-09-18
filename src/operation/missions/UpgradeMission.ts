@@ -3,7 +3,9 @@ import { Mission } from "./Mission";
 
 import * as creepActions from "creeps/creepActions";
 import * as upgrader from "creeps/roles/upgrader";
+import { profile } from "Profiler";
 
+@profile
 export class UpgradeMission extends Mission {
 
     public upgraders: Creep[] = [];

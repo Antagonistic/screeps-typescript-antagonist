@@ -2,8 +2,10 @@ import { Operation } from "../operations/Operation";
 import { Mission } from "./Mission";
 
 import * as creepActions from "creeps/creepActions";
+import { profile } from "Profiler";
 import { buildIfNotExist } from "rooms/roomHelper";
 
+@profile
 export class ClaimMission extends Mission {
     public claimers: Creep[] = [];
     public roomName: string;

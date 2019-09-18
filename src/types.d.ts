@@ -1,9 +1,12 @@
+//import "./Profiler/typings"
+
 // example declaration file - remove these and add your own custom typings
 declare namespace NodeJS {
   interface Global {
     log: any;
     cc: any;
     emp: IEmpire;
+    Profiler: Profiler;
   }
 }
 
@@ -28,6 +31,8 @@ interface CreepMemory {
   energyTarget?: string;
   isBoosted?: boolean;
   inPosition?: boolean;
+  _trav?: any;
+  _travel?: any;
 }
 
 interface RoomMemory {
@@ -54,14 +59,14 @@ interface Memory {
   uuid: number;
   log: any;
   empire: any;
-  profiler: { [identifier: string]: ProfilerData };
+  // profiler: { [identifier: string]: ProfilerData };
   cpu: {
     history: number[];
     average: number;
   };
 }
 
-interface ProfilerData {
+/*interface ProfilerData {
   startOfPeriod: number;
   lastTickTracked: number;
   total: number;
@@ -72,7 +77,7 @@ interface ProfilerData {
   cpu: number;
   consoleReport: boolean;
   period: number;
-}
+}*/
 
 interface IWorldMap {
   controlledRooms: { [roomName: string]: Room };

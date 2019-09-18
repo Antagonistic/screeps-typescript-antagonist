@@ -1,8 +1,9 @@
+import { profile } from "Profiler";
 import * as harvester from "../../creeps/roles/harvester";
 import { Operation } from "../operations/Operation";
 import { Mission } from "./mission";
 
-
+@profile
 export class EmergencyMission extends Mission {
 
     public emergencyminers: Creep[] = [];

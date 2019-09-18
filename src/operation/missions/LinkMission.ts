@@ -1,6 +1,8 @@
 import { Operation } from "operation/operations/Operation";
+import { profile } from "Profiler";
 import { Mission } from "./Mission";
 
+@profile
 export class LinkMission extends Mission {
     public links: StructureLink[] = [];
     public cLink?: StructureLink;
