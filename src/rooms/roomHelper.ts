@@ -111,3 +111,12 @@ export function buildIfNotExist(pos: RoomPosition, struct: BuildableStructureCon
 export function isNearExit(pos: RoomPosition, range: number): boolean {
     return pos.x - range <= 0 || pos.x + range >= 49 || pos.y - range <= 0 || pos.y + range >= 49;
 };
+
+export function getRally(roomName: string): RoomPosition {
+    const rallyFlag = Game.rooms[roomName].find(FIND_FLAGS, { filter: x => x.name.startsWith("rally") });
+    if (rallyFlag && rallyFlag.length > 0) {
+        return rallyFlag[0].pos;
+    }
+    return new RoomPosition(25, 25, roomName);
+}
+

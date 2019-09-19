@@ -17,6 +17,8 @@ export class MiningMission extends Mission {
     public source: Source;
     public miners: Creep[] = [];
     public carts: Creep[] = [];
+    public droppedRes?: Resource[];
+    public pickupOrder: number = 0;
     public active: boolean;
     public stableMission: boolean;
 
@@ -175,7 +177,7 @@ export class MiningMission extends Mission {
             if (pos) {
                 const ret = pos.createConstructionSite(STRUCTURE_CONTAINER);
                 if (ret !== OK) {
-                    console.log("Placing mining box error: " + ret);
+                    console.log("Placing mining box error: " + ret + " in " + this.operation.roomName);
                 }
             }
             return;
@@ -241,59 +243,75 @@ export class MiningMission extends Mission {
     }
 
     public runHaulers2(creeps: Creep[]): void {
-        const droppedRes = this.source.pos.findInRange(FIND_DROPPED_RESOURCES, 3, {
+        this.droppedRes = this.source.pos.findInRange(FIND_DROPPED_RESOURCES, 3, {
             filter: (x: Resource) => x.resourceType === RESOURCE_ENERGY
                 && x.amount >= 50
         })
-        let pickupOrder = 0;
         const hasEnergy = this.hasEnergy();
         for (const creep of this.carts) {
             let action: boolean = false;
             action = creepActions.actionRecycle(creep, action);
 
             if (!action && creepActions.canWork(creep)) {
-                action = creepActions.actionMoveToRoom(creep, action, this.spawnRoom.room);
-                if (creep.memory.hasworkpart && Game.cpu.bucket > 500) {
-                    creepActions.actionBuildStill(creep, false);
-                    creepActions.actionRepairStill(creep, false);
-                }
-                action = creepActions.actionFillCache(creep, action);
-                if (!action && !this.spawnRoom.room.storage) {
-                    action = creepActions.actionFillEnergy(creep, action);
-                    action = creepActions.actionFillTower(creep, action);
-                    action = creepActions.actionFillEnergyStorage(creep, action);
-                    // action = creepActions.actionFillBufferChest(creep, action);
-                    action = creepActions.actionFillBattery(creep, action);
-                    action = creepActions.actionFillBuilder(creep, action);
-                    action = creepActions.actionFillUpgrader(creep, action);
-                } else {
-                    if (!this.operation.stableOperation) {
-                        action = creepActions.actionFillEnergy(creep, action);
-                    }
-                    action = creepActions.actionFillEnergyStorage(creep, action);
-                }
-
+                action = this.runHaulers_canWork(creep, action);
             } else {
-                action = creepActions.actionMoveToRoom(creep, action, this.operation.roomName);
-                action = creepActions.actionGetEnergyCache(creep, action);
-                if (!action && droppedRes && droppedRes.length > pickupOrder) {
-                    creepActions.moveToPickup(creep, droppedRes[pickupOrder]);
-                    pickupOrder++;
-                } else {
-                    if (this.container && hasEnergy >= 50) {
-                        creepActions.moveToWithdraw(creep, this.container);
-                    } else {
-                        if (this.miners.length > 0) {
-                            // stand next to miner hoping for transfer
-                            creepActions.moveTo(creep, this.miners[creep.memory.uuid % this.miners.length]);
-                        }
-                    }
-                }
-
-                // action = creepActions.actionGetDroppedEnergy(creep, action, true);
-                // action = creepActions.actionGetContainerEnergy(creep, action, 2, true);
+                action = this.runHaulers_wantWork(creep, action);
             }
         }
+    }
+
+    public runHaulers_canWork(creep: Creep, action: boolean): boolean {
+        action = creepActions.actionMoveToRoom(creep, action, this.spawnRoom.room);
+        action = this.runHaulers_walkWork(creep);
+        action = creepActions.actionFillCache(creep, action);
+        if (!action && !this.spawnRoom.room.storage) {
+            action = this.runHaulers_earlyFill(creep, action);
+        } else {
+            if (!this.operation.stableOperation) {
+                action = creepActions.actionFillEnergy(creep, action);
+            }
+            action = creepActions.actionFillEnergyStorage(creep, action);
+        }
+        return action;
+    }
+
+    public runHaulers_wantWork(creep: Creep, action: boolean): boolean {
+        action = creepActions.actionMoveToRoom(creep, action, this.operation.roomName);
+        action = creepActions.actionGetEnergyCache(creep, action);
+        if (!action && this.droppedRes && this.droppedRes.length > this.pickupOrder) {
+            creepActions.moveToPickup(creep, this.droppedRes[this.pickupOrder]);
+            this.pickupOrder++;
+        } else {
+            if (this.container && this.hasEnergy() >= 50) {
+                creepActions.moveToWithdraw(creep, this.container);
+            } else {
+                if (this.miners.length > 0) {
+                    // stand next to miner hoping for transfer
+                    creepActions.moveTo(creep, this.miners[creep.memory.uuid % this.miners.length]);
+                }
+            }
+        }
+        return action;
+    }
+
+    public runHaulers_walkWork(creep: Creep): boolean {
+        if (creep.memory.hasworkpart && Game.cpu.bucket > 1000) {
+            let action = false;
+            action = creepActions.actionBuildStill(creep, action);
+            action = creepActions.actionRepairStill(creep, action);
+        }
+        return false;
+    }
+
+    public runHaulers_earlyFill(creep: Creep, action: boolean): boolean {
+        action = creepActions.actionFillEnergy(creep, action);
+        action = creepActions.actionFillTower(creep, action);
+        action = creepActions.actionFillEnergyStorage(creep, action);
+        // action = creepActions.actionFillBufferChest(creep, action);
+        action = creepActions.actionFillBattery(creep, action);
+        action = creepActions.actionFillBuilder(creep, action);
+        action = creepActions.actionFillUpgrader(creep, action);
+        return action;
     }
 
     public runHaulers(creeps: Creep[]): void {
@@ -362,7 +380,7 @@ export class MiningMission extends Mission {
             idlePos.y = idlePos.y + 1;
 
             for (const h of idle) {
-                h.moveTo(idlePos);
+                creepActions.moveTo(h, idlePos);
             }
         }
 

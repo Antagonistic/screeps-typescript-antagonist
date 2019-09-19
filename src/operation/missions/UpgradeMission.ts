@@ -86,15 +86,15 @@ export class UpgradeMission extends Mission {
             const energy: number | undefined = this.room.storage.store.energy;
             if (energy) {
                 if (energy > 100000) {
-                    numUpgraders += 3;
+                    numUpgraders += 2;
                 } else if (energy > 50000) {
-                    numUpgraders += 2;
+                    numUpgraders += 1;
                 } else if (energy > 30000) {
-                    numUpgraders += 2;
+                    numUpgraders += 1;
                 } else if (energy > 20000) {
-                    numUpgraders += 1;
+                    numUpgraders += 0;
                 } else if (energy > 10000) {
-                    numUpgraders += 1;
+                    numUpgraders += 0;
                 }
             }
         }
@@ -166,25 +166,9 @@ export class UpgradeMission extends Mission {
                 } else {
                     if (!action) { creepActions.moveTo(h, this.operation.rallyPos); };
                 }
-                // if (this.upgraders.length > 0) {
-                //     _.min(this.upgraders,
-                // }
-                // action = creepActions.actionMoveToRoom(h, action, h.memory.home);
-                // action = creepActions.actionFillEnergy(h, action);
-                // action = creepActions.actionFillTower(h, action);
-                // action = creepActions.actionFillBufferChest(h, action);
-                // action = creepActions.actionFillEnergyStorage(h, action);
-                // action = creepActions.actionFillBuilder(h, action);
-                // action = creepActions.actionFillUpgrader(h, action);
-                // action = creepActions.actionBuild(creep, action);
-                // action = creepActions.actionUpgrade(creep, action);
             } else {
-                // action = creepActions.actionMoveToRoom(h, action);
-                // action = creepActions.actionGetDroppedEnergy(h, action, true);
-                // action = creepActions.actionGetContainerEnergy(h, action, 2, true);
                 action = creepActions.actionGetStorageEnergy(h, action, 20);
                 if (!action) { creepActions.moveTo(h, this.operation.rallyPos); };
-
             }
         }
     }
@@ -232,7 +216,7 @@ export class UpgradeMission extends Mission {
             const pos = this.haulPath()[2];
             const ret = pos.createConstructionSite(STRUCTURE_CONTAINER);
             if (ret !== OK) {
-                console.log("Placing mining box error: " + ret);
+                console.log("Placing upgrade box error: " + ret + " in " + this.operation.roomName);
             }
             return;
         }

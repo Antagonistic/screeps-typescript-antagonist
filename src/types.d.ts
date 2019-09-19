@@ -53,6 +53,7 @@ interface RoomMemory {
   supervisor?: LightRoomPos[];
   spawnRoom?: string;
   controllerBattery?: string;
+  avoid?: number;
 }
 
 interface Memory {

@@ -34,7 +34,7 @@ export function run(creep: Creep): void {
       } else {
         if (creep.room.name !== creep.memory.room) {
           // Wrong room, lets walk
-          creep.moveTo(new RoomPosition(20, 20, creep.memory.room));
+          creepActions.moveTo(creep, new RoomPosition(20, 20, creep.memory.room));
         }
       }
     } else {
@@ -49,17 +49,17 @@ function _findBox(creep: Creep, source: Source) {
   const box: StructureContainer[] = source.pos.findInRange<StructureContainer>(FIND_STRUCTURES, 1,
     { filter: (x: Structure) => x.structureType === STRUCTURE_CONTAINER });
   if (box && box.length > 0) {
-    creep.moveTo(box[0], { visualizePathStyle: { stroke: "#ffffff" } });
+    creepActions.moveTo(creep, box[0].pos);
     return;
   }
   const boxSite: ConstructionSite[] = source.pos.findInRange(FIND_MY_CONSTRUCTION_SITES, 1,
     { filter: (x: ConstructionSite) => x.structureType === STRUCTURE_CONTAINER });
   if (boxSite && boxSite.length > 0) {
-    creep.moveTo(boxSite[0], { visualizePathStyle: { stroke: "#ffffff" } });
+    creepActions.moveTo(creep, boxSite[0].pos);
     return;
   }
   // console.log(creep.name + " could not find its box!");
-  creep.moveTo(source, { visualizePathStyle: { stroke: "#ffffff" } });
+  creepActions.moveTo(creep, source.pos);
 }
 
 function _idleBox(creep: Creep, source: Source) {

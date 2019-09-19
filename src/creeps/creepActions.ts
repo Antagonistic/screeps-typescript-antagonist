@@ -1,4 +1,6 @@
 import * as Config from "config/config";
+import { profile } from "Profiler";
+import { getRally } from "rooms/roomHelper";
 import { Traveler } from "utils/Traveler";
 
 // import { log } from "../../lib/logger/log";
@@ -11,13 +13,13 @@ import { Traveler } from "utils/Traveler";
  * @param {(Structure | RoomPosition)} target
  * @returns {number}
  */
-export function moveTo(creep: Creep, target: Structure | Creep | RoomPosition, visual: boolean = true): number {
-  if (visual) {
-    return creep.moveTo(target, { visualizePathStyle: { stroke: "#ffffff" }, range: 1 });
-    // return Traveler.travelTo(creep, target, { range: 1 });
+export function moveTo(creep: Creep, target: Structure | Creep | RoomPosition, exact: boolean = false): number {
+  if (exact) {
+    // return creep.moveTo(target, { visualizePathStyle: { stroke: "#ffffff" }, range: 1 });
+    return Traveler.travelTo(creep, target, { range: 0 });
   } else {
-    return creep.moveTo(target, { range: 1 });
-    // return Traveler.travelTo(creep, target, { range: 1 });
+    // return creep.moveTo(target, { range: 1 });
+    return Traveler.travelTo(creep, target, { range: 1 });
   }
 }
 
@@ -51,7 +53,7 @@ export function moveToRenew(creep: Creep, spawn: StructureSpawn): void {
   const ret = spawn.renewCreep(creep);
   // console.log(creep.name + " needs to renew: " + ret + " - " + creep.ticksToLive);
   if (ret === ERR_NOT_IN_RANGE) {
-    creep.moveTo(spawn);
+    moveTo(creep, spawn);
   } else if (ret === OK) {
     if (creep.ticksToLive && creep.ticksToLive >= Config.DEFAULT_MAX_LIFE_WHILE_NEEDS_REFILL) {
       creep.memory.renew = undefined;
@@ -65,7 +67,7 @@ export function moveToRecycle(creep: Creep, spawn: StructureSpawn): void {
   const ret = spawn.recycleCreep(creep);
   // console.log(creep.name + " needs to retire: " + ret);
   if (ret === ERR_NOT_IN_RANGE) {
-    creep.moveTo(spawn);
+    moveTo(creep, spawn);
   }
 }
 
@@ -256,16 +258,16 @@ export function actionMoveToRoom(creep: Creep, action: boolean, roomID?: string 
         roomID = roomID.name;
       }
       if (creep.room.name !== roomID) {
-        moveTo(creep, new RoomPosition(25, 25, roomID), true);
+        moveTo(creep, getRally(roomID), true);
         return true;
       } else {
-        /*const pos: RoomPosition = creep.pos;
+        const pos: RoomPosition = creep.pos;
         const x: number = pos.x;
         const y: number = pos.y;
         if (x === 0 || y === 0 || x === 49 || y === 49) {
-          creep.moveTo(25, 25);
+          moveTo(creep, getRally(roomID));
           return true;
-        }*/
+        }
       }
     }
   }
@@ -289,7 +291,7 @@ export function actionUpgrade(creep: Creep, action: boolean): boolean {
     if (creep.room.controller) {
       const target: StructureController = creep.room.controller;
       if (creep.upgradeController(target) === ERR_NOT_IN_RANGE) {
-        creep.moveTo(target);
+        moveTo(creep, target);
       }
       // creep.moveTo(target);
       return true;
@@ -566,13 +568,14 @@ export function actionGetEnergyCache(creep: Creep, action: boolean): boolean {
   return action;
 }
 
-export function actionFillEnergy(creep: Creep, action: boolean): boolean {
+export function actionFillEnergy(creep: Creep, action: boolean, room?: Room): boolean {
   if (action === false) {
-    const spawn: Structure[] = creep.room.find(FIND_MY_SPAWNS, {
+    if (!room) { room = creep.room; }
+    const spawn: Structure[] = room.find(FIND_MY_SPAWNS, {
       filter:
         (x: StructureSpawn) => x.energy < x.energyCapacity
     });
-    const extentions: Structure[] = creep.room.find(FIND_MY_STRUCTURES, {
+    const extentions: Structure[] = room.find(FIND_MY_STRUCTURES, {
       filter:
         (x: Structure) => x.structureType === STRUCTURE_EXTENSION &&
           (x as StructureExtension).energy < (x as StructureExtension).energyCapacity
@@ -583,7 +586,7 @@ export function actionFillEnergy(creep: Creep, action: boolean): boolean {
       if (target) {
         creep.memory.target = target.id;
         if (creep.transfer(target, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
-          creep.moveTo(target);
+          moveTo(creep, target);
         }
         // console.log(creep.name + " filling energy!");
         return true;
@@ -713,7 +716,7 @@ export function actionGetDroppedEnergy(creep: Creep, action: boolean, scavange?:
       });
     if (droppedRes) {
       if (creep.pickup(droppedRes) === ERR_NOT_IN_RANGE) {
-        creep.moveTo(droppedRes);
+        moveTo(creep, droppedRes.pos);
         creep.memory.energyTarget = droppedRes.id;
       } else {
         // Grab from container if nearby
@@ -784,7 +787,7 @@ export function actionGetSourceEnergy(creep: Creep, action: boolean, factor: num
       // creep.memory.target = sources[salt].id;
       if (creep.harvest(sources[salt]) === ERR_NOT_IN_RANGE) {
         creep.memory.energyTarget = sources[salt].id;
-        creep.moveTo(sources[salt]);
+        moveTo(creep, sources[salt].pos);
       }
     }
   }
@@ -820,7 +823,7 @@ export function actionGetStorageEnergy(creep: Creep, action: boolean, factor: nu
       const energy: number | undefined = storage.store.energy;
       if (energy && energy > creep.carryCapacity * factor) {
         if (creep.withdraw(storage, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
-          creep.moveTo(storage);
+          moveTo(creep, storage);
           creep.memory.energyTarget = storage.id;
         }
         return true;
@@ -962,9 +965,9 @@ export function actionClaim(creep: Creep, action: boolean) {
 export function actionRally(creep: Creep, action: boolean) {
   if (action === false) {
     if (!creep.room.memory.rally) {
-      creep.moveTo(25, 25);
+      moveTo(creep, new RoomPosition(25, 25, creep.room.name));
     } else {
-      creep.moveTo(creep.room.memory.rally.x, creep.room.memory.rally.y);
+      moveTo(creep, new RoomPosition(creep.room.memory.rally.x, creep.room.memory.rally.y, creep.room.name));
     }
     return true;
   }
