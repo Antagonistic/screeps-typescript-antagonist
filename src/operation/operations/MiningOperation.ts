@@ -1,3 +1,4 @@
+import { LogisticsManager } from "operation/LogisticsManager";
 import { BuilderMission } from "../missions/BuilderMission";
 import { MiningMission } from "../missions/MiningMission";
 import { ReserveMission } from "../missions/ReserveMission";
@@ -6,12 +7,15 @@ import { Operation } from "./Operation";
 
 export class MiningOperation extends Operation {
     public sources: Source[] = [];
+    public logistics: LogisticsManager;
 
     constructor(flag: Flag, name: string, type: string) {
         super(flag, name, type)
         if (flag.room) {
             this.sources = _.sortBy(flag.room.find(FIND_SOURCES), (s: Source) => s.pos.getRangeTo(flag));
         }
+        this.logistics = this.spawnRoom.logistics;
+        this.logistics.registerOperation(this);
     }
 
     public finalizeOperation(): void {

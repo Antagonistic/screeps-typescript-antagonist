@@ -48,6 +48,7 @@ export class RefillMission extends Mission {
                 // action = creepActions.actionGetContainerEnergy(creep, action, 2, true);
                 action = creepActions.actionGetStorageEnergy(creep, action);
             }
+            if (!action) { creepActions.moveTo(creep, this.operation.rallyPos); };
         }
     }
 

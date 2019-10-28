@@ -16,7 +16,7 @@ import { Traveler } from "utils/Traveler";
 export function moveTo(creep: Creep, target: Structure | Creep | RoomPosition, exact: boolean = false): number {
   if (exact) {
     // return creep.moveTo(target, { visualizePathStyle: { stroke: "#ffffff" }, range: 1 });
-    return Traveler.travelTo(creep, target, { range: 0 });
+    return Traveler.travelTo(creep, target, { range: 0, ignoreCreeps: false });
   } else {
     // return creep.moveTo(target, { range: 1 });
     return Traveler.travelTo(creep, target, { range: 1 });

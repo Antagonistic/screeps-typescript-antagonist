@@ -56,7 +56,7 @@ export class SpawnRoom implements ISpawnRoom {
           }
           return false;
         }
-        console.log(status);
+        console.log("spawn unhandled status: " + status);
       }
     }
     return false;

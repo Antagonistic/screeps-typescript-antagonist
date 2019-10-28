@@ -1,3 +1,6 @@
+import { Traveler } from "utils/Traveler";
+// tslint:disable-next-line:ordered-imports
+import { ROAD_COST, AVOID_COST, SWAMP_COST, PLAIN_COST } from "config/config";
 
 
 export function openAdjacentSpots(pos: RoomPosition, ignoreCreeps?: boolean): RoomPosition[] {
@@ -120,3 +123,173 @@ export function getRally(roomName: string): RoomPosition {
     return new RoomPosition(25, 25, roomName);
 }
 
+export function createCostMatrix(roomName: string): CostMatrix | undefined {
+    const room = Game.rooms[roomName];
+    if (!room) {
+        return undefined;
+    }
+
+    const matrix = new PathFinder.CostMatrix();
+
+    // addTerrainToMatrix(matrix, roomName);
+
+    Traveler.addStructuresToMatrix(room, matrix, ROAD_COST);
+
+    // add construction sites too
+    const constructionSites = room.find(FIND_MY_CONSTRUCTION_SITES);
+    for (const site of constructionSites) {
+        if (site.structureType === STRUCTURE_ROAD) {
+            matrix.set(site.pos.x, site.pos.y, ROAD_COST);
+        }
+        else {
+            matrix.set(site.pos.x, site.pos.y, 0xff);
+        }
+    }
+
+    return matrix;
+}
+
+export function createPathfindingMatrix(roomName: string): boolean | CostMatrix {
+    const room = Game.rooms[roomName];
+    if (!room) {
+        return true;
+    }
+    const matrix = createCostMatrix(roomName);
+    if (!matrix) {
+        return false;
+    }
+
+    // avoid controller
+    if (room.controller) {
+        blockOffPosition(matrix, room.controller, 3, AVOID_COST);
+    }
+
+    // avoid container/link adjacency
+    const sources = room.find(FIND_SOURCES);
+    for (const source of sources) {
+        let structure = source.pos.findInRange(FIND_STRUCTURES, 1, { filter: (x) => x.structureType === STRUCTURE_CONTAINER });
+        if (!structure) {
+            structure = source.pos.findInRange(FIND_STRUCTURES, 1, { filter: (x) => x.structureType === STRUCTURE_LINK });
+        }
+
+        if (structure && structure.length > 0) {
+            blockOffPosition(matrix, structure[0], 1, AVOID_COST);
+        }
+    }
+
+    // avoid going too close to lairs
+    for (const lair of room.find(FIND_STRUCTURES, { filter: (x) => x.structureType === STRUCTURE_KEEPER_LAIR })) {
+        blockOffPosition(matrix, lair, 1, AVOID_COST);
+    }
+
+    return matrix;
+}
+
+export function blockOffPosition(costs: CostMatrix, roomObject: RoomObject, range: number, cost = 30) {
+    const terrainLookup = Game.map.getRoomTerrain(roomObject.room!.name);
+    for (let xDelta = -range; xDelta <= range; xDelta++) {
+        for (let yDelta = -range; yDelta <= range; yDelta++) {
+            const terrain = terrainLookup.get(roomObject.pos.x + xDelta, roomObject.pos.y + yDelta)
+            if (terrain === TERRAIN_MASK_WALL) { continue; }
+            costs.set(roomObject.pos.x + xDelta, roomObject.pos.y + yDelta, cost);
+        }
+    }
+}
+
+export function displayCostMatrix(costMatrix: CostMatrix, roomName?: string, dots = true, color = '#ffff00'): void {
+    const vis = new RoomVisual(roomName);
+    let x: number;
+    let y: number;
+
+    if (dots) {
+        let cost: number;
+        const max = AVOID_COST;
+        /*for (y = 0; y < 50; ++y) {
+            for (x = 0; x < 50; ++x) {
+                cost = costMatrix.get(x, y);
+                if (cost < 0xff) {
+                    max = Math.max(max, costMatrix.get(x, y));
+                }
+            }
+        }*/
+        for (y = 0; y < 50; ++y) {
+            for (x = 0; x < 50; ++x) {
+                cost = costMatrix.get(x, y);
+                if (cost === 0xff) {
+                    vis.circle(x, y, { radius: 1 / 2, fill: '#ff0000' });
+                } else if (cost > 0) {
+                    vis.circle(x, y, { radius: costMatrix.get(x, y) / max / 2, fill: color });
+                }
+            }
+        }
+    } else {
+        for (y = 0; y < 50; ++y) {
+            for (x = 0; x < 50; ++x) {
+                vis.text(costMatrix.get(x, y).toString(), x, y, { color });
+            }
+        }
+    }
+}
+
+
+export function addTerrainToMatrix(matrix: CostMatrix, roomName: string) {
+    const terrainLookup = Game.map.getRoomTerrain("E2S7");
+    for (let x = 0; x < 50; x++) {
+        for (let y = 0; y < 50; y++) {
+            const terrain = terrainLookup.get(x, y);
+            // const terrain = Game.map.getTerrainAt(x, y, roomName);
+            if (terrain === TERRAIN_MASK_WALL) {
+                matrix.set(x, y, 0xff);
+            }
+            else if (terrain === TERRAIN_MASK_SWAMP) {
+                matrix.set(x, y, SWAMP_COST);
+            }
+            else {
+                matrix.set(x, y, 1);
+            }
+        }
+    }
+    return;
+}
+
+export function findShortestPath(start: RoomPosition, goals: Array<{ pos: RoomPosition, id: string }>) {
+    let shortest = 9999;
+    let ret = null;
+    for (const goal of goals) {
+        const result = findPath(start, goal.pos, 1);
+        if (result && result.length < shortest) {
+            ret = goal;
+            shortest = result.length;
+        }
+    }
+
+    return ret;
+}
+
+
+export function findPath(start: RoomPosition, finish: RoomPosition, rangeAllowance: number): RoomPosition[] | undefined {
+    const maxDistance = Game.map.getRoomLinearDistance(start.roomName, finish.roomName);
+    const ret = PathFinder.search(start, [{ pos: finish, range: rangeAllowance }], {
+        plainCost: PLAIN_COST,
+        swampCost: SWAMP_COST,
+        // tslint:disable-next-line:object-literal-sort-keys
+        maxOps: 12000,
+        roomCallback: (roomName: string): CostMatrix | boolean => {
+
+            // disqualify rooms that involve a circuitous path
+            if (Game.map.getRoomLinearDistance(start.roomName, roomName) > maxDistance) {
+                return false;
+            }
+
+            const matrix = createPathfindingMatrix(roomName);
+
+
+            return matrix;
+        },
+    });
+
+    if (!ret.incomplete) {
+        return ret.path;
+    }
+    return undefined;
+}

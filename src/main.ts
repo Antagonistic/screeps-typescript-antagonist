@@ -24,7 +24,6 @@ import { commandConsole } from "./commandConsole";
 
 import { Traveler } from "utils/Traveler"
 
-
 /*if (Config.USE_PROFILER) {
   Profiler.enable();
 }*/

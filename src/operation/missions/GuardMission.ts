@@ -1,7 +1,7 @@
 import { Operation } from "../operations/Operation";
 import { Mission } from "./Mission";
 
-import * as guard from "creeps/roles/guard";
+import * as creepActions from "creeps/creepActions";
 import { profile } from "Profiler";
 
 @profile
@@ -27,9 +27,7 @@ export class GuardMission extends Mission {
         this.defenders = this.spawnRole("defender", this.getMaxGuards, this.defenderBody);
     }
     public work(): void {
-        for (const g of this.defenders) {
-            guard.run(g);
-        }
+        this.runGuards();
         this.runTowers();
     }
     public finalize(): void { ; }
@@ -45,6 +43,16 @@ export class GuardMission extends Mission {
 
     protected defenderBody = (): BodyPartConstant[] => {
         return this.configBody({ [TOUGH]: 1, [RANGED_ATTACK]: 1, [MOVE]: 2 });
+    }
+
+    public runGuards(): void {
+        for (const g of this.defenders) {
+            let action: boolean = false;
+            action = creepActions.actionRecycle(g, action);
+            action = creepActions.actionMoveToRoom(g, action);
+            action = creepActions.actionAttackHostile(g, action);
+            if (!action) { creepActions.moveTo(g, this.operation.rallyPos); };
+        }
     }
 
 
@@ -64,7 +72,7 @@ export class GuardMission extends Mission {
         } else {
             for (const tower of this.towers) {
                 if (tower.energy > tower.energyCapacity / 2) {
-                    const structure = tower.pos.findClosestByRange(FIND_MY_STRUCTURES, { filter: (x) => x.hits < x.hitsMax / 2 });
+                    const structure = tower.pos.findClosestByRange(FIND_STRUCTURES, { filter: (x) => x.hits < x.hitsMax / 2 });
                     if (structure) {
                         tower.repair(structure);
                     }

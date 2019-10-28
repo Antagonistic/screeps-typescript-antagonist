@@ -37,7 +37,11 @@ interface CreepMemory {
 
 interface RoomMemory {
   state: RoomStates;
-  home: string;
+  home?: string;
+  homelevel?: number;
+  spawns?: string[];
+  remote?: string[];
+
   towers: string[];
   mine_structures: number;
   stable_structures: boolean;
@@ -123,6 +127,7 @@ interface IEmpire {
 
 interface RCLRoomLayout {
   anchor: LightRoomPos;
+  road: LightRoomPos[];
   [RCL: number]: RoomLayout;
 }
 

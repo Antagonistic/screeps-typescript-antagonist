@@ -1,6 +1,8 @@
 // import * as CreepManager from "./components/creeps/creepManager";
 // import * as soldier from "./components/creeps/roles/soldier";
 
+import * as roomHelper from "./rooms/roomHelper"
+
 import { log } from "./lib/logger/log";
 
 // import { empire } from "./Empire";
@@ -8,6 +10,7 @@ import { log } from "./lib/logger/log";
 import { Empire } from "Empire";
 import { SpawnRoom } from "./rooms/SpawnRoom";
 
+import { LogisticsManager } from "operation/LogisticsManager";
 import * as layout from "rooms/layoutManager";
 
 export const commandConsole = {
@@ -42,6 +45,27 @@ export const commandConsole = {
     for (const sup of pos) {
       Game.rooms[roomName].memory.supervisor!.push({ x: sup.x, y: sup.y });
     }
+  },
+  showCost(roomName: string) {
+    const matrix = roomHelper.createPathfindingMatrix(roomName);
+    if (typeof matrix !== "boolean") {
+      roomHelper.displayCostMatrix(matrix, roomName, true);
+      console.log('shown');
+      return 0;
+    } else {
+      console.log('could not create matrix');
+      return 1;
+    }
+  },
+  visual(roomName: string, withCost: boolean = false) {
+    if (global.emp.spawnRooms[roomName]) {
+      if (withCost) { this.showCost(roomName); }
+      return (global.emp.spawnRooms[roomName].logistics as LogisticsManager).getRoads();
+    } else {
+      console.log('Could not find logistics for ' + roomName);
+      console.log('Valid options: ' + Object.keys(global.emp.spawnRooms));
+    }
+    return 0;
   },
   // spawnSoldier(roomName: string, subrole: string = "archer", roomTarget?: string): boolean {
   //   const room = Game.rooms[roomName];

@@ -6,6 +6,8 @@ import { Operation } from "./operations/Operation";
 import * as creepActions from "creeps/creepActions";
 import { UpgradeMission } from "./missions/UpgradeMission";
 
+import * as layoutManager from "rooms/layoutManager";
+
 export class LogisticsManager {
     public spawnRoom: SpawnRoom;
     public room: Room;
@@ -29,6 +31,56 @@ export class LogisticsManager {
 
     public registerOperation(operation: Operation) {
         this.operations.push(operation);
+    }
+
+    public getDestinations() {
+        const dest: RoomPosition[] = [];
+        for (const op of this.operations) {
+            console.log('Checking ' + op.name);
+            for (const _m in op.missions) {
+                const m = op.missions[_m];
+                if (m instanceof MiningMission) {
+                    console.log('  Checking ' + m.name);
+                    if (m.source) {
+                        dest.push(m.source.pos);
+                    }
+                }
+                if (m instanceof UpgradeMission) {
+                    if (m.container) {
+                        dest.push(m.container.pos);
+                    }
+                }
+            }
+        }
+        return dest;
+    }
+
+    public findShortest(start: RoomPosition, goals: RoomPosition) {
+
+    }
+
+    public getRoads() {
+        let controllerOp = null;
+        for (const op of this.operations) {
+            if (op instanceof ControllerOperation) {
+                controllerOp = op;
+                break;
+            }
+        }
+        let roads: RoomPosition[] = [];
+        if (controllerOp) {
+            const center = controllerOp.flag.pos;
+            roads = roads.concat(layoutManager.getRoads(this.room, center));
+            const destinations = this.getDestinations();
+            for (const d of destinations) {
+                const road = layoutManager.pavePath(d, center, 3);
+                const _road = _.filter(road, { roomName: this.room.name })
+                this.room.visual.poly(_road);
+
+                roads = roads.concat(road);
+            }
+        }
+        roads = _.uniq(roads);
     }
 
     public report(): void {
@@ -70,11 +122,6 @@ export class LogisticsManager {
             console.log("No operations for this spawngroup? Fix it!");
             ControllerOperation.initNewControllerOperation(this.room, this.spawnRoom.spawns[0].pos);
         }
-    }
-
-    public creepGetEnergy(creep: Creep, operation: Operation, scavange: boolean = false, priority: boolean = false) {
-        ;
-
     }
 
 }

@@ -75,42 +75,33 @@ export class SupervisorMission extends Mission {
             if (s instanceof StructureLink) { link = s; }
             if (s instanceof StructureTerminal) { terminal = s; }
         }
-        let spent = sup.carryCapacity - sup.carry.energy;
+        let creepE = sup.carry.energy;
+        const maxCreepE = sup.carryCapacity;
         for (const t of towers) {
             if (t.energy < t.energyCapacity) {
-                const amount = t.energyCapacity - t.energy;
+                const amount = Math.min(t.energyCapacity - t.energy, creepE);
                 sup.transfer(t, RESOURCE_ENERGY, amount);
-                spent += amount;
+                creepE -= amount;
             }
         }
         for (const s of spawns) {
             if (s.energy < s.energyCapacity) {
-                const amount = s.energyCapacity - s.energy;
+                const amount = Math.min(s.energyCapacity - s.energy, creepE);
                 sup.transfer(s, RESOURCE_ENERGY, amount);
-                spent += amount;
+                creepE -= amount;
             }
         }
         for (const c of containers) {
             if (_.sum(c.store) < c.storeCapacity) {
-                const amount = c.storeCapacity - _.sum(c.store);
+                const amount = Math.min(c.storeCapacity - _.sum(c.store), creepE);
                 sup.transfer(c, RESOURCE_ENERGY, amount);
-                spent += amount;
+                creepE -= amount;
             }
         }
         if (link) {
-            if (link.energy < 400) {
-                sup.say("+link");
-                const amount = 400 - link.energy;
-                sup.transfer(link, RESOURCE_ENERGY, amount);
-                spent += amount;
-            } else if (link.energy > 400) {
-                sup.say("-link");
-                const amount = link.energy - 400;
-                sup.withdraw(link, RESOURCE_ENERGY);
-                spent -= amount;
-            }
+            creepE = this.work_Link(sup, link, creepE);
         }
-        if (storage) {
+        /*if (storage) {
             if (storage.store.energy > spent) {
                 sup.withdraw(storage, RESOURCE_ENERGY, spent);
             }
@@ -121,14 +112,29 @@ export class SupervisorMission extends Mission {
                     // sup.transfer(terminal, resourceType as ResourceConstant);
                 }
             }
-        }
-        if (terminal) {
+        }*/
+        /*if (terminal) {
             for (const resourceType in sup.carry) {
                 if (resourceType === RESOURCE_ENERGY) { continue; }
                 sup.transfer(terminal, resourceType as ResourceConstant);
                 // sup.transfer(terminal, resourceType as ResourceConstant);
             }
+        }*/
+    }
+
+    public work_Link(sup: Creep, link: StructureLink, creepE: number): number {
+        if (link.energy < 400) {
+            sup.say("+link");
+            const amount = Math.min(400 - link.energy, creepE);
+            sup.transfer(link, RESOURCE_ENERGY, amount);
+            creepE -= amount;
+        } else if (link.energy > 400) {
+            sup.say("-link");
+            const amount = link.energy - 400;
+            sup.withdraw(link, RESOURCE_ENERGY);
+            creepE += amount;
         }
+        return creepE;
     }
 
     public work_Off(sup: Creep) {
