@@ -120,6 +120,11 @@ export class SupervisorMission extends Mission {
                 // sup.transfer(terminal, resourceType as ResourceConstant);
             }
         }*/
+        if (terminal && storage) {
+            if (terminal.store.energy < 100000 && storage.store.energy > 500000) {
+                sup.transfer(terminal, RESOURCE_ENERGY, creepE);
+            }
+        }
     }
 
     public work_Link(sup: Creep, link: StructureLink, creepE: number): number {

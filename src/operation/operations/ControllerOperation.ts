@@ -10,6 +10,7 @@ import { UpgradeMission } from "../missions/UpgradeMission";
 import { LogisticsManager } from "operation/LogisticsManager";
 import { ClaimMission } from "operation/missions/ClaimMission";
 import { LinkMission } from "operation/missions/LinkMission";
+import { MineralMission } from "operation/missions/MineralMission";
 import { ScoutMission } from "operation/missions/ScoutMission";
 import { SupervisorMission } from "operation/missions/SupervisorMission";
 import * as StructureManager from "rooms/structureManager";
@@ -63,6 +64,10 @@ export class ControllerOperation extends Operation {
 
             this.addMission(new UpgradeMission(this));
 
+            if (this.spawnRoom.rclLevel >= 6) {
+                this.addMission(new MineralMission(this));
+            }
+
             if (Game.time % 50 === 1) {
                 console.log("Operation stable: " + this.stableOperation);
                 if (this.stableOperation) {
@@ -74,7 +79,7 @@ export class ControllerOperation extends Operation {
 
 
     public finalizeOperation() {
-        this.memory.emergency = this.emergency = (this.spawnRoom.room.find(FIND_MY_CREEPS).length < 6);
+        this.memory.emergency = this.emergency = (this.spawnRoom.room.find(FIND_MY_CREEPS).length < 4);
         // this.memory.emergency = ;
     }
 

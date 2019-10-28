@@ -226,6 +226,11 @@ export class MiningMission extends Mission {
                         }
                         else {
                             creepActions.moveTo(creep, this.container.pos, true);
+                            for (const p of openAdjacentSpots(this.source.pos)) {
+                                if (p.isNearTo(this.container.pos)) {
+                                    creepActions.moveTo(creep, p, true);
+                                }
+                            }
                         }
                     }
                     else {

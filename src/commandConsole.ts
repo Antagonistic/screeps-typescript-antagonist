@@ -39,11 +39,28 @@ export const commandConsole = {
       }
     }
   },
+  runBuildRoad(roomName: string) {
+    if (global.emp.spawnRooms[roomName]) {
+      return (global.emp.spawnRooms[roomName].logistics as LogisticsManager).buildRoads();
+    } else {
+      console.log('Could not find logistics for ' + roomName);
+      console.log('Valid options: ' + Object.keys(global.emp.spawnRooms));
+    }
+    return 0;
+  },
   setSupervisorPos(roomName: string, pos?: LightRoomPos[]) {
     if (!pos || pos.length === 0) { Game.rooms[roomName].memory.supervisor = undefined; return; }
     Game.rooms[roomName].memory.supervisor = [];
     for (const sup of pos) {
       Game.rooms[roomName].memory.supervisor!.push({ x: sup.x, y: sup.y });
+    }
+  },
+  clearConstruct() {
+    for (const _c in Game.constructionSites) {
+      const construct = Game.constructionSites[_c];
+      if (construct) {
+        construct.remove();
+      }
     }
   },
   showCost(roomName: string) {

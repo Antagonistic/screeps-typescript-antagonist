@@ -484,10 +484,10 @@ export function actionTransfer(creep: Creep, action: boolean, target?: Structure
               return false;
             }
           }
-          return true;
         } else {
           moveTo(creep, target.pos);
         }
+        return true;
       }
     }
   }

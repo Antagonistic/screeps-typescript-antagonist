@@ -55,11 +55,7 @@ export class LogisticsManager {
         return dest;
     }
 
-    public findShortest(start: RoomPosition, goals: RoomPosition) {
-
-    }
-
-    public getRoads() {
+    public getRoads(): RoomPosition[] {
         let controllerOp = null;
         for (const op of this.operations) {
             if (op instanceof ControllerOperation) {
@@ -81,6 +77,19 @@ export class LogisticsManager {
             }
         }
         roads = _.uniq(roads);
+        return roads;
+    }
+
+    public buildRoads() {
+        const roads = this.getRoads();
+        const construct = layoutManager.getUnbuiltRoads(roads);
+        if (construct.length > 0) {
+            if (Object.keys(Game.constructionSites).length < 60) {
+                for (const r of construct) {
+                    r.createConstructionSite(STRUCTURE_ROAD);
+                }
+            }
+        }
     }
 
     public report(): void {

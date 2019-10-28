@@ -73,7 +73,7 @@ export function getRoads(room: Room, pos: RoomPosition): RoomPosition[] {
     return ret;
 }
 
-function getUnbuiltRoads(pos: RoomPosition[]): RoomPosition[] {
+export function getUnbuiltRoads(pos: RoomPosition[]): RoomPosition[] {
     const ret = [];
     for (const r of pos) {
         if (!roomHelper.hasStructure(r, STRUCTURE_ROAD)) {

@@ -34,11 +34,13 @@ export class LinkMission extends Mission {
         ;
     }
     public work(): void {
+        let transController = false;
         for (const l of this.links) {
             if (!l.cooldown && l.energy > 200) {
                 // Need to send energy
-                if (this.cLink && this.cLink.energy <= 600) {
+                if (this.cLink && this.cLink.energy <= 300 && !transController) {
                     l.transferEnergy(this.cLink);
+                    transController = true;
                 } else {
                     if (this.sLink && this.sLink.energy <= 600) {
                         l.transferEnergy(this.sLink);
