@@ -29,9 +29,9 @@ export class BuilderMission extends Mission {
     }
     public initMission(): void {
         if (this.room) {
-            this.sites = this.room.find(FIND_MY_CONSTRUCTION_SITES,
+            this.sites = this.room.find(FIND_CONSTRUCTION_SITES,
                 { filter: (x: ConstructionSite) => x.structureType !== STRUCTURE_ROAD });
-            this.roadsites = this.room.find(FIND_MY_CONSTRUCTION_SITES,
+            this.roadsites = this.room.find(FIND_CONSTRUCTION_SITES,
                 { filter: (x: ConstructionSite) => x.structureType === STRUCTURE_ROAD });
             this.prioritySites = _.filter(this.sites, s => PRIORITY_BUILD.indexOf(s.structureType) > -1);
             // console.log(this.sites.length);
@@ -48,7 +48,7 @@ export class BuilderMission extends Mission {
         // }
         this.runBuilders();
         this.runPavers();
-        // this.runTowers();
+        this.runTowers();
     }
     public finalize(): void {
         ;
@@ -122,15 +122,17 @@ export class BuilderMission extends Mission {
 
     public runTowers() {
         if (!this.room) { return; }
-        if (Game.time % 20 !== 8) { return; }
+        if (Game.time % 5 !== 4) { return; }
         const towers: StructureTower[] = this.room.find<StructureTower>(FIND_MY_STRUCTURES, { filter: x => x.structureType === STRUCTURE_TOWER });
         if (towers && towers.length > 0) {
             const sites = this.room.find(FIND_STRUCTURES, { filter: x => x.hits < x.hitsMax });
-            if (sites && sites.length > 0) {
+            const hostiles = this.room.find(FIND_HOSTILE_CREEPS);
+            if (!(hostiles && hostiles.length > 0) && sites && sites.length > 0) {
                 for (const t of towers) {
                     if (t.energy === t.energyCapacity) {
                         if (this.towerRepairSite(t, sites)) {
-                            return;
+
+                            // return;
                         }
                     }
                 }
@@ -195,15 +197,18 @@ export class BuilderMission extends Mission {
             let action: boolean = false;
             action = creepActions.actionRecycle(b, action);
             if (creepActions.canWork(b)) {
-                action = creepActions.actionMoveToRoom(b, action, this.operation.roomName);
+                // action = creepActions.actionMoveToRoom(b, action, this.operation.roomName);
                 if (b.room.controller && b.room.controller.ticksToDowngrade < 2000) {
                     action = creepActions.actionUpgrade(b, action);
                 }
                 if (this.prioritySites.length > 0) {
                     action = creepActions.actionBuild(b, action, this.prioritySites[0]);
                 }
-                action = creepActions.actionBuild(b, action);
-                action = creepActions.actionRepair(b, action);
+                if (this.sites.length > 0) {
+                    action = creepActions.actionBuild(b, action, this.sites[0]);
+                }
+                action = creepActions.actionRepair(b, action, false);
+                action = creepActions.actionRepair(b, action, true);
                 // action = creepActions.actionUpgrade(b, action);
             } else {
                 /*if (this.remoteSpawning) {

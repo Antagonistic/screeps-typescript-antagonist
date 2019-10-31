@@ -7,6 +7,7 @@ import * as creepActions from "creeps/creepActions";
 import { UpgradeMission } from "./missions/UpgradeMission";
 
 import * as layoutManager from "rooms/layoutManager";
+import { MineralMission } from "./missions/MineralMission";
 
 export class LogisticsManager {
     public spawnRoom: SpawnRoom;
@@ -50,6 +51,11 @@ export class LogisticsManager {
                         dest.push(m.container.pos);
                     }
                 }
+                if (m instanceof MineralMission) {
+                    if (m.mineral) {
+                        dest.push(m.mineral.pos);
+                    }
+                }
             }
         }
         return dest;
@@ -66,7 +72,7 @@ export class LogisticsManager {
         let roads: RoomPosition[] = [];
         if (controllerOp) {
             const center = controllerOp.flag.pos;
-            roads = roads.concat(layoutManager.getRoads(this.room, center));
+            roads = roads.concat(layoutManager.getRoads(this.room));
             const destinations = this.getDestinations();
             for (const d of destinations) {
                 const road = layoutManager.pavePath(d, center, 3);

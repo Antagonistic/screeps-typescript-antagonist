@@ -10,7 +10,7 @@ export class GuardMission extends Mission {
     public towers: StructureTower[] = [];
     public hostiles: Creep[] = [];
     public hostileHealers: Creep[] = [];
-    public active: boolean = true;
+    public active: boolean = false;
 
     constructor(operation: Operation) {
         super(operation, "Guard");
@@ -57,6 +57,7 @@ export class GuardMission extends Mission {
 
 
     protected runTowers(): void {
+
         if (this.active) {
             for (const tower of this.towers) {
                 const hostileHealer: Creep | null = tower.pos.findClosestByRange(this.hostileHealers);
@@ -69,16 +70,16 @@ export class GuardMission extends Mission {
                     tower.attack(hostile);
                 }
             }
-        } else {
+        } /*else {
             for (const tower of this.towers) {
                 if (tower.energy > tower.energyCapacity / 2) {
-                    const structure = tower.pos.findClosestByRange(FIND_STRUCTURES, { filter: (x) => x.hits < x.hitsMax / 2 });
+                    const structure = tower.pos.findClosestByRange(FIND_STRUCTURES, { filter: (x) => x.hits < x.hitsMax / 2 && (x.structureType !== STRUCTURE_WALL && x.structureType !== STRUCTURE_RAMPART) });;
                     if (structure) {
                         tower.repair(structure);
                     }
                 }
             }
-        }
+    }*/
     }
 
     protected findHostiles() {

@@ -19,7 +19,7 @@ export function moveTo(creep: Creep, target: Structure | Creep | RoomPosition, e
     return Traveler.travelTo(creep, target, { range: 0, ignoreCreeps: false });
   } else {
     // return creep.moveTo(target, { range: 1 });
-    return Traveler.travelTo(creep, target, { range: 1 });
+    return Traveler.travelTo(creep, target, { range: 1, ignoreCreeps: false });
   }
 }
 
@@ -201,8 +201,8 @@ export function moveToWithdrawAll(creep: Creep, target: Structure): boolean {
   return true;
 }
 
-export function moveToWithdraw(creep: Creep, target: Structure): void {
-  if (creep.withdraw(target, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
+export function moveToWithdraw(creep: Creep, target: Structure, type: ResourceConstant = RESOURCE_ENERGY): void {
+  if (creep.withdraw(target, type) === ERR_NOT_IN_RANGE) {
     moveTo(creep, target.pos);
   }
 }
@@ -450,15 +450,15 @@ export function actionTransferStill(creep: Creep, action: boolean, target?: Stru
       if (!target) {
         target = Game.getObjectById<Structure | Creep>(creep.memory.target);
       }
-      if (target) {
-        if (creep.transfer(target, RESOURCE_ENERGY)) {
-          // transfer all resources
-          for (const resourceType in creep.carry) {
-            creep.transfer(target, resourceType as ResourceConstant);
-          }
-          return true;
+      if (target && creep.pos.isNearTo(target)) {
+        // if (creep.transfer(target, RESOURCE_ENERGY)) {
+        // transfer all resources
+        for (const resourceType in creep.carry) {
+          creep.transfer(target, resourceType as ResourceConstant);
         }
+        return true;
       }
+      // }
     }
   }
   return action;

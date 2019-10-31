@@ -180,7 +180,7 @@ export class MiningMission extends Mission {
             if (pos) {
                 const ret = pos.createConstructionSite(STRUCTURE_CONTAINER);
                 if (ret !== OK) {
-                    console.log("Placing mining box error: " + ret + " in " + this.operation.roomName);
+                    console.log("Placing mining box error: " + ret + " in " + this.operation.roomName + " pos : " + pos.x + "," + pos.y);
                 }
             }
             return;

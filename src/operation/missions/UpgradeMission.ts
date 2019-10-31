@@ -216,7 +216,7 @@ export class UpgradeMission extends Mission {
             const pos = this.haulPath()[2];
             const ret = pos.createConstructionSite(STRUCTURE_CONTAINER);
             if (ret !== OK) {
-                console.log("Placing upgrade box error: " + ret + " in " + this.operation.roomName);
+                console.log("Placing upgrade box error: " + ret + " in " + this.operation.roomName + " pos : " + pos.x + "," + pos.y);
             }
             return;
         }

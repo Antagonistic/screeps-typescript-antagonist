@@ -79,7 +79,7 @@ export class ControllerOperation extends Operation {
 
 
     public finalizeOperation() {
-        this.memory.emergency = this.emergency = (this.spawnRoom.room.find(FIND_MY_CREEPS).length < 4);
+        this.memory.emergency = this.emergency = (this.spawnRoom.room.find(FIND_MY_CREEPS).length < 4 && this.spawnRoom.availableSpawnEnergy < 500);
         // this.memory.emergency = ;
     }
 

@@ -132,7 +132,11 @@ export abstract class Mission {
     };
 
     public getLongCartBody = () => {
-        if (this.spawnRoom.energyCapacityAvailable >= 900) {
+        if (this.spawnRoom.energyCapacityAvailable >= 1800) {
+            return this.workerBody(1, 20, 11);
+        } else if (this.spawnRoom.energyCapacityAvailable >= 1500) {
+            return this.workerBody(1, 15, 8);
+        } else if (this.spawnRoom.energyCapacityAvailable >= 900) {
             // Huge hauler
             return this.workerBody(1, 10, 6);
         } else if (this.spawnRoom.energyCapacityAvailable >= 750) {

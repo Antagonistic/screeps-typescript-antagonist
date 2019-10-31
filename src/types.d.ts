@@ -41,6 +41,7 @@ interface RoomMemory {
   homelevel?: number;
   spawns?: string[];
   remote?: string[];
+  layout?: LayoutMemory[];
 
   towers: string[];
   mine_structures: number;
@@ -58,6 +59,11 @@ interface RoomMemory {
   spawnRoom?: string;
   controllerBattery?: string;
   avoid?: number;
+}
+
+interface LayoutMemory {
+  name: string;
+  flagName: string;
 }
 
 interface Memory {

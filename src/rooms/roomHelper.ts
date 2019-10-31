@@ -81,9 +81,9 @@ export function isPassible(pos: RoomPosition, ignoreCreeps?: boolean): boolean {
 };
 
 export function hasStructure(pos: RoomPosition, struct: BuildableStructureConstant): boolean {
-    const structures = pos.lookFor("structure");
+    const structures = pos.lookFor(LOOK_STRUCTURES);
     if (_.any(structures, x => x.structureType === struct)) { return true; }
-    const construct = pos.lookFor("constructionSite");
+    const construct = pos.lookFor(LOOK_CONSTRUCTION_SITES);
     if (_.any(construct, x => x.structureType === struct)) { return true; }
     if (struct !== "road" && struct !== "rampart" && struct !== "container") {
         const road = _.findLast(structures, x => x.structureType === STRUCTURE_ROAD);
@@ -97,7 +97,7 @@ export function hasStructure(pos: RoomPosition, struct: BuildableStructureConsta
 export function buildIfNotExist(pos: RoomPosition, struct: BuildableStructureConstant, name?: string): ScreepsReturnCode {
     if (hasStructure(pos, struct)) { return OK; }
     let ret: ScreepsReturnCode;
-    if (struct === STRUCTURE_POWER_SPAWN) {
+    if (struct === STRUCTURE_SPAWN) {
         if (!name) {
             name = "Spawn_" + pos.roomName + "_" + Memory.uuid++;
         }
