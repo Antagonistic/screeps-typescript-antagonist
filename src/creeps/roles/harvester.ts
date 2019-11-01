@@ -29,6 +29,9 @@ export function run(creep: Creep): void {
     action = creepActions.actionBuild(creep, action);
     action = creepActions.actionUpgrade(creep, action);
   } else {
+    if (creep.room.storage && creep.room.storage.store.energy > 1000) {
+      action = creepActions.actionGetStorageEnergy(creep, action);
+    }
     action = creepActions.actionGetDroppedEnergy(creep, action, true);
     action = creepActions.actionGetContainerEnergy(creep, action, 4);
     action = creepActions.actionGetSourceEnergy(creep, action, 2);
