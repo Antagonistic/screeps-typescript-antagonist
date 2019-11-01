@@ -10,9 +10,9 @@ import { log } from "./lib/logger/log";
 import { Empire } from "Empire";
 import { SpawnRoom } from "./rooms/SpawnRoom";
 
+import { MarketManager } from "market/MarketManager";
 import { LogisticsManager } from "operation/LogisticsManager";
 import * as layoutManager from "rooms/layoutManager";
-import { MarketManager } from "market/MarketManager";
 
 function getRoom(roomName: string) {
   return Game.rooms[roomName];
@@ -141,8 +141,8 @@ export const commandConsole = {
     }
     return "success";
   },
-  runMarket() {
-    return new MarketManager().run();
+  runMarket(realRun: boolean = false) {
+    return new MarketManager().run(realRun);
   },
   // spawnSoldier(roomName: string, subrole: string = "archer", roomTarget?: string): boolean {
   //   const room = Game.rooms[roomName];

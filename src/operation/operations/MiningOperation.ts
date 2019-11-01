@@ -3,7 +3,7 @@ import { BuilderMission } from "../missions/BuilderMission";
 import { MiningMission } from "../missions/MiningMission";
 import { ReserveMission } from "../missions/ReserveMission";
 import { ScoutMission } from "../missions/ScoutMission";
-import { Operation } from "./Operation";
+import { Operation, OperationPriority } from "./Operation";
 
 export class MiningOperation extends Operation {
     public sources: Source[] = [];
@@ -14,6 +14,7 @@ export class MiningOperation extends Operation {
         if (flag.room) {
             this.sources = _.sortBy(flag.room.find(FIND_SOURCES), (s: Source) => s.pos.getRangeTo(flag));
         }
+        this.priority = OperationPriority.Low;
         this.logistics = this.spawnRoom.logistics;
         this.logistics.registerOperation(this);
     }

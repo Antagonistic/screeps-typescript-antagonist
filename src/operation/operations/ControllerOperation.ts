@@ -1,4 +1,4 @@
-import { Operation } from "./Operation";
+import { Operation, OperationPriority } from "./Operation";
 
 import { log } from "lib/logger/log";
 import { BuilderMission } from "../missions/BuilderMission";
@@ -30,6 +30,7 @@ export class ControllerOperation extends Operation {
         this.emergency = this.memory.emergency === undefined ? true : this.memory.emergency;
         this.logistics = this.spawnRoom.logistics;
         this.logistics.registerOperation(this);
+        this.priority = OperationPriority.OwnedRoom;
 
         new RoomVisual(this.roomName).circle(this.rallyPos, { radius: 0.5, fill: "#FF2121" });
         // console.log("Emergency: " + this.emergency);
@@ -79,7 +80,7 @@ export class ControllerOperation extends Operation {
 
 
     public finalizeOperation() {
-        this.memory.emergency = this.emergency = (this.spawnRoom.room.find(FIND_MY_CREEPS).length < 4 && this.spawnRoom.availableSpawnEnergy < 500);
+        this.memory.emergency = this.emergency = (this.spawnRoom.room.find(FIND_MY_CREEPS).length < 4 && this.spawnRoom.availableSpawnEnergy < 900);
         // this.memory.emergency = ;
     }
 

@@ -72,6 +72,7 @@ export const loop = ErrorMapper.wrapLoop(() => {
 
   // Profiler.start("spawn");
   for (const op of operations) {
+    // console.log(op.name + " " + op.priority);
     op.spawn();
   }
   // Profiler.end("spawn");
