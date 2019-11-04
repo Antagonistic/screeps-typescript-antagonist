@@ -49,25 +49,27 @@ interface CreepMemory {
 }
 
 interface RoomMemory {
-  state: RoomStates;
+  // state: RoomStates;
   home?: string;
   homelevel?: number;
   spawns?: string[];
   remote?: string[];
   layout?: LayoutMemory[];
+  lastSeen?: Number;
+  nextScan?: Number;
 
-  towers: string[];
-  mine_structures: number;
-  stable_structures: boolean;
-  bufferChests: string[];
-  remoteRoom: string[];
-  mininglinks: string[] | undefined;
-  spawnlinks: string[] | undefined;
-  controllerlinks: string[] | undefined;
+  towers?: string[];
+  // mine_structures: number;
+  // stable_structures: boolean;
+  bufferChests?: string[];
+  remoteRoom?: string[];
+  mininglinks?: string[] | undefined;
+  spawnlinks?: string[] | undefined;
+  controllerlinks?: string[] | undefined;
   availBoost?: { [name: string]: string; };
-  rally: RoomPosition;
+  rally?: RoomPosition;
   battery?: string;
-  buildState: number;
+  buildState?: number;
   supervisor?: LightRoomPos[];
   spawnRoom?: string;
   controllerBattery?: string;
@@ -106,6 +108,7 @@ interface Memory {
 interface WorldMap {
   controlledRooms: { [roomName: string]: Room };
   init(): { [roomName: string]: SpawnRoom };
+  expandInfluence(spawn: SpawnRoom): string[];
 }
 
 // interface IMission {

@@ -29,6 +29,7 @@ export class MiningMission extends Mission {
     public container?: StructureContainer | StructureLink;
     public storage: StructureStorage | StructureSpawn | StructureLink;
     public isLink: boolean;
+    public wait: number;
 
     constructor(operation: Operation, name: string, source: Source, active: boolean = true) {
         super(operation, name);
@@ -39,6 +40,7 @@ export class MiningMission extends Mission {
         this.operation.stableOperation = this.operation.stableOperation && this.stableMission;
         this.isLink = false;
         this.storage = this.findStorage();
+        this.wait = this.memory.wait || 0;
         if (this.spawnRoom.room.storage && this.spawnRoom.room.storage.store.energy >= 900000) { this.active = false; }
     }
 
@@ -51,7 +53,7 @@ export class MiningMission extends Mission {
     }
     public spawn(): void {
         if (this.remoteSpawning && Game.cpu.bucket < 100) { return; } // Oh geez, CPU emergency, disable remote mining
-        this.miners = this.spawnRole(this.name, this.getMaxMiners, this.getMinerBody, { role: "miner" }, 10);
+        this.miners = this.spawnRole(this.name, this.getMaxMiners, this.getOversizedMinerBody, { role: "miner" }, 10);
 
         const cartBodyFunc = this.remoteSpawning ? this.getLongCartBody : this.getCartBody;
         const hasworkpart = _.contains(cartBodyFunc(), WORK);
@@ -98,6 +100,13 @@ export class MiningMission extends Mission {
             return this.workerBody(3, 1, 2);
         } else { return this.workerBody(2, 1, 1); }
     };
+
+    public getOversizedMinerBody = () => {
+        if (this.spawnRoom.energyCapacityAvailable >= 2000) {
+            return this.workerBody(12, 3, 12);
+        }
+        return this.getMinerBody();
+    }
 
     public getMaxCarts = () => {
         if (!this.active) { return 0; }
@@ -245,22 +254,22 @@ export class MiningMission extends Mission {
                     if (ret === ERR_NOT_IN_RANGE) {
                         creepActions.moveTo(creep, this.source.pos, true);
                     }
-                }
-                if (creep.carry.energy > 40) {
-                    if ((Game.time % 5 === 1 && Game.cpu.bucket > 800) || !this.container) {
-                        const haulers = creep.pos.findInRange(FIND_MY_CREEPS, 1, { filter: (c: Creep) => c.memory.role && c.memory.role !== "miner" });
-                        if (haulers.length > 0) {
-                            action = creepActions.actionTransferStill(creep, action, haulers[0]);
-                        } else {
-                            action = creepActions.actionBuildStill(creep, action);
-                            action = creepActions.actionRepairStill(creep, action);
-                            if (this.container) {
-                                action = creepActions.actionTransferStill(creep, action, this.container);
+                    if (creep.carry.energy > 40) {
+                        if ((Game.time % 5 === 1 && Game.cpu.bucket > 800) || !this.container) {
+                            const haulers = creep.pos.findInRange(FIND_MY_CREEPS, 1, { filter: (c: Creep) => c.memory.role && c.memory.role !== "miner" });
+                            if (haulers.length > 0) {
+                                action = creepActions.actionTransferStill(creep, action, haulers[0]);
+                            } else {
+                                action = creepActions.actionBuildStill(creep, action);
+                                action = creepActions.actionRepairStill(creep, action);
+                                if (this.container) {
+                                    action = creepActions.actionTransferStill(creep, action, this.container);
+                                }
                             }
-                        }
-                    } else {
-                        if (this.container) {
-                            action = creepActions.actionTransfer(creep, action, this.container);
+                        } else {
+                            if (this.container) {
+                                action = creepActions.actionTransfer(creep, action, this.container);
+                            }
                         }
                     }
                 }
@@ -308,8 +317,11 @@ export class MiningMission extends Mission {
             if (!this.operation.stableOperation) {
                 action = creepActions.actionFillEnergy(creep, action);
             }
-            action = creepActions.actionTransfer(creep, action, this.storage);
-            action = creepActions.actionFillEnergyStorage(creep, action);
+            if (this.storage.structureType === STRUCTURE_LINK) {
+                action = creepActions.actionTransfer(creep, action, this.storage);
+            } else {
+                action = creepActions.actionFillEnergyStorage(creep, action);
+            }
         }
         return action;
     }

@@ -21,11 +21,11 @@ export class ScoutMission extends Mission {
     }
     public work(): void {
         for (const creep of this.scouts) {
+            creep.room.memory.lastSeen = Game.time;
             if (!creep.memory.inPosition) {
                 if (creep.ticksToLive && creep.ticksToLive >= 1499) {
                     creep.notifyWhenAttacked(false);
                 }
-
                 if (creep.pos.isEqualTo(this.operation.flag.pos)) {
                     creep.memory.inPosition = true;
                 } else {

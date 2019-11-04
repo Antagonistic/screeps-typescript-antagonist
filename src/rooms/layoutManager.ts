@@ -43,6 +43,7 @@ export function layoutCoord(room: Room, x: number, y: number) {
 
 export function run(room: Room, rcl: number = -1, force: boolean = false): void {
     const layouts = getLayouts(room);
+    if (!room.memory.buildState) { room.memory.buildState = 0; }
     for (const l of layouts) {
         const layout = l.layout;
         const pos = l.pos;

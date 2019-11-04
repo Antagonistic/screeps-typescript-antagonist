@@ -39,9 +39,9 @@ export function run(creep: Creep): void {
 }
 
 export function getBody(room: Room): BodyPartConstant[] {
-  if (room.memory.stable_structures) {
-    return [WORK, WORK, CARRY, MOVE];
-  }
+  // if (room.memory.stable_structures) {
+  //  return [WORK, WORK, CARRY, MOVE];
+  // }
   /*if (room.energyCapacityAvailable >= 500) {
     return [MOVE, MOVE, MOVE, WORK, WORK, CARRY, CARRY, CARRY];
   } else if (room.energyCapacityAvailable >= 400) {

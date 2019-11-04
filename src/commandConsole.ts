@@ -32,7 +32,7 @@ export const commandConsole = {
   ping(): void {
     console.log("PONG!");
   },
-  getState(roomName: string = defaultRoom): void {
+  /*getState(roomName: string = defaultRoom): void {
     const room = Game.rooms[roomName];
     if (room) {
       const state: RoomStates = room.memory.state;
@@ -40,7 +40,7 @@ export const commandConsole = {
         console.log(state);
       }
     }
-  },
+  },*/
   report(): void {
     for (const _sR in global.emp.spawnRooms) {
       global.emp.spawnRooms[_sR].logistics.report();
@@ -147,29 +147,6 @@ export const commandConsole = {
   fireSale(realRun: boolean = false, roomName?: string) {
     return new MarketManager().fireSale(realRun, roomName);
   },
-  // spawnSoldier(roomName: string, subrole: string = "archer", roomTarget?: string): boolean {
-  //   const room = Game.rooms[roomName];
-  //   if (room) {
-  //     const spawn: SpawnRoom = empire.spawnRooms.W9N38;
-  //     if (spawn && spawn.availableSpawnCount) {
-  //       // const spawn: Spawn = spawns[0];
-  //       if (spawn.availableSpawnCount) {
-  //         let creepRoom: Room = room;
-  //         if (roomTarget) {
-  //           const rT: Room = Game.rooms[roomTarget];
-  //           if (rT && Game.map.isRoomAvailable(roomTarget)) {
-  //             creepRoom = rT;
-  //           }
-  //         }
-  //         if (soldier.build(creepRoom, spawn, subrole, "null", false)) {
-  //           log.info("Soldier spawned: " + subrole);
-  //           return true;
-  //         }
-  //       }
-  //     }
-  //   }
-  //   return false;
-  // },
   assignRoom(creepId: string, roomName: string) {
     const creep: Creep | null = Game.getObjectById(creepId);
     if (creep) {
@@ -183,23 +160,12 @@ export const commandConsole = {
       }
     }
     return false;
+  },
+  testExpand() {
+    for (const _sR in global.emp.spawnRooms) {
+      const influence = global.emp.map.expandInfluence(global.emp.spawnRooms[_sR]);
+      console.log(_sR + "  " + influence.length);
+    }
+    return "success";
   }
-  // newSquad() {
-  //   if (!Memory.squads) {
-  //     Memory.squads = {};
-  //   }
-  //   const squad: Squad = { name: "squad1", composition: { archer: 2, brawler: 1 }, members: [], assignedRoom: "W22N34" };
-  //   console.log("Squad " + squad.name + " created.");
-  //   Memory.squads[squad.name] = squad;
-  // },
-  // clearSquads() {
-  //   for (const name in Memory.creeps) {
-  //     if (Game.creeps[name]) {
-  //       if (Memory.creeps[name].squad) {
-  //         Memory.creeps[name].recycle = true;
-  //       }
-  //     }
-  //   }
-  //   Memory.squads = {};
-  // }
 };

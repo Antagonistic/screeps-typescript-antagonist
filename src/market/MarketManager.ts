@@ -65,9 +65,9 @@ export class MarketManager {
 
                 if (realRun) {
                     const ret = Game.market.deal(order.id, order.amount, order.closestTerm);
-                    console.log("Trading " + (order.amount) + " energy from " + order.closestTerm + " cost " + order.cost + " score " + order.score.toFixed(2) + ": " + ret);
+                    console.log("Trading " + (order.amount) + " energy from " + order.closestTerm + " cost " + order.cost + " score " + order.score.toFixed(3) + ": " + ret);
                 } else {
-                    console.log("Trading " + (order.amount) + " energy from " + order.closestTerm + " cost " + order.cost + " score " + order.score.toFixed(2));
+                    console.log("Trading " + (order.amount) + " energy from " + order.closestTerm + " cost " + order.cost + " score " + order.score.toFixed(3));
                 }
 
             }
@@ -134,7 +134,7 @@ export class MarketManager {
                         ret = Game.market.deal(orderID, mineralAmount, t.term.room.name);
                     }
                     if (choice === "order") {
-                        ret = Game.market.createOrder(ORDER_SELL, rT as ResourceConstant, price, mineralAmount, t.term.room.name);
+                        ret = Game.market.createOrder(ORDER_SELL, rT as ResourceConstant, price * 0.9, mineralAmount, t.term.room.name);
                     }
                     response = response + ": " + ret;
                 }

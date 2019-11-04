@@ -753,7 +753,7 @@ export function actionGetContainerEnergy(creep: Creep, action: boolean,
     // console.log("energyCont: " + energyCont);
     if (energyCont && energyCont.length) {
       if (!useBuffer) {
-        const buf: string[] = creep.room.memory.bufferChests;
+        const buf: string[] | undefined = creep.room.memory.bufferChests;
         if (buf && buf.length) {
           const nonBuffer = _.filter(energyCont, (x) => !_.includes(buf, x.id));
           if (nonBuffer && nonBuffer.length) {

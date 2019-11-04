@@ -1,7 +1,10 @@
+import { profile } from "Profiler";
 import { SpawnRoom } from "./SpawnRoom";
 
+@profile
 export class WorldMap implements WorldMap {
   public controlledRooms: { [roomName: string]: Room } = {};
+  public sphere: string[] = [];
 
   // public foesMap: {[roomName: string]: RoomMemory } = {};
   // public foesRooms: Room[] = [];
@@ -14,44 +17,78 @@ export class WorldMap implements WorldMap {
 
       if (room) {
         // this.updateMemory(room);
+        room.memory.lastSeen = Game.time;
         if (room.controller && room.controller.my) {
-          // this.radar(room);
           this.controlledRooms[roomName] = room;
           if (room.find(FIND_MY_SPAWNS).length > 0) {
             spawnGroups[roomName] = new SpawnRoom(room);
+            if (room.memory.remoteRoom) { this.sphere = this.sphere.concat(room.memory.remoteRoom); }
+            if (Game.time % 1000 === 673) { this.expandInfluence(spawnGroups[roomName]); }
           }
         }
       }
+    }
+    for (const _sR in spawnGroups) {
+      this.doObserver(spawnGroups[_sR].room);
     }
     return spawnGroups;
   }
 
 
-  public expandInfluence(spawn: SpawnRoom) {
+  public expandInfluence(spawn: SpawnRoom): string[] {
     const originName = spawn.room.name;
     const level = spawn.rclLevel;
     const neighbors = _.values(Game.map.describeExits(originName)) as string[];
     let range = 1;
     if (level >= 6) { range = 2; }
+    if (level >= 8) { range = 4; }
     const rooms = WorldMap.findRoomsInRange(originName, range);
     const remoteList = [];
     for (const r of rooms) {
-      remoteList.push(r);
-      if (!Memory.rooms[r].spawns) { Memory.rooms[r].spawns = []; };
+      // remoteList.push(r);
+      if (!Memory.rooms[r]) { Memory.rooms[r] = {}; }
+      if (Game.rooms[r]) { Memory.rooms[r].lastSeen = Game.time; }
+      // if (!Memory.rooms[r].spawns) { Memory.rooms[r].spawns = []; };
       if (Memory.rooms[r].home) {
         if (Memory.rooms[r].home === originName) {
           Memory.rooms[r].homelevel = level;
+          remoteList.push(r);
           continue;
+        } else {
+          const oldRoute = Game.map.findRoute(r, Memory.rooms[r].home!);
+          const newRoute = Game.map.findRoute(r, spawn.room);
+          if (newRoute !== -2 && oldRoute !== -2) {
+            if (newRoute.length < oldRoute.length) {
+              Memory.rooms[r].home = originName;
+              Memory.rooms[r].homelevel = level;
+              remoteList.push(r);
+            }
+          }
         }
       } else {
-        if (Memory.rooms[r].homelevel! < level) {
-          Memory.rooms[r].home = originName;
-          Memory.rooms[r].homelevel = level;
-          continue;
-        }
+        Memory.rooms[r].home = originName;
+        Memory.rooms[r].homelevel = level;
+        remoteList.push(r);
       }
-
     }
+    spawn.room.memory.remoteRoom = remoteList;
+    return remoteList;
+  }
+
+  public doObserver(room: Room) {
+    if (!room.controller || !room.controller.my || room.controller.level < 8) { return; }
+    const obsrv = room.find<StructureObserver>(FIND_MY_STRUCTURES, { filter: x => x.structureType === STRUCTURE_OBSERVER });
+    if (!obsrv || obsrv.length === 0) { return; }
+    if (!room.memory.nextScan) { room.memory.nextScan = 0; }
+    if (room.memory.nextScan > Game.time) { return; }
+    // console.log('NextScan: ' + room.name + ' ' + this.sphere.length);
+    const _ob = obsrv[0];
+    if (!this.sphere) { return; }
+    const target = _.findLast(this.sphere, x => (Memory.rooms[x].lastSeen || 0) < Game.time - 1000);
+    if (target) {
+      console.log('Observing room ' + target + ': ' + _ob.observeRoom(target));
+    }
+    room.memory.nextScan = Game.time + _.random(25, 55);
   }
 
   /**
