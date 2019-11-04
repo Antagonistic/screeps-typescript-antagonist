@@ -144,6 +144,9 @@ export const commandConsole = {
   runMarket(realRun: boolean = false) {
     return new MarketManager().run(realRun);
   },
+  fireSale(realRun: boolean = false, roomName?: string) {
+    return new MarketManager().fireSale(realRun, roomName);
+  },
   // spawnSoldier(roomName: string, subrole: string = "archer", roomTarget?: string): boolean {
   //   const room = Game.rooms[roomName];
   //   if (room) {

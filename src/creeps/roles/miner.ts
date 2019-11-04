@@ -98,7 +98,7 @@ export function build(room: Room, spawn: SpawnRoom, sources: Source[], creeps: C
       case RoomStates.TRANSITION:
       case RoomStates.STABLE:
         for (const source of sources) {
-          const linkMining: boolean = (room.memory.mininglinks != undefined && room.memory.mininglinks.length > 0);
+          const linkMining: boolean = (room.memory.mininglinks !== undefined && room.memory.mininglinks.length > 0);
           const _miner = _.filter(creeps, (creep) =>
             creep.memory.role === "miner" &&
             creep.memory.sourceID === source.id);

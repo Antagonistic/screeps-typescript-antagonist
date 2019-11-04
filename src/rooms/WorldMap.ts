@@ -1,6 +1,6 @@
 import { SpawnRoom } from "./SpawnRoom";
 
-export class WorldMap implements IWorldMap {
+export class WorldMap implements WorldMap {
   public controlledRooms: { [roomName: string]: Room } = {};
 
   // public foesMap: {[roomName: string]: RoomMemory } = {};

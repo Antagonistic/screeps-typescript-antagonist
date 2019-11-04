@@ -25,13 +25,13 @@ export function resolve(fileLine: string): SourcePos {
   const original = Log.sourceMap.originalPositionFor(pos);
   const line = `${split[1]} (${original.source}:${original.line})`;
   const out = {
-      caller: split[1],
-      compiled: fileLine,
-      final: line,
-      line: original.line,
-      original: line,
-      path: original.source,
-    };
+    caller: split[1],
+    compiled: fileLine,
+    final: line,
+    line: original.line,
+    original: line,
+    path: original.source,
+  };
 
   return out;
 }
@@ -44,12 +44,12 @@ function makeVSCLink(pos: SourcePos): string {
   return link(vscUrl(pos.path, `L${pos.line.toString()}`), pos.original);
 }
 
-function color(str: string, color: string): string {
-  return `<font color='${color}'>${str}</font>`;
+function color(str: string, _color: string): string {
+  return `<font color='${_color}'>${str}</font>`;
 }
 
-function tooltip(str: string, tooltip: string): string {
-  return `<abbr title='${tooltip}'>${str}</abbr>`;
+function tooltip(str: string, _tooltip: string): string {
+  return `<abbr title='${_tooltip}'>${str}</abbr>`;
 }
 
 function vscUrl(path: string, line: string): string {
@@ -89,11 +89,13 @@ export class Log {
   private _maxFileString: number = 0;
 
   constructor() {
-    _.defaultsDeep(Memory, { log: {
-      level: Config.LOG_LEVEL,
-      showSource: Config.LOG_PRINT_LINES,
-      showTick: Config.LOG_PRINT_TICK,
-    }});
+    _.defaultsDeep(Memory, {
+      log: {
+        level: Config.LOG_LEVEL,
+        showSource: Config.LOG_PRINT_LINES,
+        showTick: Config.LOG_PRINT_TICK,
+      }
+    });
   }
 
   public trace(error: Error): Log {

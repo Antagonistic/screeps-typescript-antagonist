@@ -3,7 +3,7 @@ import * as Config from "config/config";
 import { log } from "lib/logger/log";
 import { LogisticsManager } from "operation/LogisticsManager";
 
-export class SpawnRoom implements ISpawnRoom {
+export class SpawnRoom implements SpawnRoom {
   public spawns: StructureSpawn[];
   public room: Room;
   public availableSpawnCount: number;

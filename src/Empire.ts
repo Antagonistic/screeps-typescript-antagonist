@@ -5,7 +5,7 @@ import { WorldMap } from "./rooms/WorldMap";
 // export let empire: Empire;
 
 @profile
-export class Empire implements IEmpire {
+export class Empire implements Empire {
   public defaultSpawn: SpawnRoom;
   public spawnRooms: { [roomName: string]: SpawnRoom };
   public map: WorldMap;

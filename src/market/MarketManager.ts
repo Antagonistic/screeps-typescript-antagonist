@@ -40,7 +40,7 @@ export class MarketManager {
             for (const o of orders) {
                 // console.log(JSON.stringify(o));
                 if (!o.roomName) { continue; }
-                const _t = _.min(terms, x => Game.map.getRoomLinearDistance(x.term.room.name, o.roomName!) && x.storedEnergy > 5000)
+                const _t = _.min(terms, x => Game.map.getRoomLinearDistance(x.term.room.name, o.roomName!) && x.storedEnergy > 10000)
                 if (_t) {
                     let amount = Math.min(o.remainingAmount, energyAmountSell, _t.storedEnergy);
                     let cost = Game.market.calcTransactionCost(amount, o.roomName, _t.term.room.name);
@@ -49,7 +49,7 @@ export class MarketManager {
                         amount = Math.max(_t.storedEnergy * overhead - 1000, 10);
                         cost = Game.market.calcTransactionCost(amount, o.roomName, _t.term.room.name);
                     }
-                    amount = Math.min(amount)
+
                     const score = (amount / (amount + cost)) * o.price * 10000;
                     const _o: FilteredOrder = { price: o.price, amount, room: o.roomName, id: o.id, closestTerm: _t.term.room.name, storedEnergy: _t.storedEnergy, cost, score };
                     _orders.push(_o);
@@ -81,13 +81,75 @@ export class MarketManager {
         for (const _sr in global.emp.spawnRooms) {
             const sr = global.emp.spawnRooms[_sr];
             if (sr.room.terminal) {
-                const mineral = _.first(sr.room.find(FIND_MINERALS));
-                const storedEnergy = sr.room.storage ? sr.room.storage.store.energy : 0;
+                const mineral: Mineral = _.first(sr.room.find(FIND_MINERALS));
+                const storedEnergy = sr.room.terminal ? sr.room.terminal.store.energy : 0;
                 if (mineral) {
-                    ret.push({ term: sr.room.terminal, minedMineral: mineral.mineralType, storedEnergy });
+                    const item: TermData = { term: sr.room.terminal, minedMineral: mineral.mineralType, storedEnergy };
+                    ret.push(item);
                 }
             }
         }
+        // console.log(JSON.stringify(ret));
         return ret;
+    }
+
+    public getOrders(term?: StructureTerminal): Order[] {
+        if (term) {
+            const orders = _.where(Object.values(Game.market.orders), (x: Order) => x.active === true && x.roomName === term.room.name);
+            return orders;
+        } else {
+            const orders = _.where(Object.values(Game.market.orders), (x: Order) => x.active === true);
+            return orders;
+        }
+    }
+
+    public fireSale(realRun: boolean = false, roomName?: string) {
+        const terms = this.getTerminals();
+        for (const t of terms) {
+            if (roomName && t.term.room.name !== roomName) { continue; }
+            const myorders = this.getOrders(t.term);
+            for (const rT in t.term.store) {
+                if (rT === RESOURCE_ENERGY) { continue; }
+                let choice = "none";
+                let price = 0.0;
+                let mineralAmount = t.term.store[rT as ResourceConstant];
+                if (!mineralAmount) { continue; }
+                const myO = _.findLast(myorders, x => x.resourceType === rT);
+                if (myO) {
+                    mineralAmount = mineralAmount - myO.amount;
+                }
+                price = this.calcPrice(rT as ResourceConstant);
+                // const resorders = Game.market.getAllOrders({ type: ORDER_BUY, resourceType: rT as ResourceConstant });
+                const resorders = Game.market.getAllOrders(x => x.type === ORDER_BUY && x.resourceType === rT && x.remainingAmount > 0);
+                let orderID = "";
+                if (resorders && resorders.length > 0) {
+                    const _rO = _.max(resorders, x => x.price);
+                    if (_rO.price > price * 0.8) { choice = "deal"; orderID = _rO.id } else { choice = "order"; }
+                    // console.log(rT + " " + _rO.id + " " + _rO.price);
+                }
+                let response = (rT.padEnd(6) + " " + (mineralAmount + "").padStart(8) + "   " + (price.toFixed(3) + "").padStart(4) + "  " + choice.padEnd(7));
+                if (realRun && mineralAmount > 0) {
+                    let ret: ScreepsReturnCode = 0;
+                    if (choice === "deal") {
+                        ret = Game.market.deal(orderID, mineralAmount, t.term.room.name);
+                    }
+                    if (choice === "order") {
+                        ret = Game.market.createOrder(ORDER_SELL, rT as ResourceConstant, price, mineralAmount, t.term.room.name);
+                    }
+                    response = response + ": " + ret;
+                }
+                console.log(response);
+            }
+        }
+    }
+
+    public calcPrice(res: ResourceConstant): number {
+        const hist = Game.market.getHistory(res);
+        if (!hist || hist.length === 0) { return minEnergyPrice; }
+        const num = hist.length;
+        if (num === undefined) { return minEnergyPrice; }
+        const sum = _.sum(hist, "avgPrice");
+
+        return Math.max((sum / num), minEnergyPrice);
     }
 }

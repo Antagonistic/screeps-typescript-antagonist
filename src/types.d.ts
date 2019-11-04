@@ -1,17 +1,30 @@
-//import "./Profiler/typings"
+// import "./Profiler/typings"
 
 // example declaration file - remove these and add your own custom typings
 declare namespace NodeJS {
   interface Global {
     log: any;
     cc: any;
-    emp: IEmpire;
+    emp: Empire;
     Profiler: Profiler;
   }
 }
 
 interface Game {
   operations: { [opName: string]: any }
+}
+
+interface MarketHistory {
+  resourceType: ResourceConstant;
+  date: string;
+  transactions: number;
+  volume: number;
+  avgPrice: number;
+  stddevPrice: number;
+}
+
+interface Market {
+  getHistory(resource: ResourceConstant): MarketHistory[];
 }
 
 // memory extension samples
@@ -90,9 +103,9 @@ interface Memory {
   period: number;
 }*/
 
-interface IWorldMap {
+interface WorldMap {
   controlledRooms: { [roomName: string]: Room };
-  init(): { [roomName: string]: ISpawnRoom };
+  init(): { [roomName: string]: SpawnRoom };
 }
 
 // interface IMission {
@@ -114,7 +127,7 @@ interface IWorldMap {
 //   init(): void;
 // }
 
-interface ISpawnRoom {
+interface SpawnRoom {
   spawns: StructureSpawn[];
   room: Room;
   availableSpawnCount: number;
@@ -123,11 +136,11 @@ interface ISpawnRoom {
   createCreep(bodyParts: string[] | null, role: string, memory?: any, room?: Room, creepName?: string): boolean;
 }
 
-interface IEmpire {
-  spawnRooms: { [roomName: string]: ISpawnRoom };
-  map: IWorldMap;
+interface Empire {
+  spawnRooms: { [roomName: string]: SpawnRoom };
+  map: WorldMap;
   // operations: { [operationName: string]: IOperation };
-  //init(): void;
+  // init(): void;
   getSpawnRoom(roomName: string): any;
 }
 
