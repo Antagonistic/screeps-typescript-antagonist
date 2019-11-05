@@ -1,5 +1,5 @@
+import * as creepActions from "creeps/creepActions";
 import { profile } from "Profiler";
-import * as harvester from "../../creeps/roles/harvester";
 import { Operation } from "../operations/Operation";
 import { Mission } from "./mission";
 
@@ -36,10 +36,25 @@ export class EmergencyMission extends Mission {
         }
     }
 
-
     public harvestWork(c: Creep): void {
-        harvester.run(c);
+        let action: boolean = false;
+        action = creepActions.actionRecycle(c, action);
+
+        if (creepActions.canWork(c)) {
+            action = creepActions.actionFillEnergy(c, action);
+            if (c.room.controller && c.room.controller.ticksToDowngrade < 2000) {
+                action = creepActions.actionUpgrade(c, action);
+            }
+            action = creepActions.actionRepair(c, action, false, 8);
+            action = creepActions.actionBuild(c, action);
+            action = creepActions.actionUpgrade(c, action);
+        } else {
+            if (c.room.storage && c.room.storage.store.energy > 1000) {
+                action = creepActions.actionGetStorageEnergy(c, action);
+            }
+            action = creepActions.actionGetDroppedEnergy(c, action, true);
+            action = creepActions.actionGetContainerEnergy(c, action, 4);
+            action = creepActions.actionGetSourceEnergy(c, action, 2);
+        }
     }
-
-
 }

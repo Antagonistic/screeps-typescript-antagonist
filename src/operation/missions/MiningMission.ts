@@ -4,9 +4,6 @@ import { Mission } from "./mission";
 
 import * as creepActions from "creeps/creepActions";
 
-import * as hauler from "creeps/roles/hauler";
-import * as miner from "creeps/roles/miner";
-
 import { posix } from "path";
 import { profile } from "Profiler";
 import * as roomHelper from "rooms/roomHelper"

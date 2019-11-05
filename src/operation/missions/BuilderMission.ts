@@ -2,7 +2,6 @@ import { Operation } from "../operations/Operation";
 import { Mission } from "./Mission";
 
 import * as creepActions from "creeps/creepActions";
-import * as builder from "creeps/roles/builder";
 import { profile } from "Profiler";
 
 export const PRIORITY_BUILD: string[] = [
