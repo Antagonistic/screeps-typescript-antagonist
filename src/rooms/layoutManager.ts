@@ -1,26 +1,58 @@
 import { PLAIN_COST, SWAMP_COST } from "config/config";
 import { Traveler } from "utils/Traveler";
+import { dynaControllerLayout } from "./layout/dynaControllerLayout";
+import { dynaSourceLayout } from "./layout/dynaSourceLayout";
 import { headLayout } from "./layout/headLayout";
 import { noLayout } from "./layout/noLayout";
 import { sealedLayout } from "./layout/sealedLayout"
 import * as roomHelper from "./roomHelper"
 
-export function getLayouts(room: Room): Array<{ pos: RoomPosition, layout: RCLRoomLayout }> {
-    const ret: Array<{ pos: RoomPosition, layout: RCLRoomLayout }> = [];
+export interface SingleLayout {
+    pos: LightRoomPos;
+    layout: RCLRoomLayout;
+}
+
+export function getLayouts(room: Room): SingleLayout[] {
+    const ret: SingleLayout[] = [];
     if (!room.memory.layout) { return ret; }
     for (const l of room.memory.layout) {
         const flag = Game.flags[l.flagName];
+        let layout;
         if (flag) {
             switch (l.name) {
                 case "sealed":
-                    ret.push({ pos: flag.pos, layout: sealedLayout });
+                    layout = sealedLayout;
+                    // ret.push({ pos: flag.pos, layout: sealedLayout });
                     break;
                 case "head":
-                    ret.push({ pos: flag.pos, layout: headLayout });
+                    layout = headLayout;
+                    // ret.push({ pos: flag.pos, layout: headLayout });
                     break;
                 default:
-                    ret.push({ pos: flag.pos, layout: noLayout });
+                    layout = noLayout;
+                // ret.push({ pos: flag.pos, layout: noLayout });
             }
+        }
+        if (layout) {
+            const x = layout.anchor.x - flag.pos.x;
+            const y = layout.anchor.y - flag.pos.y;
+            ret.push({ pos: { x, y }, layout });
+        }
+        if (room.controller) {
+            const pos = { x: 0, y: 0 };
+            ret.push({ pos, layout: dynaControllerLayout(room) })
+        }
+        const sources = room.find(FIND_SOURCES);
+        if (sources && sources.length > 0) {
+            for (const s of sources) {
+                const pos = { x: 0, y: 0 };
+                ret.push({ pos, layout: dynaSourceLayout(room, s) })
+            }
+        }
+        const mineral = room.find(FIND_MINERALS);
+        if (mineral && mineral.length > 0) {
+            const pos = { x: 0, y: 0 };
+            ret.push({ pos, layout: dynaSourceLayout(room, mineral[0]) })
         }
     }
     return ret;
@@ -31,8 +63,8 @@ export function layoutCoord(room: Room, x: number, y: number) {
     if (layout && layout.length > 0) {
         const _layout = layout[0];
         const pos = _layout.pos;
-        const _x = x + _layout.layout.anchor.x - pos.x;
-        const _y = y + _layout.layout.anchor.y - pos.y;
+        const _x = x - pos.x;
+        const _y = y - pos.y;
         return new RoomPosition(_x, _y, room.name);
     } else {
         const _x = x;
@@ -49,21 +81,23 @@ export function run(room: Room, rcl: number = -1, force: boolean = false): void 
         const pos = l.pos;
         if (rcl === -1 && room.controller) {
             let ret: ScreepsReturnCode = OK;
+            console.log("layout building");
             for (let i = 1; i < room.controller.level + 1; i++) {
                 if (force || !room.memory.buildState || room.memory.buildState < i) {
-                    ret = runConstruct(room, layout[i], layout.anchor, pos);
+                    ret = runConstruct(room, layout[i], pos);
                     if (ret !== OK) {
                         console.log("Error building for RCL " + i);
                         // continue;
                     } else {
                         if (room.memory.buildState < i) { room.memory.buildState = i; };
+                        console.log("RCL " + i + " built");
                     }
                 }
             }
         } else {
             if (force || !room.memory.buildState || room.memory.buildState < rcl) {
                 if (layout[rcl]) {
-                    if (runConstruct(room, layout[rcl], layout.anchor, pos) === OK) {
+                    if (runConstruct(room, layout[rcl], pos) === OK) {
                         if (room.memory.buildState < rcl) { room.memory.buildState = rcl; };
                     }
                 };
@@ -72,15 +106,15 @@ export function run(room: Room, rcl: number = -1, force: boolean = false): void 
     }
 };
 
-function runConstruct(room: Room, layout: RoomLayout, anchor: LightRoomPos, pos: RoomPosition): ScreepsReturnCode {
+function runConstruct(room: Room, layout: RoomLayout, pos: LightRoomPos): ScreepsReturnCode {
     let ret: ScreepsReturnCode = OK;
     if (layout) {
         for (const key in layout.build) {
             const _key = key as BuildableStructureConstant;
             const build = layout.build[key];
             for (const p of build) {
-                const _x = p.x - anchor.x + pos.x;
-                const _y = p.y - anchor.y + pos.y;
+                const _x = p.x - pos.x;
+                const _y = p.y - pos.y;
                 const _ret = roomHelper.buildIfNotExist(new RoomPosition(_x, _y, room.name), key as BuildableStructureConstant);
                 if (_ret !== OK) {
                     console.log("Error construct: " + ret);
@@ -94,8 +128,8 @@ function runConstruct(room: Room, layout: RoomLayout, anchor: LightRoomPos, pos:
                 room.memory.supervisor = [];
                 for (const sup of layout.memory.supervisor) {
 
-                    const _x = sup.x - anchor.x + pos.x;
-                    const _y = sup.y - anchor.y + pos.y;
+                    const _x = sup.x - pos.x;
+                    const _y = sup.y - pos.y;
                     room.memory.supervisor.push({ x: _x, y: _y });
                 }
             }
@@ -112,8 +146,8 @@ export function getRoads(room: Room): RoomPosition[] {
         const pos = l.pos;
         const anchor = layout.anchor;
         for (const r of layout.road) {
-            const _x = r.x - anchor.x + pos.x;
-            const _y = r.y - anchor.y + pos.y;
+            const _x = r.x - pos.x;
+            const _y = r.y - pos.y;
             ret.push(new RoomPosition(_x, _y, room.name));
         }
     }
@@ -142,11 +176,5 @@ export function pavePath(start: RoomPosition, finish: RoomPosition, rangeAllowan
         }
     }
     return ret;
-}
-
-
-export function visual(room: Room): void {
-    const layout = sealedLayout;
-
 }
 

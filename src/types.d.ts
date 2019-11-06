@@ -7,7 +7,15 @@ declare namespace NodeJS {
     cc: any;
     emp: Empire;
     Profiler: Profiler;
+
+    lastMemoryTick: number | undefined;
+    LastMemory: any;
+    Memory: any;
   }
+}
+
+interface RawMemory {
+  _parsed: any;
 }
 
 interface Game {
@@ -46,6 +54,7 @@ interface CreepMemory {
   inPosition?: boolean;
   _trav?: any;
   _travel?: any;
+  oversize?: number;
 }
 
 interface RoomMemory {
@@ -57,6 +66,7 @@ interface RoomMemory {
   layout?: LayoutMemory[];
   lastSeen?: Number;
   nextScan?: Number;
+  visual?: boolean;
 
   towers?: string[];
   // mine_structures: number;

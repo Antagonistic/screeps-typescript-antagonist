@@ -49,7 +49,7 @@ export const commandConsole = {
   runBuild(roomName: string = defaultRoom, rcl: number = -1): void {
     const room = getRoom(roomName);
     if (room) {
-      layoutManager.run(room, rcl);
+      layoutManager.run(room, rcl, true);
     }
   },
   runBuildRoad(roomName: string = defaultRoom) {
@@ -167,5 +167,19 @@ export const commandConsole = {
       console.log(_sR + "  " + influence.length);
     }
     return "success";
+  },
+  vis(roomName: string = defaultRoom) {
+    const room = getRoom(roomName);
+    if (!room) {
+      return "no room";
+    }
+    room.memory.visual = true;
+    return "success";
+  },
+  visOff() {
+    for (const m in Memory.rooms) {
+      const mem = Memory.rooms[m];
+      mem.visual = undefined;
+    }
   }
 };

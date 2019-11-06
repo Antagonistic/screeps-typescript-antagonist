@@ -36,13 +36,15 @@ export class GuardMission extends Mission {
         if (!this.room) { return 0; }
         const hostiles = this.room.find(FIND_HOSTILE_CREEPS);
         if (hostiles && hostiles.length) {
-            return 1;
+            return hostiles.length;
         }
         return 0;
     }
 
     protected defenderBody = (): BodyPartConstant[] => {
-        return this.configBody({ [TOUGH]: 1, [RANGED_ATTACK]: 1, [MOVE]: 2 });
+        const bodyUnit = this.configBody({ [TOUGH]: 1, [ATTACK]: 5, [MOVE]: 6 });
+        const maxUnits = Math.min(this.spawnRoom.maxUnits(bodyUnit), 4);
+        return this.configBody({ [TOUGH]: maxUnits, [ATTACK]: maxUnits * 5, [MOVE]: maxUnits * 6 });
     }
 
     public runGuards(): void {

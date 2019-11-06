@@ -2,7 +2,6 @@
 
 import * as Config from "./config/config";
 
-import * as CreepManager from "creeps/creepManager";
 // import * as FlagManager from "./components/flags/flagManager";
 import * as OperationManager from "operation/operationManager";
 import * as StateManager from "rooms/stateManager";
@@ -22,6 +21,7 @@ import { commandConsole } from "./commandConsole";
 
 // var Traveler = require('Traveler');
 
+import { LayoutVisualizer } from "rooms/layoutVisualizer";
 import { Traveler } from "utils/Traveler"
 
 /*if (Config.USE_PROFILER) {
@@ -49,11 +49,28 @@ function initMemory() {
 
 initMemory();
 
+global.lastMemoryTick = undefined;
+
+function tryInitSameMemory() {
+  if (global.lastMemoryTick && global.LastMemory && Game.time === (global.lastMemoryTick + 1)) {
+    delete global.Memory
+    global.Memory = global.LastMemory
+    RawMemory._parsed = global.LastMemory
+  } else {
+    // tslint:disable-next-line:no-unused-expression
+    Memory;
+    global.LastMemory = RawMemory._parsed
+  }
+  global.lastMemoryTick = Game.time
+}
+
 // console.log(__PROFILER_ENABLED__);
 
 // When compiling TS to JS and bundling with rollup, the line numbers and file names in error messages change
 // This utility uses source maps to get the line numbers and file names of the original, TS source code
 export const loop = ErrorMapper.wrapLoop(() => {
+  tryInitSameMemory();
+
   if (Game.time % 10 === 0) {
     console.log(`Current game tick is ${Game.time}`);
   }
@@ -93,27 +110,13 @@ export const loop = ErrorMapper.wrapLoop(() => {
   }
   // Profiler.end("final");
 
-  /*
+
   for (const i in Game.rooms) {
     const room: Room = Game.rooms[i];
-
-    // spawnAction = CreepManager.run(room, creeps, spawnAction);
-    if (Game.time % 20 === 0) {
-      try {
-        StateManager.run(room);
-      } catch (e) {
-        console.log("Error running statemanager!");
-        console.log(e.stack);
-      }
-    }
-    try {
-      StructureManager.run(room);
-    } catch (e) {
-      console.log("Error running structuremanager!");
-      console.log(e.stack);
+    if (room.memory.visual) {
+      new LayoutVisualizer(room.name).run();
     }
   }
-  */
 
   // Automatically delete memory of missing creeps
   for (const name in Memory.creeps) {

@@ -70,6 +70,15 @@ export class SpawnRoom implements SpawnRoom {
     return sum;
   }
 
+  public maxUnitsPerCost(unitCost: number, proportion: number = 1): number {
+    return Math.floor((this.energyCapacityAvailable * proportion) / unitCost);
+  }
+
+  public maxUnits(body: BodyPartConstant[], proportion?: number) {
+    const cost = SpawnRoom.calculateBodyCost(body);
+    return Math.min(this.maxUnitsPerCost(cost, proportion), Math.floor(50 / body.length));
+  }
+
   public createCreep(bodyParts: BodyPartConstant[], role: string, memory?: any,
     room: Room = this.room, creepName?: string): boolean {
     if (!bodyParts || !this.availableSpawnCount) { return false; }

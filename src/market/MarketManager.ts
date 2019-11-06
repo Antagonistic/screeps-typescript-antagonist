@@ -4,6 +4,7 @@ interface TermData {
     term: StructureTerminal;
     minedMineral: MineralConstant;
     storedEnergy: number;
+    storedMineral: number;
 }
 
 interface FilteredOrder {
@@ -33,6 +34,8 @@ export class MarketManager {
 
     private sellEnergy(terms: TermData[], realRun: boolean = false) {
         let orders = Game.market.getAllOrders((o: Order) => o.resourceType === RESOURCE_ENERGY && o.type === ORDER_BUY && o.remainingAmount >= 10000);
+        terms = _.filter(terms, x => x.storedEnergy > 8000);
+        if (terms.length === 0) { return; }
         if (orders && orders.length > 0) {
             orders = _.take(_.sortBy(orders, "price").reverse(), 8);
             let _orders = [];
@@ -76,6 +79,10 @@ export class MarketManager {
         }
     }
 
+    private sellMinedMinerals(terms: TermData[], realRun: boolean = false) {
+        ;
+    }
+
     private getTerminals(): TermData[] {
         const ret: TermData[] = [];
         for (const _sr in global.emp.spawnRooms) {
@@ -84,7 +91,8 @@ export class MarketManager {
                 const mineral: Mineral = _.first(sr.room.find(FIND_MINERALS));
                 const storedEnergy = sr.room.terminal ? sr.room.terminal.store.energy : 0;
                 if (mineral) {
-                    const item: TermData = { term: sr.room.terminal, minedMineral: mineral.mineralType, storedEnergy };
+                    const storedMineral = sr.room.terminal ? (sr.room.terminal.store[mineral.mineralType] || 0) : 0;
+                    const item: TermData = { term: sr.room.terminal, minedMineral: mineral.mineralType, storedEnergy, storedMineral };
                     ret.push(item);
                 }
             }
@@ -116,7 +124,7 @@ export class MarketManager {
                 if (!mineralAmount) { continue; }
                 const myO = _.findLast(myorders, x => x.resourceType === rT);
                 if (myO) {
-                    mineralAmount = mineralAmount - myO.amount;
+                    mineralAmount = mineralAmount - myO.remainingAmount;
                 }
                 price = this.calcPrice(rT as ResourceConstant);
                 // const resorders = Game.market.getAllOrders({ type: ORDER_BUY, resourceType: rT as ResourceConstant });
@@ -128,7 +136,7 @@ export class MarketManager {
                     // console.log(rT + " " + _rO.id + " " + _rO.price);
                 }
                 let response = (rT.padEnd(6) + " " + (mineralAmount + "").padStart(8) + "   " + (price.toFixed(3) + "").padStart(4) + "  " + choice.padEnd(7));
-                if (realRun && mineralAmount > 0) {
+                if (realRun && mineralAmount > 0 && choice !== "none") {
                     let ret: ScreepsReturnCode = 0;
                     if (choice === "deal") {
                         ret = Game.market.deal(orderID, mineralAmount, t.term.room.name);

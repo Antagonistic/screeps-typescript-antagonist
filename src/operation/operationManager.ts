@@ -6,6 +6,7 @@ import { Empire } from "../Empire";
 
 import { log } from "../lib/logger/log";
 import { LootOperation } from "./operations/LootOperation";
+import { PowerOperation } from "./operations/PowerOperation";
 
 // interface IOPERATION_CLASSES {
 // {[opType: string]: IOperation; };
@@ -15,7 +16,8 @@ import { LootOperation } from "./operations/LootOperation";
 const OPERATION_CLASSES: any = {
   controller: ControllerOperation,
   loot: LootOperation,
-  mining: MiningOperation
+  mining: MiningOperation,
+  power: PowerOperation
 };
 
 export function init(): Operation[] {
