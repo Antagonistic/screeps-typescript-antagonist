@@ -28,6 +28,8 @@ export class MiningMission extends Mission {
     public isLink: boolean;
     public wait: number;
 
+    public extentions?: StructureExtension | StructureTower[];
+
     constructor(operation: Operation, name: string, source: Source, active: boolean = true) {
         super(operation, name);
         this.source = source;
@@ -39,6 +41,7 @@ export class MiningMission extends Mission {
         this.storage = this.findStorage();
         this.wait = this.memory.wait || 0;
         if (this.spawnRoom.room.storage && this.spawnRoom.room.storage.store.energy >= 900000) { this.active = false; }
+        if (Game.time % 1000 === 0) { this.memory.extentions = undefined; }
     }
 
     public initMission(): void {
@@ -86,6 +89,24 @@ export class MiningMission extends Mission {
         return this.minersNeeded();
     };
 
+    public getExtention(creep: Creep): StructureExtension | StructureTower | null {
+        if (this.remoteSpawning) { return null; }
+        if (!this.memory.extentions || Game.time % 1087 === 0) {
+            const extentions = this.source.pos.findInRange(FIND_MY_STRUCTURES, 2, { filter: x => x.structureType === STRUCTURE_EXTENSION || x.structureType === STRUCTURE_TOWER });
+            if (extentions && extentions.length > 0) {
+                this.memory.extentions = _.map(extentions, x => x.id);
+            }
+            else {
+                this.memory.extentions = [];
+            }
+        }
+        for (const e of this.memory.extentions) {
+            const ext: StructureExtension | StructureTower | null = Game.getObjectById<StructureExtension | StructureTower>(e);
+            if (ext && ext.pos.isNearTo(creep) && ext.energy < ext.energyCapacity) { return ext; }
+        }
+        return null;
+    }
+
     public getMinerBody = () => {
         if (this.remoteSpawning) { return this.workerBody(6, 2, 3); }
         const minersSupported = this.minersSupported();
@@ -118,8 +139,21 @@ export class MiningMission extends Mission {
     }
 
     public minersNeeded(): number {
-        if (!this._minersNeeded) {
-            if (!this.memory.positionCount) { this.memory.positionCount = openAdjacentSpots(this.source.pos, true).length; }
+        if (!this._minersNeeded || Game.time % 1037 === 0) {
+            if (!this.memory.positionCount || Game.time % 1037 === 0) {
+                const spots = openAdjacentSpots(this.source.pos, true);
+                if (!this.container) {
+                    this.memory.positionCount = spots.length;
+                } else {
+                    let i: number = 0;
+                    for (const s of spots) {
+                        if (this.container.pos.isNearTo(s)) {
+                            i++;
+                        }
+                    }
+                    this.memory.positionCount = i;
+                }
+            }
 
             this._minersNeeded = Math.min(this.minersSupported(), this.memory.positionCount);
         }
@@ -158,10 +192,11 @@ export class MiningMission extends Mission {
             }
         }
         const containers = this.source.pos.findInRange<StructureContainer | StructureLink>(FIND_STRUCTURES, 2,
-            { filter: (x: Structure) => x.structureType === STRUCTURE_CONTAINER || x.structureType === STRUCTURE_LINK });
+            { filter: (x: Structure) => (x.structureType === STRUCTURE_CONTAINER && x.pos.isNearTo(this.source.pos)) || x.structureType === STRUCTURE_LINK });
         // let containers = this.source.pos.findInRange(STRUCTURE_CONTAINER, 1);
         if ((!containers || containers.length === 0) && Game.cpu.bucket > 1000) {
             this.placeContainer();
+            return undefined;
         }
         let ret;
         for (const c of containers) {
@@ -236,10 +271,14 @@ export class MiningMission extends Mission {
                             creep.memory.inPosition = true;
                         }
                         else {
-                            creepActions.moveTo(creep, this.container.pos, true);
+                            // creepActions.moveTo(creep, this.container.pos, true);
                             for (const p of openAdjacentSpots(this.source.pos)) {
                                 if (p.isNearTo(this.container.pos)) {
-                                    creepActions.moveTo(creep, p, true);
+                                    const _creeps = p.lookFor("creep");
+                                    if (!_creeps || _creeps.length === 0) {
+                                        creepActions.moveTo(creep, p, true);
+                                        break;
+                                    }
                                 }
                             }
                         }
@@ -258,9 +297,9 @@ export class MiningMission extends Mission {
                     }
                     if (creep.carry.energy > 40) {
                         if ((Game.time % (4 * oversize) === 1 && Game.cpu.bucket > 800) || !this.container) {
-                            const extentions = creep.pos.findInRange(FIND_MY_STRUCTURES, 1, { filter: x => x.structureType === STRUCTURE_EXTENSION && x.energy < x.energyCapacity });
-                            if (extentions && extentions.length > 0) {
-                                creep.transfer(extentions[0], RESOURCE_ENERGY);
+                            const ext = this.getExtention(creep);
+                            if (ext) {
+                                creep.transfer(ext, RESOURCE_ENERGY);
                             } else {
                                 const haulers = creep.pos.findInRange(FIND_MY_CREEPS, 1, { filter: (c: Creep) => c.memory.role && c.memory.role !== "miner" });
                                 if (haulers.length > 0) {
@@ -274,7 +313,10 @@ export class MiningMission extends Mission {
                                 }
                             }
                         } else {
-                            if (this.container) {
+                            const ext = this.getExtention(creep);
+                            if (ext) {
+                                creep.transfer(ext, RESOURCE_ENERGY);
+                            } else if (this.container) {
                                 action = creepActions.actionTransfer(creep, action, this.container);
                             }
                         }

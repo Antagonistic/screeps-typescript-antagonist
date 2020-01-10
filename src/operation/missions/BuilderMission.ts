@@ -2,7 +2,9 @@ import { Operation } from "../operations/Operation";
 import { Mission } from "./Mission";
 
 import * as creepActions from "creeps/creepActions";
+import { LogisticsManager } from "operation/LogisticsManager";
 import { profile } from "Profiler";
+import * as layoutManager from "rooms/layoutManager";
 
 export const PRIORITY_BUILD: string[] = [
     STRUCTURE_SPAWN,
@@ -22,9 +24,20 @@ export class BuilderMission extends Mission {
     public roadsites: ConstructionSite[] = [];
     public sites: ConstructionSite[] = [];
     public prioritySites: ConstructionSite[] = [];
+    public logistics: LogisticsManager;
 
-    constructor(operation: Operation) {
+    public destination?: RoomPosition;
+    public destI: number;
+    public roadSite?: ConstructionSite | StructureRoad;
+    public roadI: number;
+
+    constructor(operation: Operation, logistics: LogisticsManager) {
         super(operation, "builder")
+        this.logistics = logistics;
+        if (!this.memory.destI) { this.memory.destI = 0; }
+        this.destI = this.memory.destI;
+        if (!this.memory.roadI) { this.memory.roadI = 0; }
+        this.roadI = this.memory.roadI;
     }
     public initMission(): void {
         if (this.room) {
@@ -33,12 +46,13 @@ export class BuilderMission extends Mission {
             this.roadsites = this.room.find(FIND_CONSTRUCTION_SITES,
                 { filter: (x: ConstructionSite) => x.structureType === STRUCTURE_ROAD });
             this.prioritySites = _.filter(this.sites, s => PRIORITY_BUILD.indexOf(s.structureType) > -1);
+            this.destination = this.memory.destination;
             // console.log(this.sites.length);
         }
     }
     public spawn(): void {
         this.builders = this.spawnRole(this.name, this.maxBuilders, this.builderBody, { role: "builder" });
-        this.pavers = this.spawnRole(this.name + "paver", () => this.roadsites.length > 0 ? 1 : 0, this.builderBody, { role: "builder" });
+        this.pavers = this.spawnRole(this.name + "paver", this.maxPavers, this.builderBody, { role: "builder" });
     }
     public work(): void {
         // for (const b of this.builders) {
@@ -53,14 +67,91 @@ export class BuilderMission extends Mission {
         ;
     }
 
+    public getNextDestination() {
+        const destinations = this.logistics.getDestinations();
+        this.destI = this.destI + 1;
+        if (this.destI > destinations.length) { this.destI = 0; }
+        this.memory.destI = this.destI;
+        this.destination = this.memory.destination = undefined;
+        return this.getDestination();
+
+    }
+
+    public getDestination() {
+        if (this.destination) { return this.destination; }
+        if (this.memory.destination) {
+            this.destination = this.memory.destination;
+        }
+        const destinations = this.logistics.getDestinations();
+        if (this.destI >= destinations.length) { this.memory.destI = this.destI = 0; }
+        this.memory.destination = this.destination = destinations[this.destI];
+        // console.log(JSON.stringify(destinations[0]) + ' ' + this.destI);
+        return this.destination;
+    }
+
+    public getRoadSite() {
+        if (this.roadSite) { return this.roadSite; }
+        if (this.memory.roadsite) {
+            let site = Game.getObjectById<ConstructionSite | StructureRoad>(this.memory.roadSite);
+            if (site != null) {
+                if (site.structureType === STRUCTURE_ROAD) {
+                    const r = site as StructureRoad;
+                    if (r.hits >= r.hitsMax) { site = null; }
+                }
+                if (site != null) {
+                    this.roadSite = site;
+                    return site;
+                }
+            }
+        }
+        return this.getNextRoadSite();
+    }
+
+    public getNextRoadSite() {
+        let road = layoutManager.pavePath(this.operation.flag.pos, this.getDestination(), 3);
+        let count = 0;
+        while (count < 5) {
+            this.roadI = this.roadI + 1;
+            if (this.roadI >= road.length) {
+                if (road.length > 6) { console.log(this.operation.name + ' road ' + this.destI + ' paved of length ' + road.length) };
+                this.roadI = 0;
+                road = layoutManager.pavePath(this.operation.flag.pos, this.getNextDestination(), 3);
+            }
+            const p = road[this.roadI];
+            const structures = p.lookFor("structure");
+            if (structures && structures.length > 0) {
+                const s = _.find(structures, x => x.structureType === STRUCTURE_ROAD && x.hits < x.hitsMax);
+                if (s != null) {
+                    this.roadSite = s as StructureRoad;
+                    break;
+                }
+            }
+            const construct = p.lookFor("constructionSite");
+            if (construct && construct.length > 0) {
+                const c = _.find(construct, x => x.structureType === STRUCTURE_ROAD);
+                if (c) {
+                    this.roadSite = c;
+                    break;
+                }
+            }
+            count = count + 1;
+        }
+        this.memory.roadI = this.roadI;
+        return this.roadSite;
+    }
+
     public maxBuilders = (): number => {
         if (this.sites.length === 0) {
             return 0;
         }
+        if (this.spawnRoom.rclLevel === 1) { return 2; }
         return 1;
     }
 
     public maxPavers = (): number => {
+        if (this.room && this.spawnRoom.rclLevel >= 4) {
+            return 1;
+        }
         if (this.room && this.roadsites.length !== 0) {
             return 1;
         }
@@ -145,7 +236,8 @@ export class BuilderMission extends Mission {
             let action: boolean = false;
             action = creepActions.actionRecycle(b, action);
             if (creepActions.canWork(b)) {
-                action = creepActions.actionMoveToRoom(b, action, this.operation.roomName);
+                action = creepActions.actionBuildRepairCache(b, action);
+                // action = creepActions.actionMoveToRoom(b, action, this.operation.roomName);
                 if (b.room.controller && b.room.controller.ticksToDowngrade < 2000) {
                     action = creepActions.actionUpgrade(b, action);
                 }
@@ -153,9 +245,17 @@ export class BuilderMission extends Mission {
                     const site = b.pos.findClosestByRange(this.roadsites);
                     action = creepActions.actionBuild(b, action, site);
                 }
-                action = creepActions.actionRepairStill(b, action);
-                action = creepActions.actionRepairCache(b, action);
-                action = creepActions.actionRepairRoad(b, action, 2);
+                if (!action) {
+                    const site = this.getRoadSite();
+                    if (site) {
+                        b.say('👣');
+                        b.memory.target = site.id;
+                        action = creepActions.actionBuildRepairCache(b, action);
+                    }
+                }
+                // action = creepActions.actionRepairStill(b, action);
+                // action = creepActions.actionRepairCache(b, action);
+                // action = creepActions.actionRepairRoad(b, action, 2);
                 action = creepActions.actionRepair(b, action);
                 // action = creepActions.actionUpgrade(b, action);
             } else {
@@ -187,15 +287,19 @@ export class BuilderMission extends Mission {
                 action = this.operation.creepGetEnergy(b, action, true, false);
                 // b.say("" + action);
             }
-            if (!action) { creepActions.moveTo(b, this.operation.rallyPos); };
+            if (!action) { creepActions.moveTo(b, this.operation.rallyPos); b.say('🍺'); };
         }
     }
+
+
 
     public runBuilders() {
         for (const b of this.builders) {
             let action: boolean = false;
             action = creepActions.actionRecycle(b, action);
             if (creepActions.canWork(b)) {
+                action = creepActions.actionBuildRepairCache(b, action);
+                action = this.actionPriorityWall(b, action);
                 // action = creepActions.actionMoveToRoom(b, action, this.operation.roomName);
                 if (b.room.controller && b.room.controller.ticksToDowngrade < 2000) {
                     action = creepActions.actionUpgrade(b, action);
@@ -209,6 +313,7 @@ export class BuilderMission extends Mission {
                 action = creepActions.actionRepair(b, action, false);
                 action = creepActions.actionRepair(b, action, true);
                 // action = creepActions.actionUpgrade(b, action);
+                // action = creepActions.actionRally(b, action);
             } else {
                 /*if (this.remoteSpawning) {
                     action = creepActions.actionGetEnergyCache(b, action);
@@ -238,8 +343,20 @@ export class BuilderMission extends Mission {
                 action = this.operation.creepGetEnergy(b, action, true, false);
                 // b.say("" + action);
             }
-            if (!action) { creepActions.moveTo(b, this.operation.rallyPos); };
+            if (!action) { creepActions.moveTo(b, this.operation.rallyPos); b.say('🍺'); };
         }
+    }
+
+    public actionPriorityWall(creep: Creep, action: boolean) {
+        if (action === false) {
+            const walls = creep.room.find(FIND_STRUCTURES, { filter: x => (x.structureType === STRUCTURE_WALL || x.structureType === STRUCTURE_RAMPART) && x.hits < 100 });
+            if (walls && walls.length > 0) {
+                creep.memory.target = walls[0].id;
+                creepActions.moveToRepair(creep, walls[0]);
+                return true;
+            }
+        }
+        return action;
     }
 
 

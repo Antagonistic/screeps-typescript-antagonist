@@ -26,7 +26,7 @@ function getFlag(flagName: string) {
   return Game.flags[flagName];
 }
 
-const defaultRoom = "E3N18";
+const defaultRoom = "W19N52";
 
 export const commandConsole = {
   ping(): void {

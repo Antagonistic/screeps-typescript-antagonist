@@ -165,6 +165,8 @@ export function getUnbuiltRoads(pos: RoomPosition[]): RoomPosition[] {
 }
 
 export function pavePath(start: RoomPosition, finish: RoomPosition, rangeAllowance: number = 5): RoomPosition[] {
+    // console.log('Start: ' + JSON.stringify(start));
+    // console.log('End:   ' + JSON.stringify(finish));
     const path = roomHelper.findPath(start, finish, rangeAllowance);
     const ret = [];
 
@@ -176,5 +178,29 @@ export function pavePath(start: RoomPosition, finish: RoomPosition, rangeAllowan
         }
     }
     return ret;
+}
+
+export function blockExits(room: Room) {
+    const walls = [];
+    const terrain = new Room.Terrain(room.name);
+    let start = -1;
+    let end = -1;
+    // NORTH
+    for (let x = 0; x < 50; x++) {
+        if (terrain.get(x, 0) !== TERRAIN_MASK_WALL) {
+            if (start === -1) {
+                start = x;
+            } else {
+                end = x;
+            }
+        } else {
+            if (start > 0) {
+                // end of exit segment
+
+                start = -1;
+                end = -1;
+            }
+        }
+    }
 }
 

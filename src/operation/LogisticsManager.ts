@@ -28,16 +28,22 @@ export class LogisticsManager {
         this.S = (this.storage) ? this.storage.store.energy : 0;
         this.links = this.room.find<StructureLink>(FIND_MY_STRUCTURES, { filter: x => x.structureType === STRUCTURE_LINK });
         this.haslinks = this.links.length > 0;
+        if (Game.time % 5008 === 0) {
+            this.room.memory.dest = undefined;
+        }
     }
 
     public registerOperation(operation: Operation) {
         this.operations.push(operation);
     }
 
-    public getDestinations() {
+    public getDestinations(): RoomPosition[] {
+        if (this.room.memory.dest && this.room.memory.dest.length > 0) {
+            return this.room.memory.dest;
+        }
         const dest: RoomPosition[] = [];
         for (const op of this.operations) {
-            console.log('Checking ' + op.name);
+            console.log('Checking ' + op.type + ' ' + op.name);
             for (const _m in op.missions) {
                 const m = op.missions[_m];
                 if (m instanceof MiningMission) {
@@ -58,6 +64,7 @@ export class LogisticsManager {
                 }
             }
         }
+        this.room.memory.dest = dest;
         return dest;
     }
 

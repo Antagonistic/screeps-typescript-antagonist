@@ -293,3 +293,14 @@ export function findPath(start: RoomPosition, finish: RoomPosition, rangeAllowan
     }
     return undefined;
 }
+
+export function lookForStructure(pos: RoomPosition, structureType: string): Structure {
+    const structures = pos.lookFor(LOOK_STRUCTURES);
+    return _.find(structures, { structureType }) as Structure;
+}
+
+export function clampDirection(direction: number): number {
+    while (direction < 1) { direction += 8; }
+    while (direction > 8) { direction -= 8; }
+    return direction;
+}

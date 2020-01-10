@@ -67,6 +67,7 @@ interface RoomMemory {
   lastSeen?: Number;
   nextScan?: Number;
   visual?: boolean;
+  dest?: RoomPosition[];
 
   towers?: string[];
   // mine_structures: number;

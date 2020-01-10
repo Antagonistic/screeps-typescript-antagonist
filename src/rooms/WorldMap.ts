@@ -12,6 +12,7 @@ export class WorldMap implements WorldMap {
   public init(): { [roomName: string]: SpawnRoom } {
     const spawnGroups: { [roomName: string]: SpawnRoom } = {};
     for (const roomName in Game.rooms) {
+      if (!Memory.rooms) { Memory.rooms = {} };
       const memory = Memory.rooms[roomName];
       const room = Game.rooms[roomName];
 

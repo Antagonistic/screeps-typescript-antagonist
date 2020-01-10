@@ -186,7 +186,7 @@ export class UpgradeMission extends Mission {
             }
         }
 
-        const containers = this.controller.pos.findInRange<StructureContainer | StructureLink>(FIND_STRUCTURES, 2,
+        const containers = this.controller.pos.findInRange<StructureContainer | StructureLink>(FIND_STRUCTURES, 3,
             { filter: (x: Structure) => x.structureType === STRUCTURE_CONTAINER || x.structureType === STRUCTURE_LINK });
 
         if (!containers || containers.length === 0) {
@@ -212,7 +212,7 @@ export class UpgradeMission extends Mission {
         const boxSite: ConstructionSite[] = this.controller.pos.findInRange(FIND_MY_CONSTRUCTION_SITES, 4,
             { filter: (x: ConstructionSite) => x.structureType === STRUCTURE_CONTAINER });
         if (!boxSite || boxSite.length === 0) {
-            const pos = this.haulPath()[2];
+            const pos = this.haulPath()[1];
             const ret = pos.createConstructionSite(STRUCTURE_CONTAINER);
             if (ret !== OK) {
                 console.log("Placing upgrade box error: " + ret + " in " + this.operation.roomName + " pos : " + pos.x + "," + pos.y);

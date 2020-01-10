@@ -40,7 +40,7 @@ export class ControllerOperation extends Operation {
         if (this.remoteSpawning) {
             this.addMission(new ScoutMission(this));
             this.addMission(new ClaimMission(this));
-            this.addMission(new BuilderMission(this));
+            this.addMission(new BuilderMission(this, this.logistics));
         } else {
             this.addMission(new EmergencyMission(this, this.emergency && !this.remoteSpawning));
 
@@ -61,7 +61,7 @@ export class ControllerOperation extends Operation {
                 this.addMission(new LinkMission(this));
             }
 
-            this.addMission(new BuilderMission(this));
+            this.addMission(new BuilderMission(this, this.logistics));
 
             this.addMission(new UpgradeMission(this));
 

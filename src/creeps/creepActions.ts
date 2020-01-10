@@ -1,6 +1,7 @@
 import * as Config from "config/config";
 import { profile } from "Profiler";
 import { getRally } from "rooms/roomHelper";
+import * as roomHelper from "rooms/roomHelper"
 import { Traveler } from "utils/Traveler";
 
 // import { log } from "../../lib/logger/log";
@@ -14,6 +15,22 @@ import { Traveler } from "utils/Traveler";
  * @returns {number}
  */
 export function moveTo(creep: Creep, target: Structure | Creep | RoomPosition, exact: boolean = false): number {
+  if (creep.pos.x === 0) {
+    creep.move(RIGHT);
+    return OK;
+  }
+  if (creep.pos.y === 0) {
+    creep.move(BOTTOM);
+    return OK;
+  }
+  if (creep.pos.x === 49) {
+    creep.move(LEFT);
+    return OK;
+  }
+  if (creep.pos.y === 49) {
+    creep.move(TOP);
+    return OK;
+  }
   if (exact) {
     // return creep.moveTo(target, { visualizePathStyle: { stroke: "#ffffff" }, range: 1 });
     return Traveler.travelTo(creep, target, { range: 0, ignoreCreeps: false });
@@ -151,13 +168,13 @@ export function moveToUpgrade(creep: Creep): void {
 export function moveToBuildSite(creep: Creep, target: ConstructionSite): void {
   if (creep.build(target) === ERR_NOT_IN_RANGE) {
     moveTo(creep, target.pos, true);
-  }
+  } else { yieldRoad(creep, target); }
 }
 
 export function moveToRepair(creep: Creep, target: Structure): void {
   if (creep.repair(target) === ERR_NOT_IN_RANGE) {
     moveTo(creep, target, true);
-  }
+  } else { yieldRoad(creep, target); }
 }
 
 export function moveToBuild(creep: Creep): void {
@@ -165,7 +182,7 @@ export function moveToBuild(creep: Creep): void {
   if (target) {
     if (creep.build(target) === ERR_NOT_IN_RANGE) {
       moveTo(creep, target.pos);
-    }
+    } else { yieldRoad(creep, target); }
   }
 }
 
@@ -318,7 +335,34 @@ export function actionBuild(creep: Creep, action: boolean, target?: Construction
     }
     if (target) {
       moveToBuildSite(creep, target);
+      creep.memory.target = target.id;
       return true;
+    }
+  }
+  return action;
+}
+
+export function actionBuildRepairCache(creep: Creep, action: boolean): boolean {
+  if (action === false) {
+    const targetId = creep.memory.target;
+    if (targetId) {
+      const target: Structure | ConstructionSite | null = Game.getObjectById(targetId);
+      if (target) {
+        if (target instanceof Structure) {
+          if (target.hits < target.hitsMax) {
+            moveToRepair(creep, target);
+            return true;
+          } else {
+            creep.memory.target = undefined;
+          }
+        }
+        if (target instanceof ConstructionSite) {
+          moveToBuild(creep);
+          return true;
+        }
+      } else {
+        creep.memory.target = undefined;
+      }
     }
   }
   return action;
@@ -969,6 +1013,7 @@ export function actionRally(creep: Creep, action: boolean) {
     } else {
       moveTo(creep, new RoomPosition(creep.room.memory.rally.x, creep.room.memory.rally.y, creep.room.name));
     }
+    creep.say('🍺');
     return true;
   }
   return action;
@@ -990,3 +1035,31 @@ export function actionBoost(creep: Creep, action: boolean) {
   }
   return action;
 }
+
+
+export function yieldRoad(creep: Creep, target: { pos: RoomPosition }, allowSwamps = true): number {
+  const isOffRoad = roomHelper.lookForStructure(creep.pos, STRUCTURE_ROAD) === undefined;
+  if (isOffRoad) { return OK };
+
+  let swampPosition;
+  // find movement options
+  const direction = creep.pos.getDirectionTo(target);
+  for (let i = -2; i <= 2; i++) {
+    let relDirection = direction + i;
+    relDirection = roomHelper.clampDirection(relDirection);
+    const position = roomHelper.getPositionAtDirection(creep.pos, relDirection);
+    if (!position.inRangeTo(target, 3)) { continue; }
+    if (position.lookFor(LOOK_STRUCTURES).length > 0) { continue; }
+    if (!roomHelper.isPassible(position)) { continue; }
+    if (roomHelper.isNearExit(position, 0)) { continue; }
+    if (position.lookFor(LOOK_TERRAIN)[0] === "swamp") {
+      swampPosition = position;
+      continue;
+    }
+    return creep.move(relDirection as DirectionConstant);
+  }
+  if (swampPosition && allowSwamps) {
+    return creep.move(creep.pos.getDirectionTo(swampPosition));
+  }
+  return creep.travelTo(target);
+};
