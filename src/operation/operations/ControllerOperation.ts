@@ -13,6 +13,7 @@ import { LinkMission } from "operation/missions/LinkMission";
 import { MineralMission } from "operation/missions/MineralMission";
 import { ScoutMission } from "operation/missions/ScoutMission";
 import { SupervisorMission } from "operation/missions/SupervisorMission";
+import * as layoutManager from "rooms/layoutManager";
 import * as StructureManager from "rooms/structureManager";
 import { RefillMission } from "../missions/RefillMission";
 
@@ -76,6 +77,13 @@ export class ControllerOperation extends Operation {
                 }
             }
         }
+    }
+
+    public spawn(): void {
+        if (!this.remoteSpawning && this.stableOperation && Game.time % 1000 === 135 && Game.cpu.bucket > 5000 && this.room) {
+            layoutManager.run(this.room, -1, true);
+        }
+        super.spawn();
     }
 
 

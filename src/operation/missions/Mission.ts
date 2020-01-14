@@ -58,7 +58,6 @@ export abstract class Mission {
             const outcome = this.spawnRoom.spawn(getBody(), newcreepName, memory);
             if (outcome) {
                 creepNames.push(newcreepName);
-                console.log("spawning " + newcreepName);
             }
         }
         this.memory.hc[role] = creepNames;
@@ -133,15 +132,15 @@ export abstract class Mission {
 
     public getLongCartBody = () => {
         if (this.spawnRoom.energyCapacityAvailable >= 1800) {
-            return this.workerBody(1, 20, 11);
+            return this.workerBody(0, 20, 11);
         } else if (this.spawnRoom.energyCapacityAvailable >= 1500) {
-            return this.workerBody(1, 15, 8);
+            return this.workerBody(0, 15, 8);
         } else if (this.spawnRoom.energyCapacityAvailable >= 900) {
             // Huge hauler
-            return this.workerBody(1, 10, 6);
+            return this.workerBody(0, 10, 6);
         } else if (this.spawnRoom.energyCapacityAvailable >= 750) {
             // Big hauler
-            return this.workerBody(1, 8, 5);
+            return this.workerBody(0, 8, 5);
         } else if (this.spawnRoom.energyCapacityAvailable >= 450) {
             // Medium hauler
             return this.workerBody(0, 6, 3);

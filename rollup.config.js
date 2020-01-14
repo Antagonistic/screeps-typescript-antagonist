@@ -25,7 +25,7 @@ export default {
 
   plugins: [
     replace({
-      __PROFILER_ENABLED__: JSON.stringify(false)
+      __PROFILER_ENABLED__: JSON.stringify(true)
     }),
     clear({ targets: ["dist"] }),
     resolve(),

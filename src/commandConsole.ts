@@ -71,7 +71,7 @@ export const commandConsole = {
   clearConstruct() {
     for (const _c in Game.constructionSites) {
       const construct = Game.constructionSites[_c];
-      if (construct) {
+      if (construct && construct.progress === 0) {
         construct.remove();
       }
     }
@@ -106,7 +106,7 @@ export const commandConsole = {
       }
       amount = room.terminal!.store.energy * 0.8;
     }
-    return Game.market.createOrder(ORDER_SELL, RESOURCE_ENERGY, 0.003, amount, roomName);
+    return Game.market.createOrder({ type: ORDER_SELL, resourceType: RESOURCE_ENERGY, price: 0.003, totalAmount: amount, roomName });
   },
   layoutCoord(x: number, y: number, roomName: string = defaultRoom) {
     return JSON.stringify(layoutManager.layoutCoord(getRoom(roomName), x, y));

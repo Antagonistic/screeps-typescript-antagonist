@@ -36,13 +36,13 @@ export class UpgradeMission extends Mission {
         const numCarts = (): number => this.room && this.room.storage && (!this.isLink || this.room.controller!.level !== 8) ? 1 : 0;
         this.haulers = this.spawnRole(this.name + "cart", numCarts, this.getCartBody, { role: "refill" });
 
-        if (Game.time % 50 === 20) {
+        /*if (Game.time % 50 === 20) {
             if (this.operation.stableOperation) {
                 if (this.buildRoads(this.haulPath())) {
                     console.log("Building controller roads!");
                 }
             }
-        }
+        }*/
         // console.log("upgrade carts: " + numCarts() + " " + this.haulers.length + " " + this.haulers[0].name);
     }
     public work(): void {

@@ -31,7 +31,7 @@ export class MiningOperation extends Operation {
             this.addMission(new MiningMission(this, "mining" + i, this.sources[i], true));
         }
 
-        if (this.room && this.room.controller) {
+        if (this.room && this.room.controller && this.spawnRoom.room.storage) {
             this.addMission(new ReserveMission(this));
         }
         // this.addMission(new BuilderMission(this));

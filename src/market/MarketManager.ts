@@ -142,7 +142,7 @@ export class MarketManager {
                         ret = Game.market.deal(orderID, mineralAmount, t.term.room.name);
                     }
                     if (choice === "order") {
-                        ret = Game.market.createOrder(ORDER_SELL, rT as ResourceConstant, price * 0.9, mineralAmount, t.term.room.name);
+                        ret = Game.market.createOrder({ type: ORDER_SELL, resourceType: rT as ResourceConstant, price: price * 0.9, totalAmount: mineralAmount, roomName: t.term.room.name });
                     }
                     response = response + ": " + ret;
                 }

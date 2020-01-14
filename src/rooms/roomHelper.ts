@@ -123,6 +123,12 @@ export function getRally(roomName: string): RoomPosition {
     return new RoomPosition(25, 25, roomName);
 }
 
+export function markPosition(pos: RoomPosition) {
+    const room = Game.rooms[pos.roomName];
+    if (!room) { return; }  // No visibility
+    room.visual.circle(pos.x, pos.y, { fill: 'blue', radius: 0.55 });
+}
+
 export function createCostMatrix(roomName: string): CostMatrix | undefined {
     const room = Game.rooms[roomName];
     if (!room) {

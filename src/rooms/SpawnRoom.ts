@@ -43,6 +43,7 @@ export class SpawnRoom implements SpawnRoom {
           // success!
           Memory.uuid = uuid + 1;
           this.availableSpawnCount = 0;
+          console.log("spawning " + name);
           return true;
         }
         if (status === ERR_INVALID_ARGS) {
@@ -54,6 +55,10 @@ export class SpawnRoom implements SpawnRoom {
             console.log("SPAWN:", this.room.name, "not enough energy for", name, "cost:", SpawnRoom.calculateBodyCost(build),
               "current:", this.availableSpawnEnergy, "max", this.energyCapacityAvailable);
           }
+          return false;
+        }
+        else if (status === ERR_NAME_EXISTS) {
+          Memory.uuid = uuid + 1;
           return false;
         }
         console.log("spawn unhandled status: " + status);

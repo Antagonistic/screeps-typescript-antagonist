@@ -30,6 +30,7 @@ export abstract class Operation {
   public energyStructures: Structure[] = [];
   public droppedEnergy: Resource[] = [];
   public tombStones: Tombstone[] = [];
+  public ruins: Ruin[] = [];
   public initGetEnergy: boolean;
 
   constructor(flag: Flag, name: string, type: string) {
@@ -137,12 +138,16 @@ export abstract class Operation {
     // console.log("creepGetEnergy entry " + action);
     if (action) { return action; }
     // if (!this.remoteSpawning) { return this.spawnRoom.logistics.creepGetEnergy(creep, this, scavange, priority); }
-    if (!this.room) { creepActions.moveTo(creep, this.flag.pos); return true; }
+    // if (!this.room) { creepActions.moveTo(creep, this.flag.pos); return true; }
+    // if (creep.room.name !== this.spawnRoom.room.name) {
+    //
+    // } else {
     if (!creepActions.actionGetEnergyCache(creep, false)) {
       if (!this.initGetEnergy) {
-        this.droppedEnergy = this.room.find(FIND_DROPPED_RESOURCES, { filter: x => x.resourceType === RESOURCE_ENERGY && x.amount >= 10 });
-        this.tombStones = this.room.find(FIND_TOMBSTONES, { filter: x => x.store.energy >= 10 });
-        const structures = this.room.find(FIND_STRUCTURES);
+        this.droppedEnergy = creep.room.find(FIND_DROPPED_RESOURCES, { filter: x => x.resourceType === RESOURCE_ENERGY && x.amount >= 10 });
+        this.tombStones = creep.room.find(FIND_TOMBSTONES, { filter: x => x.store.energy >= 10 });
+        this.ruins = creep.room.find(FIND_RUINS, { filter: x => x.store.energy >= 10 });
+        const structures = creep.room.find(FIND_STRUCTURES);
         // console.log("" + this.droppedEnergy.length);
         for (const s of structures) {
           switch (s.structureType) {
@@ -195,6 +200,13 @@ export abstract class Operation {
             return creepActions.actionGetEnergyCache(creep, false);
           }
         }
+        if (this.ruins.length > 0) {
+          t = creep.pos.findClosestByRange(this.ruins);
+          if (t) {
+            creep.memory.energyTarget = t.id;
+            return creepActions.actionGetEnergyCache(creep, false);
+          }
+        }
       }
       t = creep.pos.findClosestByRange(this.energyStructures);
       if (t) {
@@ -212,7 +224,7 @@ export abstract class Operation {
       }
       if (this.remoteSpawning && creep.getActiveBodyparts(WORK)) {
         // Harvest for it
-        const sources = this.room.find(FIND_SOURCES);
+        const sources = creep.room.find(FIND_SOURCES);
         creep.memory.energyTarget = sources[creep.memory.uuid % sources.length].id;
         return creepActions.actionGetEnergyCache(creep, false);
       }
@@ -226,4 +238,5 @@ export abstract class Operation {
       return true;
     }
   }
+  // }
 }

@@ -48,7 +48,7 @@ interface CreepMemory {
   sourceID?: string;
   squad?: string;
   renew?: boolean;
-  target?: string;
+  target?: Id<Creep | ConstructionSite | Structure>;
   energyTarget?: string;
   isBoosted?: boolean;
   inPosition?: boolean;

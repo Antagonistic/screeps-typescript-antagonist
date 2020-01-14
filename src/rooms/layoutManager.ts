@@ -74,6 +74,7 @@ export function layoutCoord(room: Room, x: number, y: number) {
 }
 
 export function run(room: Room, rcl: number = -1, force: boolean = false): void {
+    console.log('Running layouts in room ' + room.name);
     const layouts = getLayouts(room);
     if (!room.memory.buildState) { room.memory.buildState = 0; }
     for (const l of layouts) {
@@ -87,6 +88,9 @@ export function run(room: Room, rcl: number = -1, force: boolean = false): void 
                     ret = runConstruct(room, layout[i], pos);
                     if (ret !== OK) {
                         console.log("Error building for RCL " + i);
+                        if (ret === -8) {
+                            return;
+                        }
                         // continue;
                     } else {
                         if (room.memory.buildState < i) { room.memory.buildState = i; };

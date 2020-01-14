@@ -154,7 +154,7 @@ export function getStoredEnergy(creep: Creep, factor: number = 4): boolean {
 
 export function moveToPickup(creep: Creep, target: Resource) {
   if (creep.pickup(target) === ERR_NOT_IN_RANGE) {
-    moveTo(creep, target.pos, true);
+    moveTo(creep, target.pos, false);
   }
 }
 
@@ -177,8 +177,10 @@ export function moveToRepair(creep: Creep, target: Structure): void {
   } else { yieldRoad(creep, target); }
 }
 
-export function moveToBuild(creep: Creep): void {
-  const target: ConstructionSite | null = creep.pos.findClosestByRange(FIND_MY_CONSTRUCTION_SITES);
+export function moveToBuild(creep: Creep, target?: ConstructionSite | null): void {
+  if (!target) {
+    target = creep.pos.findClosestByRange(FIND_MY_CONSTRUCTION_SITES);
+  }
   if (target) {
     if (creep.build(target) === ERR_NOT_IN_RANGE) {
       moveTo(creep, target.pos);
@@ -275,16 +277,10 @@ export function actionMoveToRoom(creep: Creep, action: boolean, roomID?: string 
         roomID = roomID.name;
       }
       if (creep.room.name !== roomID) {
-        moveTo(creep, getRally(roomID), true);
+        const exitDir = creep.room.findExitTo(roomID);
+        const exit = creep.pos.findClosestByRange(exitDir as FindConstant);
+        moveTo(creep, exit as RoomPosition, true);
         return true;
-      } else {
-        const pos: RoomPosition = creep.pos;
-        const x: number = pos.x;
-        const y: number = pos.y;
-        if (x === 0 || y === 0 || x === 49 || y === 49) {
-          moveTo(creep, getRally(roomID));
-          return true;
-        }
       }
     }
   }
@@ -346,7 +342,7 @@ export function actionBuildRepairCache(creep: Creep, action: boolean): boolean {
   if (action === false) {
     const targetId = creep.memory.target;
     if (targetId) {
-      const target: Structure | ConstructionSite | null = Game.getObjectById(targetId);
+      const target: Structure | ConstructionSite | null = Game.getObjectById<Structure | ConstructionSite>(targetId);
       if (target) {
         if (target instanceof Structure) {
           if (target.hits < target.hitsMax) {
@@ -357,7 +353,7 @@ export function actionBuildRepairCache(creep: Creep, action: boolean): boolean {
           }
         }
         if (target instanceof ConstructionSite) {
-          moveToBuild(creep);
+          moveToBuild(creep, target);
           return true;
         }
       } else {
@@ -372,7 +368,7 @@ export function actionRepairCache(creep: Creep, action: boolean): boolean {
   if (action === false) {
     const targetId = creep.memory.target;
     if (targetId) {
-      const target: Structure | null = Game.getObjectById(targetId);
+      const target: Structure | null = Game.getObjectById<Structure>(targetId);
       if (target) {
         if (target.hits < target.hitsMax) {
           moveToRepair(creep, target);
@@ -492,7 +488,7 @@ export function actionTransferStill(creep: Creep, action: boolean, target?: Stru
   if (action === false) {
     if (target || creep.memory.target) {
       if (!target) {
-        target = Game.getObjectById<Structure | Creep>(creep.memory.target);
+        target = Game.getObjectById<Structure | Creep>(creep.memory.target!);
       }
       if (target && creep.pos.isNearTo(target)) {
         // if (creep.transfer(target, RESOURCE_ENERGY)) {
@@ -512,7 +508,7 @@ export function actionTransfer(creep: Creep, action: boolean, target?: Structure
   if (action === false) {
     if (target || creep.memory.target) {
       if (!target) {
-        const obj = Game.getObjectById<Structure | Creep>(creep.memory.target);
+        const obj = Game.getObjectById<Structure | Creep>(creep.memory.target!);
         if (obj != null) {
           target = obj;
         }
@@ -585,7 +581,7 @@ export function actionGetEnergyCache(creep: Creep, action: boolean): boolean {
             creep.pickup(target);
             creep.say("Get drop");
           }
-          if (target instanceof StructureStorage || target instanceof StructureContainer || target instanceof StructureTerminal || target instanceof Tombstone || target instanceof StructureLink) {
+          if (target instanceof StructureStorage || target instanceof StructureContainer || target instanceof StructureTerminal || target instanceof Tombstone || target instanceof Ruin || target instanceof StructureLink) {
             creep.withdraw(target, RESOURCE_ENERGY);
             creep.say("Get store");
           }
@@ -671,7 +667,7 @@ export function actionFillBuilder(creep: Creep, action: boolean): boolean {
   if (action === false) {
     const targets: Creep[] = creep.room.find(FIND_MY_CREEPS, {
       filter:
-        (x: Creep) => x.memory.role === "builder" && x.carry.energy < (x.carryCapacity / 2)
+        (x: Creep) => x.memory.role === "builder" && x.carry.energy < (3 * x.carryCapacity / 4)
     });
     if (targets.length) {
       const salt: number = (creep.memory.uuid || 0) % targets.length;

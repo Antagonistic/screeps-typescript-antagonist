@@ -68,13 +68,13 @@ export class MiningMission extends Mission {
             }
         }
 
-        if (Game.time % 50 === 10 && this.memory.stableMission && Game.cpu.bucket >= 1000) {
-            // Check roads
-            // console.log("Building mining roads!");
-            if (this.buildRoads(this.haulPath())) {
-                console.log("Building mining roads!");
-            }
-        }
+        // if (Game.time % 50 === 10 && this.memory.stableMission && Game.cpu.bucket >= 1000) {
+        // Check roads
+        // console.log("Building mining roads!");
+        // if (this.buildRoads(this.haulPath())) {
+        //    console.log("Building mining roads!");
+        // }
+        // }
     }
     public work(): void {
         if (this.remoteSpawning && Game.cpu.bucket < 100) { return; } // Oh geez, CPU emergency, disable remote mining
@@ -287,13 +287,14 @@ export class MiningMission extends Mission {
                         creep.memory.inPosition = true;
                     }
                 } else {
-                    creepActions.moveTo(creep, this.source.pos, true);
+                    creepActions.moveTo(creep, this.source.pos, false);
                 }
             } else {
                 if (sourceEnergy && Game.time % oversize === 0) {
                     const ret: number = creep.harvest(this.source);
                     if (ret === ERR_NOT_IN_RANGE) {
-                        creepActions.moveTo(creep, this.source.pos, true);
+                        creep.memory.inPosition = false;
+                        creepActions.moveTo(creep, this.source.pos, false);
                     }
                     if (creep.carry.energy > 40) {
                         if ((Game.time % (4 * oversize) === 1 && Game.cpu.bucket > 800) || !this.container) {
@@ -358,7 +359,7 @@ export class MiningMission extends Mission {
 
     public runHaulers_canWork(creep: Creep, action: boolean): boolean {
         action = creepActions.actionMoveToRoom(creep, action, this.spawnRoom.room);
-        action = this.runHaulers_walkWork(creep);
+        // action = this.runHaulers_walkWork(creep);
         action = creepActions.actionFillCache(creep, action);
         if (!action && !this.spawnRoom.room.storage) {
             action = this.runHaulers_earlyFill(creep, action);
