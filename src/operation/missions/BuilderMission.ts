@@ -32,6 +32,8 @@ export class BuilderMission extends Mission {
     public roadSite?: ConstructionSite | StructureRoad | StructureContainer;
     public roadI: number;
 
+    public active: boolean;
+
     constructor(operation: Operation, logistics: LogisticsManager) {
         super(operation, "builder")
         this.logistics = logistics;
@@ -39,6 +41,7 @@ export class BuilderMission extends Mission {
         this.destI = this.memory.destI;
         if (!this.memory.roadI) { this.memory.roadI = 0; }
         this.roadI = this.memory.roadI;
+        this.active = this.hasEnergy();
     }
     public initMission(): void {
         if (this.room) {
@@ -66,6 +69,18 @@ export class BuilderMission extends Mission {
     }
     public finalize(): void {
         ;
+    }
+
+    public hasEnergy(): boolean {
+        if (!this.room) { return false; }
+        if (this.room.storage) {
+            if (this.room.storage.store.energy > 5000) {
+                return true;
+            }
+        } else {
+            if (this.operation.stableOperation) { return true; }
+        }
+        return false;
     }
 
     public getNextDestination() {
@@ -175,6 +190,7 @@ export class BuilderMission extends Mission {
     }
 
     public maxBuilders = (): number => {
+        if (!this.active) { return 0; }
         if (this.sites.length === 0) {
             return 0;
         }
@@ -183,6 +199,7 @@ export class BuilderMission extends Mission {
     }
 
     public maxPavers = (): number => {
+        if (!this.active) { return 0; }
         if (this.room && this.spawnRoom.rclLevel >= 4) {
             return 1;
         }
@@ -328,7 +345,7 @@ export class BuilderMission extends Mission {
                     action = creepActions.actionGetBatteryEnergy(b, action);
                 }*/
                 // action = creepActions.actionMoveToRoom(b, action, this.operation.roomName);
-                action = this.operation.creepGetEnergy(b, action, true, false);
+                action = this.operation.creepGetEnergy(b, action, true, true);
                 // b.say("" + action);
             }
             if (!action) { creepActions.moveTo(b, this.operation.rallyPos); b.say('🍺'); };
@@ -384,7 +401,7 @@ export class BuilderMission extends Mission {
                     action = creepActions.actionGetBatteryEnergy(b, action);
                 }*/
                 // action = creepActions.actionMoveToRoom(b, action, this.operation.roomName);
-                action = this.operation.creepGetEnergy(b, action, true, false);
+                action = this.operation.creepGetEnergy(b, action, true, true);
                 // b.say("" + action);
             }
             if (!action) { creepActions.moveTo(b, this.operation.rallyPos); b.say('🍺'); };

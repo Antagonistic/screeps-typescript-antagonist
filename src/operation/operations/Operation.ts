@@ -185,6 +185,13 @@ export abstract class Operation {
         this.initGetEnergy = true;
       }
       let t;
+      if (priority) { // Hijack a nearby hauler
+        const hauler = creep.pos.findInRange(FIND_MY_CREEPS, 5, { filter: x => x.memory.role === "hauler" && x.memory.working && x.carry.energy > 50 });
+        if (hauler && hauler.length > 0) {
+          hauler[0].say("HiJack");
+          hauler[0].memory.target = creep.id;
+        }
+      }
       if (scavange) {
         if (this.droppedEnergy.length > 0) {
           t = creep.pos.findClosestByRange(this.droppedEnergy);

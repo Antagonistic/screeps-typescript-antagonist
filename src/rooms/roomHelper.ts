@@ -97,6 +97,7 @@ export function hasStructure(pos: RoomPosition, struct: BuildableStructureConsta
 export function buildIfNotExist(pos: RoomPosition, struct: BuildableStructureConstant, name?: string): ScreepsReturnCode {
     if (hasStructure(pos, struct)) { return OK; }
     let ret: ScreepsReturnCode;
+    if (Game.rooms[pos.roomName] && Game.rooms[pos.roomName].getTerrain().get(pos.x, pos.y) === TERRAIN_MASK_WALL) { return OK; }
     if (struct === STRUCTURE_SPAWN) {
         if (!name) {
             name = "Spawn_" + pos.roomName + "_" + Memory.uuid++;

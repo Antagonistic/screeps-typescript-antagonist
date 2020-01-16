@@ -265,60 +265,62 @@ export class MiningMission extends Mission {
             const oversize = creep.memory.oversize || 1;
             if (!creep.memory.inPosition) {
                 action = creepActions.actionMoveToRoom(creep, action, this.operation.roomName);
-                if (creep.pos.isNearTo(this.source.pos)) {
-                    if (this.container != null) {
-                        if (creep.pos.isNearTo(this.container.pos)) {
-                            creep.memory.inPosition = true;
+                if (!action) {
+                    if (creep.pos.isNearTo(this.source.pos)) {
+                        if (this.container != null) {
+                            if (creep.pos.isNearTo(this.container.pos)) {
+                                creep.memory.inPosition = true;
+                            }
+                            else {
+                                // creepActions.moveTo(creep, this.container.pos, true);
+                                for (const p of openAdjacentSpots(this.source.pos)) {
+                                    if (p.isNearTo(this.container.pos)) {
+                                        const _creeps = p.lookFor("creep");
+                                        if (!_creeps || _creeps.length === 0) {
+                                            creepActions.moveTo(creep, p, true);
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
                         }
                         else {
-                            // creepActions.moveTo(creep, this.container.pos, true);
-                            for (const p of openAdjacentSpots(this.source.pos)) {
-                                if (p.isNearTo(this.container.pos)) {
-                                    const _creeps = p.lookFor("creep");
-                                    if (!_creeps || _creeps.length === 0) {
-                                        creepActions.moveTo(creep, p, true);
-                                        break;
-                                    }
-                                }
-                            }
+                            creep.memory.inPosition = true;
                         }
-                    }
-                    else {
-                        creep.memory.inPosition = true;
-                    }
-                } else {
-                    creepActions.moveTo(creep, this.source.pos, false);
-                }
-            } else {
-                if (sourceEnergy && Game.time % oversize === 0) {
-                    const ret: number = creep.harvest(this.source);
-                    if (ret === ERR_NOT_IN_RANGE) {
-                        creep.memory.inPosition = false;
+                    } else {
                         creepActions.moveTo(creep, this.source.pos, false);
                     }
-                    if (creep.carry.energy > 40) {
-                        if ((Game.time % (4 * oversize) === 1 && Game.cpu.bucket > 800) || !this.container) {
-                            const ext = this.getExtention(creep);
-                            if (ext) {
-                                creep.transfer(ext, RESOURCE_ENERGY);
-                            } else {
-                                const haulers = creep.pos.findInRange(FIND_MY_CREEPS, 1, { filter: (c: Creep) => c.memory.role && c.memory.role !== "miner" });
-                                if (haulers.length > 0) {
-                                    action = creepActions.actionTransferStill(creep, action, haulers[0]);
+                } else {
+                    if (sourceEnergy && Game.time % oversize === 0) {
+                        const ret: number = creep.harvest(this.source);
+                        if (ret === ERR_NOT_IN_RANGE) {
+                            creep.memory.inPosition = false;
+                            creepActions.moveTo(creep, this.source.pos, false);
+                        }
+                        if (creep.carry.energy > 40) {
+                            if ((Game.time % (4 * oversize) === 1 && Game.cpu.bucket > 800) || !this.container) {
+                                const ext = this.getExtention(creep);
+                                if (ext) {
+                                    creep.transfer(ext, RESOURCE_ENERGY);
                                 } else {
-                                    action = creepActions.actionBuildStill(creep, action);
-                                    action = creepActions.actionRepairStill(creep, action);
-                                    if (this.container) {
-                                        action = creepActions.actionTransferStill(creep, action, this.container);
+                                    const haulers = creep.pos.findInRange(FIND_MY_CREEPS, 1, { filter: (c: Creep) => c.memory.role && c.memory.role !== "miner" });
+                                    if (haulers.length > 0) {
+                                        action = creepActions.actionTransferStill(creep, action, haulers[0]);
+                                    } else {
+                                        action = creepActions.actionBuildStill(creep, action);
+                                        action = creepActions.actionRepairStill(creep, action);
+                                        if (this.container) {
+                                            action = creepActions.actionTransferStill(creep, action, this.container);
+                                        }
                                     }
                                 }
-                            }
-                        } else {
-                            const ext = this.getExtention(creep);
-                            if (ext) {
-                                creep.transfer(ext, RESOURCE_ENERGY);
-                            } else if (this.container) {
-                                action = creepActions.actionTransfer(creep, action, this.container);
+                            } else {
+                                const ext = this.getExtention(creep);
+                                if (ext) {
+                                    creep.transfer(ext, RESOURCE_ENERGY);
+                                } else if (this.container) {
+                                    action = creepActions.actionTransfer(creep, action, this.container);
+                                }
                             }
                         }
                     }

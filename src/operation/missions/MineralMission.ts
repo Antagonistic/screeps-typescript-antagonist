@@ -92,7 +92,7 @@ export class MineralMission extends Mission {
                         roomHelper.buildIfNotExist(creep.pos, STRUCTURE_CONTAINER);
                     }
                 } else {
-                    creepActions.moveTo(creep, this.extractor.pos, true);
+                    creepActions.moveTo(creep, this.extractor.pos, false);
                 }
             } else {
                 if (!this.container) {
@@ -101,7 +101,7 @@ export class MineralMission extends Mission {
                 if (Game.time % 6 === 0 && mineralAmount > 0) {
                     const ret: number = creep.harvest(this.mineral);
                     if (ret === ERR_NOT_IN_RANGE) {
-                        creepActions.moveTo(creep, this.mineral.pos, true);
+                        creepActions.moveTo(creep, this.mineral.pos, false);
                     }
                 }
                 if (_.sum(creep.carry) > 40) {

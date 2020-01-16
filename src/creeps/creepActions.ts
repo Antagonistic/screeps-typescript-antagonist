@@ -167,13 +167,13 @@ export function moveToUpgrade(creep: Creep): void {
 
 export function moveToBuildSite(creep: Creep, target: ConstructionSite): void {
   if (creep.build(target) === ERR_NOT_IN_RANGE) {
-    moveTo(creep, target.pos, true);
+    moveTo(creep, target.pos, false);
   } else { yieldRoad(creep, target); }
 }
 
 export function moveToRepair(creep: Creep, target: Structure): void {
   if (creep.repair(target) === ERR_NOT_IN_RANGE) {
-    moveTo(creep, target, true);
+    moveTo(creep, target, false);
   } else { yieldRoad(creep, target); }
 }
 
@@ -235,7 +235,7 @@ export function moveToAttack(creep: Creep, target: Creep | Structure): void {
 export function moveToRangedAttack(creep: Creep, target: Creep | Structure): void {
   const range: number = creep.pos.getRangeTo(target.pos);
   if (range > 3) {
-    moveTo(creep, target, true);
+    moveTo(creep, target, false);
   } else if (range < 3) {
     const path = PathFinder.search(creep.pos, { pos: target.pos, range: 3 }, { flee: true });
     creep.moveByPath(path.path);
@@ -245,25 +245,25 @@ export function moveToRangedAttack(creep: Creep, target: Creep | Structure): voi
 
 export function moveToHeal(creep: Creep, target: Creep): void {
   if (creep.heal(target) === ERR_NOT_IN_RANGE) {
-    moveTo(creep, target.pos, true);
+    moveTo(creep, target.pos, false);
   }
 }
 
 export function moveToReserve(creep: Creep, target: StructureController): void {
   if (creep.reserveController(target) === ERR_NOT_IN_RANGE) {
-    moveTo(creep, target, true);
+    moveTo(creep, target, false);
   }
 }
 
 export function moveToClaim(creep: Creep, target: StructureController): void {
   if (creep.claimController(target) === ERR_NOT_IN_RANGE) {
-    moveTo(creep, target, true);
+    moveTo(creep, target, false);
   }
 }
 
 export function moveToBoost(creep: Creep, lab: StructureLab) {
   if (lab.boostCreep(creep) === ERR_NOT_IN_RANGE) {
-    moveTo(creep, lab, true);
+    moveTo(creep, lab, false);
   }
 }
 
@@ -305,6 +305,8 @@ export function actionUpgrade(creep: Creep, action: boolean): boolean {
       const target: StructureController = creep.room.controller;
       if (creep.upgradeController(target) === ERR_NOT_IN_RANGE) {
         moveTo(creep, target);
+      } else {
+        yieldRoad(creep, creep.room.controller, true);
       }
       // creep.moveTo(target);
       return true;
