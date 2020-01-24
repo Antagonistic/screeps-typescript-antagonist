@@ -14,7 +14,7 @@ export class RefillMission extends Mission {
     public initMission(): void {
         ;
     } public spawn(): void {
-        const numCarts = (): number => this.room && this.room.storage ? 1 : 0;
+        const numCarts = (): number => this.room && this.spawnRoom.rclLevel >= 4 && this.room.storage ? 1 : 0;
         this.haulers = this.spawnRole(this.name + "cart", numCarts, this.getCartBody, { role: "refill" }, 10);
     }
     public work(): void {

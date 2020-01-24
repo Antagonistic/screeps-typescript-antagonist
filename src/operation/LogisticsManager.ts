@@ -1,13 +1,14 @@
 import { SpawnRoom } from "rooms/SpawnRoom";
-import { MiningMission } from "./missions/MiningMission";
 import { ControllerOperation } from "./operations/ControllerOperation";
 import { Operation } from "./operations/Operation";
 
-import * as creepActions from "creeps/creepActions";
+import { MineralMission } from "./missions/MineralMission";
+import { MiningMission } from "./missions/MiningMission";
 import { UpgradeMission } from "./missions/UpgradeMission";
 
+import * as creepActions from "creeps/creepActions";
 import * as layoutManager from "rooms/layoutManager";
-import { MineralMission } from "./missions/MineralMission";
+import * as roadHelper from "rooms/roadHelper";
 
 export class LogisticsManager {
     public spawnRoom: SpawnRoom;
@@ -31,6 +32,13 @@ export class LogisticsManager {
         if (Game.time % 5008 === 0) {
             this.room.memory.dest = undefined;
         }
+    }
+
+    public needRefill() {
+        if (this.room.storage && this.room.find(FIND_MY_CREEPS, { filter: x => x.memory.role === "refill" }).length === 0) {
+            return true;
+        }
+        return false;
     }
 
     public registerOperation(operation: Operation) {
@@ -82,7 +90,7 @@ export class LogisticsManager {
             roads = roads.concat(layoutManager.getRoads(this.room));
             const destinations = this.getDestinations();
             for (const d of destinations) {
-                const road = layoutManager.pavePath(d, center, 3);
+                const road = roadHelper.pavePath(d, center, 3);
                 const _road = _.filter(road, { roomName: this.room.name })
                 this.room.visual.poly(_road);
 
@@ -95,7 +103,7 @@ export class LogisticsManager {
 
     public buildRoads() {
         const roads = this.getRoads();
-        const construct = layoutManager.getUnbuiltRoads(roads);
+        const construct = roadHelper.getUnbuiltRoads(roads);
         if (construct.length > 0) {
             if (Object.keys(Game.constructionSites).length < 60) {
                 for (const r of construct) {

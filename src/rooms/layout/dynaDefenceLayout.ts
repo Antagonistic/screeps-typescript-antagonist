@@ -1,6 +1,6 @@
 import * as roomHelper from "rooms/roomHelper"
 
-export function dynaControllerLayout(room: Room): RCLRoomLayout {
+export function dynaDefenceLayout(room: Room): RCLRoomLayout {
     const ret: RCLRoomLayout = {
         anchor: { x: 0, y: 0 },
         road: []

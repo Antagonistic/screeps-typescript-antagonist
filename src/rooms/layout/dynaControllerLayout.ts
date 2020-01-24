@@ -10,7 +10,7 @@ export function dynaControllerLayout(room: Room): RCLRoomLayout {
     if (!room.controller || !room.controller.my) { return ret; }
     const pos = room.controller.pos;
 
-    const _spots = roomHelper.openAdjacentSpots(pos, true);
+    const _spots = pos.openAdjacentSpots(true);
     let spots: LightRoomPos[] = _.map(_spots, o => ({ x: o.x, y: o.y }))
 
     const infrastruct = pos.findInRange(FIND_STRUCTURES, 3, { filter: x => x.structureType === STRUCTURE_CONTAINER || x.structureType === STRUCTURE_LINK || x.structureType === STRUCTURE_EXTENSION });

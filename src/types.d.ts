@@ -1,5 +1,7 @@
 // import "./Profiler/typings"
 
+// import { ActionTarget } from 'config/config';
+
 // example declaration file - remove these and add your own custom typings
 declare namespace NodeJS {
   interface Global {
@@ -35,6 +37,23 @@ interface Market {
   getHistory(resource: ResourceConstant): MarketHistory[];
 }
 
+// declare enum ActionTarget { }
+
+/*type ACTIONBUILD = "build";
+type ACTIONREPAIR = "repair";
+type ACTIONMINE = "mine";
+type ACTIONPICKUP = "pickup";
+type ACTIONWITHDRAW = "withdraw";
+type ACTIONWITHDRAWENERGY = "withdrawenergy";
+type ACTIONDEPOSIT = "deposit";
+type ACTIONDEPOSITENERGY = "depositenergy";
+type ACTIONHEAL = "heal";
+type ACTIONATTACK = "attack";
+type ACTIONATTACK_RANGED = "attackranged";
+type ACTIONDISMANTLE = "dismantle";
+
+type TargetAction = ACTIONBUILD | ACTIONREPAIR | ACTIONMINE | ACTIONPICKUP | ACTIONWITHDRAW | ACTIONWITHDRAWENERGY | ACTIONDEPOSIT | ACTIONDEPOSITENERGY | ACTIONHEAL | ACTIONATTACK | ACTIONATTACK_RANGED | ACTIONDISMANTLE;
+*/
 // memory extension samples
 interface CreepMemory {
   home?: string;
@@ -48,13 +67,17 @@ interface CreepMemory {
   sourceID?: string;
   squad?: string;
   renew?: boolean;
-  target?: Id<Creep | ConstructionSite | Structure>;
+  target?: Id<_HasId>;
+  targetAction?: string;
   energyTarget?: string;
   isBoosted?: boolean;
   inPosition?: boolean;
   _trav?: any;
   _travel?: any;
   oversize?: number;
+  debug?: boolean;
+  waitTime?: number;
+  partnerId?: Id<Creep>;
 }
 
 interface RoomMemory {
@@ -83,7 +106,7 @@ interface RoomMemory {
   buildState?: number;
   supervisor?: LightRoomPos[];
   spawnRoom?: string;
-  controllerBattery?: string;
+  controllerBattery?: Id<StructureContainer | StructureLink>;
   avoid?: number;
 }
 
@@ -96,25 +119,11 @@ interface Memory {
   uuid: number;
   log: any;
   empire: any;
-  // profiler: { [identifier: string]: ProfilerData };
   cpu: {
     history: number[];
     average: number;
   };
 }
-
-/*interface ProfilerData {
-  startOfPeriod: number;
-  lastTickTracked: number;
-  total: number;
-  count: number;
-  costPerCall: number;
-  costPerTick: number;
-  callsPerTick: number;
-  cpu: number;
-  consoleReport: boolean;
-  period: number;
-}*/
 
 interface WorldMap {
   controlledRooms: { [roomName: string]: Room };
@@ -122,30 +131,12 @@ interface WorldMap {
   expandInfluence(spawn: SpawnRoom): string[];
 }
 
-// interface IMission {
-//   name: string;
-//   operation: IOperation;
-
-//   roles: { [roleName: string]: Creep[] };
-// }
-
-// interface IOperation {
-//   name: string;
-//   type: string;
-
-//   flag: Flag;
-//   room: Room | undefined;
-
-//   missions: { [missionName: string]: IMission };
-
-//   init(): void;
-// }
-
 interface SpawnRoom {
   spawns: StructureSpawn[];
   room: Room;
   availableSpawnCount: number;
   availableSpawnEnergy: number;
+  energyCapacityAvailable: number;
   logistics: any;
   createCreep(bodyParts: string[] | null, role: string, memory?: any, room?: Room, creepName?: string): boolean;
 }
@@ -174,29 +165,65 @@ interface LightRoomPos {
   y: number;
 }
 
-interface SquadComposition {
-  archer?: number;
-  healer?: number;
-  siege?: number;
-  brawler?: number;
+interface cartAnalyze {
+  count: number;
+  carry: number;
 }
 
-interface Squad {
-  name: string;
-  composition: SquadComposition;
-  members: string[];
-  assignedRoom: string;
+// Prototypes
+interface Creep {
+  target?: _HasId;
+  action: boolean;
+  partner?: Creep;
+  readonly working: boolean;
+  setTarget(target: _HasId, targetAction: string): boolean;
+  clearTarget(): void;
+  actionTarget(): boolean;
+  wait(time: number): void;
+  rally(): void;
 }
 
-declare const enum RoomStates {
-  NONE = 0,
-  WAR = 1,
-  NEUTRAL = 2,
-  MINE = 3,
-  CLAIM = 4,
-  BOOTSTRAP = 5,
-  TRANSITION = 6,
-  STABLE = 7
+interface RoomPosition {
+  readonly print: string;
+  readonly printPlain: string;
+  readonly room?: Room;
+  readonly lightRoomPos: LightRoomPos;
+  readonly isEdge: boolean;
+  readonly isVisible: boolean;
+  lookForStructure(structureType: StructureConstant): Structure | undefined;
+  openAdjacentSpots(ignoreCreeps?: boolean): RoomPosition[];
+  getPositionAtDirection(direction: number, range?: number): RoomPosition;
+  isPassible(ignoreCreeps?: boolean): boolean;
+  isNearExit(range: number): boolean
+}
+
+interface Room {
+  _storage?: StructureStorage;
+  readonly rally: RoomPosition;
+  readonly creeps: Creep[];
+  readonly hostiles: Creep[];
+  readonly invaders: Creep[];
+  readonly sourceKeepers: Creep[];
+  readonly playerHostiles: Creep[];
+  readonly dangerousHostiles: Creep[];
+  readonly dangerousPlayerHostiles: Creep[];
+  readonly flags: Flag[];
+  readonly drops: Resource[];
+  readonly droppedEnergy: Resource[];
+  readonly droppedPower: Resource[];
+  readonly ruins: Ruin[];
+  readonly tombstones: Tombstone[];
+}
+
+interface Source {
+  energyPerTick: number;
+}
+
+interface RoomVisual {
+  structure(x: number, y: number, type: string, opts?: { opacity?: number }): RoomVisual;
+  connectRoads(opts?: { opacity?: number }): RoomVisual | void;
+  box(x: number, y: number, w: number, h: number, style?: LineStyle): RoomVisual;
+  roads?: Array<[number, number]>;
 }
 
 declare const __REVISION__: string;

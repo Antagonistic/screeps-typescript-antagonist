@@ -7,9 +7,9 @@ import { profile } from "Profiler";
 @profile
 export class LootMission extends Mission {
     public carts: Creep[] = [];
-    public target?: Structure;
+    public target?: AnyStoreStructure | Ruin | Tombstone;
     public haulTo?: Structure;
-    constructor(operation: Operation, name: string, target?: Structure, haulTo?: Structure) {
+    constructor(operation: Operation, name: string, target?: AnyStoreStructure | Ruin | Tombstone, haulTo?: AnyStoreStructure) {
         super(operation, name);
         this.target = target;
         this.haulTo = haulTo;

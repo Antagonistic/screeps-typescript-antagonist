@@ -33,10 +33,10 @@ export function moveTo(creep: Creep, target: Structure | Creep | RoomPosition, e
   }
   if (exact) {
     // return creep.moveTo(target, { visualizePathStyle: { stroke: "#ffffff" }, range: 1 });
-    return Traveler.travelTo(creep, target, { range: 0, ignoreCreeps: false });
+    return Traveler.travelTo(creep, target, { range: 0, ignoreCreeps: true });
   } else {
     // return creep.moveTo(target, { range: 1 });
-    return Traveler.travelTo(creep, target, { range: 1, ignoreCreeps: false });
+    return Traveler.travelTo(creep, target, { range: 1, ignoreCreeps: true });
   }
 }
 
@@ -188,13 +188,24 @@ export function moveToBuild(creep: Creep, target?: ConstructionSite | null): voi
   }
 }
 
-export function moveToTransfer(creep: Creep, target: Structure | Creep): void {
+export function moveToTransfer(creep: Creep, target: AnyStoreStructure | Creep): void {
   if (creep.transfer(target, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
     moveTo(creep, target.pos);
   }
 }
 
-export function moveToWithdrawAll(creep: Creep, target: Structure): boolean {
+export function moveToTransferAll(creep: Creep, target: AnyStoreStructure | Creep): void {
+  if (creep.pos.isNearTo(target.pos)) {
+    for (const resourceType in creep.store) {
+      creep.transfer(creep, resourceType as ResourceConstant);
+    }
+  } else {
+    moveTo(creep, target.pos);
+  }
+
+}
+
+export function moveToWithdrawAll(creep: Creep, target: AnyStoreStructure | Tombstone | Ruin): boolean {
   if (_.sum(creep.carry) >= creep.carryCapacity) { return false; }
   if (creep.pos.isNearTo(target.pos)) {
     // console.log(target.structureType);
@@ -220,7 +231,7 @@ export function moveToWithdrawAll(creep: Creep, target: Structure): boolean {
   return true;
 }
 
-export function moveToWithdraw(creep: Creep, target: Structure, type: ResourceConstant = RESOURCE_ENERGY): void {
+export function moveToWithdraw(creep: Creep, target: AnyStoreStructure | Tombstone | Ruin, type: ResourceConstant = RESOURCE_ENERGY): void {
   if (creep.withdraw(target, type) === ERR_NOT_IN_RANGE) {
     moveTo(creep, target.pos);
   }
@@ -656,7 +667,7 @@ export function actionFillTower(creep: Creep, action: boolean): boolean {
 export function actionFillEnergyStorage(creep: Creep, action: boolean): boolean {
   if (action === false) {
     const storage: StructureStorage | undefined = creep.room.storage;
-    if (storage) {
+    if (storage && storage.room.controller!.level >= 4) {
       creep.memory.target = storage.id;
       moveToTransfer(creep, storage);
       return true;
@@ -735,6 +746,20 @@ export function actionFillBattery(creep: Creep, action: boolean): boolean {
     if (creep.room.memory.battery) {
       const chest: StructureContainer | null = Game.getObjectById(creep.room.memory.battery);
       if (chest && ((_.sum(chest.store) || 0)) < chest.storeCapacity) {
+        creep.memory.target = chest.id;
+        moveToTransfer(creep, chest);
+        return true;
+      }
+    }
+  }
+  return action;
+}
+
+export function actionFillControllerBattery(creep: Creep, action: boolean): boolean {
+  if (action === false) {
+    if (creep.room.memory.controllerBattery) {
+      const chest: StructureContainer | StructureLink | null = Game.getObjectById(creep.room.memory.controllerBattery);
+      if (chest && (chest.store.getFreeCapacity() > 400)) {
         creep.memory.target = chest.id;
         moveToTransfer(creep, chest);
         return true;
@@ -850,7 +875,7 @@ export function actionGetBatteryEnergy(creep: Creep, action: boolean, factor: nu
             return false;
           }
         }
-        moveToWithdraw(creep, obj as Structure);
+        moveToWithdraw(creep, obj as AnyStoreStructure);
         return true;
       }
     }
@@ -1034,9 +1059,8 @@ export function actionBoost(creep: Creep, action: boolean) {
   return action;
 }
 
-
 export function yieldRoad(creep: Creep, target: { pos: RoomPosition }, allowSwamps = true): number {
-  const isOffRoad = roomHelper.lookForStructure(creep.pos, STRUCTURE_ROAD) === undefined;
+  const isOffRoad = creep.pos.lookForStructure(STRUCTURE_ROAD) === undefined;
   if (isOffRoad) { return OK };
 
   let swampPosition;
@@ -1045,10 +1069,10 @@ export function yieldRoad(creep: Creep, target: { pos: RoomPosition }, allowSwam
   for (let i = -2; i <= 2; i++) {
     let relDirection = direction + i;
     relDirection = roomHelper.clampDirection(relDirection);
-    const position = roomHelper.getPositionAtDirection(creep.pos, relDirection);
+    const position = creep.pos.getPositionAtDirection(relDirection);
     if (!position.inRangeTo(target, 3)) { continue; }
     if (position.lookFor(LOOK_STRUCTURES).length > 0) { continue; }
-    if (!roomHelper.isPassible(position)) { continue; }
+    if (!position.isPassible()) { continue; }
     if (roomHelper.isNearExit(position, 0)) { continue; }
     if (position.lookFor(LOOK_TERRAIN)[0] === "swamp") {
       swampPosition = position;

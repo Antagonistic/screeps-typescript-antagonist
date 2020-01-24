@@ -2,84 +2,6 @@ import { Traveler } from "utils/Traveler";
 // tslint:disable-next-line:ordered-imports
 import { ROAD_COST, AVOID_COST, SWAMP_COST, PLAIN_COST } from "config/config";
 
-
-export function openAdjacentSpots(pos: RoomPosition, ignoreCreeps?: boolean): RoomPosition[] {
-    const positions = [];
-    for (let i = 1; i <= 8; i++) {
-        const testPosition = getPositionAtDirection(pos, i);
-
-        if (isPassible(testPosition, ignoreCreeps)) {
-            // passed all tests
-            positions.push(testPosition);
-        }
-    }
-    return positions;
-};
-
-export function getPositionAtDirection(pos: RoomPosition, direction: number, range?: number): RoomPosition {
-    if (!range) {
-        range = 1;
-    }
-    let x = pos.x;
-    let y = pos.y;
-    const room = pos.roomName;
-
-    if (direction === 1) {
-        y -= range;
-    }
-    else if (direction === 2) {
-        y -= range;
-        x += range;
-    }
-    else if (direction === 3) {
-        x += range;
-    }
-    else if (direction === 4) {
-        x += range;
-        y += range;
-    }
-    else if (direction === 5) {
-        y += range;
-    }
-    else if (direction === 6) {
-        y += range;
-        x -= range;
-    }
-    else if (direction === 7) {
-        x -= range;
-    }
-    else if (direction === 8) {
-        x -= range;
-        y -= range;
-    }
-    return new RoomPosition(x, y, room);
-};
-
-export function isPassible(pos: RoomPosition, ignoreCreeps?: boolean): boolean {
-    if (isNearExit(pos, 0)) { return false; }
-
-    // look for walls
-    if (_.head(pos.lookFor(LOOK_TERRAIN)) !== "wall") {
-
-        // look for creeps
-        if (ignoreCreeps || pos.lookFor(LOOK_CREEPS).length === 0) {
-
-            // look for impassible structions
-            if (_.filter(pos.lookFor(LOOK_STRUCTURES), (struct: Structure) => {
-                return struct.structureType !== STRUCTURE_ROAD
-                    && struct.structureType !== STRUCTURE_CONTAINER
-                    && struct.structureType !== STRUCTURE_RAMPART;
-            }).length === 0) {
-
-                // passed all tests
-                return true;
-            }
-        }
-    }
-
-    return false;
-};
-
 export function hasStructure(pos: RoomPosition, struct: BuildableStructureConstant): boolean {
     const structures = pos.lookFor(LOOK_STRUCTURES);
     if (_.any(structures, x => x.structureType === struct)) { return true; }
@@ -301,13 +223,18 @@ export function findPath(start: RoomPosition, finish: RoomPosition, rangeAllowan
     return undefined;
 }
 
-export function lookForStructure(pos: RoomPosition, structureType: string): Structure {
-    const structures = pos.lookFor(LOOK_STRUCTURES);
-    return _.find(structures, { structureType }) as Structure;
-}
-
 export function clampDirection(direction: number): number {
     while (direction < 1) { direction += 8; }
     while (direction > 8) { direction -= 8; }
     return direction;
+}
+
+export function cartAnalyze(dist: number, load: number, spawnRoom: SpawnRoom, offRoad: boolean = false): cartAnalyze {
+    const maxEnergy = spawnRoom.energyCapacityAvailable;
+    const maxParts = Math.min(Math.floor(offRoad ? (maxEnergy / 200) : (maxEnergy / 150)), 16);
+    const throughput = dist * load * 2.1;
+    const carryNeeded = Math.ceil(throughput / (CARRY_CAPACITY * 2));
+    const cartsNeed = Math.max(Math.ceil(carryNeeded / maxParts), 1);
+    const carryNeed = Math.min(Math.max(Math.floor(carryNeeded / cartsNeed), 1) + 1, maxParts);
+    return { count: cartsNeed, carry: carryNeed };
 }

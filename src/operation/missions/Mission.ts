@@ -1,20 +1,23 @@
+import { BodyFactory } from "creeps/BodyFactory";
 import { Operation } from "operation/operations/Operation";
 import { profile } from "Profiler";
 import { SpawnRoom } from "rooms/SpawnRoom";
 
 @profile
-export abstract class Mission {
+export abstract class Mission extends BodyFactory {
     public name: string;
     public memory: any;
-    public spawnRoom: SpawnRoom;
+    // public spawnRoom: SpawnRoom;
     public operation: Operation;
     public hasVision: boolean;
     public room?: Room;
     public remoteSpawning: boolean;
+
     constructor(operation: Operation, name: string) {
+        super(operation.spawnRoom);
         this.name = name;
         this.operation = operation;
-        this.spawnRoom = operation.spawnRoom;
+        // this.spawnRoom = operation.spawnRoom;
         if (!operation.memory[name]) { operation.memory[name] = {}; }
         this.memory = operation.memory[name];
         if (!this.memory.hc) { this.memory.hc = {}; }
@@ -73,81 +76,6 @@ export abstract class Mission {
             }
         }
         return creepNames;
-    }
-
-
-    protected workerBody(workCount: number, carryCount: number, movecount: number): BodyPartConstant[] {
-        const body: BodyPartConstant[] = [];
-        for (let i = 0; i < workCount; i++) {
-            body.push(WORK);
-        }
-        for (let j = 0; j < carryCount; j++) {
-            body.push(CARRY);
-        }
-        for (let k = 0; k < movecount; k++) {
-            body.push(MOVE);
-        }
-        return body;
-    }
-
-    protected workerBodyRoad(maxE: number = 1600): BodyPartConstant[] {
-        const E: number = Math.min(this.spawnRoom.energyCapacityAvailable, maxE);
-        const P = Math.floor(E / 200);
-        return this.workerBody(P, P, P);
-
-    }
-
-    protected workerBodyOffRoad(maxE: number = 1750): BodyPartConstant[] {
-        const E: number = Math.min(this.spawnRoom.energyCapacityAvailable, maxE);
-        const P = Math.floor(E / 250);
-        return this.workerBody(P, P, P * 2);
-    }
-
-    protected configBody(config: { [partType: string]: number }): BodyPartConstant[] {
-        const body: BodyPartConstant[] = [];
-        for (const partType in config) {
-            const amount = config[partType];
-            for (let i = 0; i < amount; i++) {
-                body.push(partType as BodyPartConstant);
-            }
-        }
-        return body;
-    }
-
-    public getCartBody = () => {
-        if (this.spawnRoom.energyCapacityAvailable >= 750) {
-            // Huge hauler
-            return this.workerBody(0, 10, 5);
-        } else if (this.spawnRoom.energyCapacityAvailable >= 600) {
-            // Big hauler
-            return this.workerBody(0, 8, 4);
-        } else if (this.spawnRoom.energyCapacityAvailable >= 450) {
-            // Medium hauler
-            return this.workerBody(0, 6, 3);
-        } else {
-            // Small hauler
-            return this.workerBody(0, 4, 2);
-        }
-    };
-
-    public getLongCartBody = () => {
-        if (this.spawnRoom.energyCapacityAvailable >= 1800) {
-            return this.workerBody(0, 20, 11);
-        } else if (this.spawnRoom.energyCapacityAvailable >= 1500) {
-            return this.workerBody(0, 15, 8);
-        } else if (this.spawnRoom.energyCapacityAvailable >= 900) {
-            // Huge hauler
-            return this.workerBody(0, 10, 6);
-        } else if (this.spawnRoom.energyCapacityAvailable >= 750) {
-            // Big hauler
-            return this.workerBody(0, 8, 5);
-        } else if (this.spawnRoom.energyCapacityAvailable >= 450) {
-            // Medium hauler
-            return this.workerBody(0, 6, 3);
-        } else {
-            // Small hauler
-            return this.workerBody(0, 4, 2);
-        }
     }
 
     public buildRoads(path: RoomPosition[]): boolean {

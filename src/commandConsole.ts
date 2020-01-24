@@ -41,8 +41,9 @@ export const commandConsole = {
       }
     }
   },*/
-  report(): void {
+  report(roomName?: string): void {
     for (const _sR in global.emp.spawnRooms) {
+      if (roomName && global.emp.spawnRooms[_sR].room.name !== roomName) { continue; }
       global.emp.spawnRooms[_sR].logistics.report();
     }
   },

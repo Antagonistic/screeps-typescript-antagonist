@@ -33,8 +33,7 @@ export class UpgradeMission extends Mission {
     public spawn(): void {
         this.upgraders = this.spawnRole(this.name, this.getMaxUpgraders, this.getUpgraderBody, { role: "upgrader" });
 
-        const numCarts = (): number => this.room && (this.room.storage && this.room.storage.store.energy > 10000) && (!this.isLink || this.room.controller!.level !== 8) ? 1 : 0;
-        this.haulers = this.spawnRole(this.name + "cart", numCarts, this.getCartBody, { role: "refill" });
+        this.haulers = this.spawnRole(this.name + "cart", this.getMaxCarts, this.getCartBody, { role: "upgrader_cart" });
 
         /*if (Game.time % 50 === 20) {
             if (this.operation.stableOperation) {
@@ -72,6 +71,22 @@ export class UpgradeMission extends Mission {
         } else {
             return this.workerBody(2, 1, 1);
         }
+    }
+
+    public getMaxCarts = (): number => {
+        if (!this.room || !this.controller || !this.container) { return 0; }
+        if (this.controller.ticksToDowngrade < 10000) { return 1; }
+        if (this.isLink) { return 0; }
+        if (this.controller.level >= 5 && this.room.storage) {
+            if (this.room.storage.store.energy > 10000) {
+                return 1;
+            } else {
+                return 0;
+            }
+        }
+        // if (this.controller.level === 8) { return 1; }
+        return 0;
+
     }
 
     public getMaxUpgraders = (): number => {

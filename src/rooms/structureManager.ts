@@ -6,7 +6,7 @@ import { log } from "../lib/logger/log";
 export function run(room: Room): void {
 
   // Handle Towers
-  const towerIDs: string[] = room.memory.towers;
+  const towerIDs: string[] | undefined = room.memory.towers;
   if (towerIDs && towerIDs.length > 0) {
     const hostiles: Creep[] = room.find(FIND_HOSTILE_CREEPS);
     for (const towerID of towerIDs) {

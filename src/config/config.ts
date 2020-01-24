@@ -26,6 +26,21 @@ export const PLAIN_COST = 4;
 export const SWAMP_COST = 5;
 export const AVOID_COST = 7;
 
+export enum TargetAction {
+    BUILD = "build",
+    REPAIR = "repair",
+    MINE = "mine",
+    PICKUP = "pickup",
+    WITHDRAW = "withdraw",
+    WITHDRAWENERGY = "withdrawenergy",
+    DEPOSIT = "deposit",
+    DEPOSITENERGY = "depositenergy",
+    HEAL = "heal",
+    ATTACK = "attack",
+    ATTACK_RANGED = "attackranged",
+    DISMANTLE = "dismantle"
+}
+
 /**
  * Debug level for log output
  */

@@ -1,6 +1,7 @@
 import { profile } from "Profiler";
 import * as layoutManager from "rooms/layoutManager";
 import { SingleLayout } from "rooms/layoutManager";
+import { hasStructure } from "./roomHelper";
 
 @profile
 export class LayoutVisualizer {
@@ -46,45 +47,16 @@ export class LayoutVisualizer {
                 }
             }
         }
+        this.room.visual.connectRoads();
     }
 
     private visualRCLLayout() {
         const iter = Game.time % 8;
     }
 
-    private structureColor(type: StructureConstant): string {
-        switch (type) {
-            case STRUCTURE_ROAD:
-                return "#999999";
-            case STRUCTURE_RAMPART:
-                return "#990099";
-            case STRUCTURE_SPAWN:
-                return "#009900";
-            case STRUCTURE_EXTENSION:
-                return "#999900";
-            case STRUCTURE_TOWER:
-                return "#000099";
-            case STRUCTURE_LAB:
-                return "#00FFFF";
-            case STRUCTURE_STORAGE:
-            case STRUCTURE_TERMINAL:
-                return "#FFFFFF";
-            default:
-                return "#FF0000";
-        }
-    }
-
     private renderPos(pos: LightRoomPos[], anchor: LightRoomPos, type: StructureConstant) {
         for (const p of pos) {
-            const color = this.structureColor(type);
-            let radius: number = 0.5;
-            switch (type) {
-                case STRUCTURE_ROAD:
-                    radius = 0.15;
-                case STRUCTURE_RAMPART:
-                    radius = 0.25;
-            }
-            this.room.visual.circle(p.x - anchor.x, p.y - anchor.y, { fill: color, radius });
+            this.room.visual.structure(p.x - anchor.x, p.y - anchor.y, type);
         }
     }
 

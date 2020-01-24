@@ -1,6 +1,7 @@
 import { PLAIN_COST, SWAMP_COST } from "config/config";
 import { Traveler } from "utils/Traveler";
 import { dynaControllerLayout } from "./layout/dynaControllerLayout";
+import { dynaDefenceLayout } from "./layout/dynaDefenceLayout";
 import { dynaSourceLayout } from "./layout/dynaSourceLayout";
 import { headLayout } from "./layout/headLayout";
 import { noLayout } from "./layout/noLayout";
@@ -38,22 +39,26 @@ export function getLayouts(room: Room): SingleLayout[] {
             const y = layout.anchor.y - flag.pos.y;
             ret.push({ pos: { x, y }, layout });
         }
-        if (room.controller) {
+    }
+    if (room.controller) {
+        const pos = { x: 0, y: 0 };
+        ret.push({ pos, layout: dynaControllerLayout(room) })
+    }
+    const sources = room.find(FIND_SOURCES);
+    if (sources && sources.length > 0) {
+        for (const s of sources) {
             const pos = { x: 0, y: 0 };
-            ret.push({ pos, layout: dynaControllerLayout(room) })
+            ret.push({ pos, layout: dynaSourceLayout(room, s) })
         }
-        const sources = room.find(FIND_SOURCES);
-        if (sources && sources.length > 0) {
-            for (const s of sources) {
-                const pos = { x: 0, y: 0 };
-                ret.push({ pos, layout: dynaSourceLayout(room, s) })
-            }
-        }
-        const mineral = room.find(FIND_MINERALS);
-        if (mineral && mineral.length > 0) {
-            const pos = { x: 0, y: 0 };
-            ret.push({ pos, layout: dynaSourceLayout(room, mineral[0]) })
-        }
+    }
+    const mineral = room.find(FIND_MINERALS);
+    if (mineral && mineral.length > 0) {
+        const pos = { x: 0, y: 0 };
+        ret.push({ pos, layout: dynaSourceLayout(room, mineral[0]) })
+    }
+    {
+        const pos = { x: 0, y: 0 };
+        ret.push({ pos, layout: dynaDefenceLayout(room) });
     }
     return ret;
 }
@@ -153,32 +158,6 @@ export function getRoads(room: Room): RoomPosition[] {
             const _x = r.x - pos.x;
             const _y = r.y - pos.y;
             ret.push(new RoomPosition(_x, _y, room.name));
-        }
-    }
-    return ret;
-}
-
-export function getUnbuiltRoads(pos: RoomPosition[]): RoomPosition[] {
-    const ret = [];
-    for (const r of pos) {
-        if (!roomHelper.hasStructure(r, STRUCTURE_ROAD)) {
-            ret.push(r);
-        }
-    }
-    return ret;
-}
-
-export function pavePath(start: RoomPosition, finish: RoomPosition, rangeAllowance: number = 5): RoomPosition[] {
-    // console.log('Start: ' + JSON.stringify(start));
-    // console.log('End:   ' + JSON.stringify(finish));
-    const path = roomHelper.findPath(start, finish, rangeAllowance);
-    const ret = [];
-
-    if (path) {
-        for (const p of path) {
-            // if (!roomHelper.hasStructure(p, STRUCTURE_ROAD)) {
-            ret.push(p);
-            // }
         }
     }
     return ret;

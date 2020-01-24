@@ -49,6 +49,7 @@ export abstract class Operation {
       this.roomName = flag.pos.roomName;
       this.spawnRoom = global.emp.getSpawnRoom(this.roomName);
     }
+    if (!this.spawnRoom) { console.log(this.name + ' null spawnRoom'); }
     this.remoteSpawning = this.spawnRoom.room.name !== this.roomName;
     const rallyFlag = Game.flags["rally_" + this.roomName];
     if (rallyFlag) {

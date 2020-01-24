@@ -4,7 +4,6 @@ import * as Config from "./config/config";
 
 // import * as FlagManager from "./components/flags/flagManager";
 import * as OperationManager from "operation/operationManager";
-import * as StateManager from "rooms/stateManager";
 import * as StructureManager from "rooms/structureManager";
 // import * as WarManager from "./components/war/warManager";
 
@@ -12,6 +11,11 @@ import { log } from "lib/logger/log";
 // import * as Profiler from "screeps-profiler";
 // import { Profiler } from "./Profiler";
 import * as Profiler from "./Profiler";
+
+import './proto/Creep';
+import './proto/Misc';
+import './proto/Room';
+import './proto/RoomPosition';
 
 import { Empire } from "./Empire";
 

@@ -3,10 +3,10 @@ import { ScoutMission } from "operation/missions/ScoutMission";
 import { Operation } from "./Operation";
 
 export class LootOperation extends Operation {
-    public target?: Structure;
+    public target?: AnyStoreStructure | Ruin | Tombstone;
     public hasRampart: boolean;
     public isBlocked: boolean;
-    public haulTo?: Structure;
+    public haulTo?: AnyStoreStructure;
     constructor(flag: Flag, name: string, type: string) {
         super(flag, name, type)
         this.hasRampart = false;
@@ -19,7 +19,7 @@ export class LootOperation extends Operation {
                 } else if (t.structureType === "rampart") {
                     this.hasRampart = true;
                 } else {
-                    this.target = t;
+                    this.target = t as AnyStoreStructure | Ruin | Tombstone;
                 }
             }
         }

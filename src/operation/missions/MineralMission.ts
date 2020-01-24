@@ -1,4 +1,3 @@
-import { openAdjacentSpots } from "rooms/roomHelper";
 import { Operation } from "../operations/Operation";
 import { Mission } from "./mission";
 
@@ -80,7 +79,7 @@ export class MineralMission extends Mission {
                         }
                         else {
                             creepActions.moveTo(creep, this.container.pos, true);
-                            for (const p of openAdjacentSpots(this.extractor!.pos)) {
+                            for (const p of this.extractor!.pos.openAdjacentSpots()) {
                                 if (p.isNearTo(this.container.pos)) {
                                     creepActions.moveTo(creep, p, true);
                                 }

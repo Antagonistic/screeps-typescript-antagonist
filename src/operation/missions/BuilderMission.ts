@@ -1,11 +1,15 @@
 import { Operation } from "../operations/Operation";
 import { Mission } from "./Mission";
 
+import 'config/config'
+
+import { TargetAction } from "config/config";
 import * as creepActions from "creeps/creepActions";
 import { LogisticsManager } from "operation/LogisticsManager";
 import { profile } from "Profiler";
 import * as layoutManager from "rooms/layoutManager";
-import * as roomHelper from "rooms/roomHelper"
+import * as roadHelper from "rooms/roadHelper";
+import * as roomHelper from "rooms/roomHelper";
 
 export const PRIORITY_BUILD: string[] = [
     STRUCTURE_SPAWN,
@@ -32,6 +36,10 @@ export class BuilderMission extends Mission {
     public roadSite?: ConstructionSite | StructureRoad | StructureContainer;
     public roadI: number;
 
+    // public roadRepIds: Id<StructureRoad | StructureContainer>;
+    public roadRepTime: number;
+    public roadConstruct?: ConstructionSite | null;
+
     public active: boolean;
 
     constructor(operation: Operation, logistics: LogisticsManager) {
@@ -42,6 +50,11 @@ export class BuilderMission extends Mission {
         if (!this.memory.roadI) { this.memory.roadI = 0; }
         this.roadI = this.memory.roadI;
         this.active = this.hasEnergy();
+        // this.roadRepIds = this.getRoadRepList();
+        if (!this.memory.roadRepTime) {
+            this.memory.roadRepTime = Game.time + 2000;
+        }
+        this.roadRepTime = this.memory.roadRepTime;
     }
     public initMission(): void {
         if (this.room) {
@@ -64,7 +77,7 @@ export class BuilderMission extends Mission {
         //     builder.run(b);
         // }
         this.runBuilders();
-        this.runPavers();
+        this.runPavers2();
         this.runTowers();
     }
     public finalize(): void {
@@ -73,7 +86,7 @@ export class BuilderMission extends Mission {
 
     public hasEnergy(): boolean {
         if (!this.room) { return false; }
-        if (this.room.storage) {
+        if (this.room.controller && this.room.controller.level > 5 && this.room.storage) {
             if (this.room.storage.store.energy > 5000) {
                 return true;
             }
@@ -89,8 +102,9 @@ export class BuilderMission extends Mission {
         if (this.destI > destinations.length) { this.destI = 0; }
         this.memory.destI = this.destI;
         this.destination = this.memory.destination = undefined;
+        this.memory.roadRepIds = undefined;
+        this.memory.roadConstruct = undefined;
         return this.getDestination();
-
     }
 
     public getDestination() {
@@ -128,7 +142,7 @@ export class BuilderMission extends Mission {
     }
 
     public getNextRoadSite() {
-        let road = layoutManager.pavePath(this.operation.flag.pos, this.getDestination(), 1);
+        let road = roadHelper.pavePath(this.operation.flag.pos, this.getDestination(), 1);
         let count = 0;
         while (count < 5) {
             this.roadI = this.roadI + 1;
@@ -137,7 +151,7 @@ export class BuilderMission extends Mission {
             if (this.roadI >= road.length) {
                 if (road.length > 6) { console.log(this.operation.name + ' road ' + this.destI + ' paved of length ' + road.length) };
                 this.roadI = 0;
-                road = layoutManager.pavePath(this.operation.flag.pos, this.getNextDestination(), 1);
+                road = roadHelper.pavePath(this.operation.flag.pos, this.getNextDestination(), 1);
             }
             const p = road[this.roadI];
             roomHelper.markPosition(p);
@@ -187,6 +201,65 @@ export class BuilderMission extends Mission {
         this.memory.roadI = this.roadI;
         if (this.roadSite) { this.memory.roadsite = this.roadSite.id; }
         return this.roadSite;
+    }
+
+    public getRoadRepList() {
+        if (!this.memory.roadRepIds) {
+            this.memory.roadRepIds = roadHelper.repRoadsListIds(this.operation.flag.pos, this.getDestination());
+        }
+        return this.memory.roadRepIds;
+    }
+
+    public getNextRoadRep(): StructureRoad | null {
+        if (!this.memory.roadRepIds) {
+            this.memory.roadRepIds = this.getRoadRepList();
+        }
+        if (this.memory.roadRepIds.length === 0) { return null; }
+        const roadId = _.first(this.memory.roadRepIds) as Id<StructureRoad>;
+        const r = Game.getObjectById(roadId);
+        if (r === null || r.hits >= r.hitsMax) {
+            this.memory.roadRepIds = _.tail(this.memory.roadRepIds);
+            return this.getNextRoadRep();
+        }
+        return r;
+    }
+
+    public getRoadConstruct(): ConstructionSite | undefined | null {
+        if (this.roadConstruct) { return this.roadConstruct; }
+        if (this.memory.roadConstruct) {
+            const r = Game.getObjectById(this.memory.roadConstruct);
+            if (r === null) {
+                this.memory.roadConstruct = undefined;
+            }
+            this.roadConstruct = r as ConstructionSite;
+            return this.roadConstruct;
+        }
+        if (this.memory.roadConstruct === null) {
+            this.roadConstruct = null;
+        }
+        if (this.memory.roadConstruct === undefined) {
+            const r = roadHelper.getNextUnbuiltRoad(this.operation.flag.pos, this.getDestination());
+            // console.log('ret: ' + JSON.stringify(r));
+            if (r === null) {
+                this.memory.roadConstruct = null;
+                this.roadConstruct = null;
+                return null;
+            }
+            if (r instanceof RoomPosition) {
+                if (Object.keys(Game.constructionSites).length < 50) {
+                    r.createConstructionSite(STRUCTURE_ROAD);
+                } else {
+                    this.memory.roadConstruct = null;
+                    this.roadConstruct = null;
+                    return null;
+                }
+            }
+            if (r instanceof ConstructionSite) {
+                this.memory.roadConstruct = r.id;
+                this.roadConstruct = r;
+            }
+        }
+        return this.roadConstruct;
     }
 
     public maxBuilders = (): number => {
@@ -280,6 +353,52 @@ export class BuilderMission extends Mission {
             }
         }
 
+    }
+
+    public runPavers2() {
+        for (const b of this.pavers) {
+            if (b.memory.debug && !b.action) {
+                console.log('debugging ' + b.name);
+                console.log('target ' + b.target);
+                console.log('this.memory.roadRepIds ' + JSON.stringify(this.memory.roadRepIds || 'none'));
+                console.log('this.memory.roadConstruct ' + this.memory.roadConstruct);
+                console.log('this.memory.destination ' + JSON.stringify(this.memory.destination));
+            }
+            if (!b.action) {
+                if (b.working) {
+                    b.actionTarget();
+                    if (this.roadsites.length > 0) {
+                        // Build existing roads first
+                        b.setTarget(this.roadsites[0], TargetAction.BUILD);
+                    }
+                    const site = this.getRoadConstruct();
+                    if (b.memory.debug) {
+                        console.log('site ' + site + ' ');
+                        console.log('this.roadConstruct ' + this.roadConstruct);
+                    }
+                    if (!site) {
+                        // no more sites this path
+                        const repSite = this.getNextRoadRep();
+                        if (b.memory.debug) { console.log('repsite ' + repSite); }
+                        if (repSite) {
+                            b.setTarget(repSite, TargetAction.REPAIR);
+                        }
+                        if (repSite === null) {
+                            this.getNextDestination();
+                            creepActions.yieldRoad(b, b);
+                            b.wait(10);
+                        }
+                    } else {
+                        b.setTarget(site, TargetAction.BUILD);
+                    }
+                } else {
+                    b.action = this.operation.creepGetEnergy(b, b.action, true, true);
+                }
+            }
+            if (!b.action) {
+                b.rally();
+            }
+        }
     }
 
     public runPavers() {

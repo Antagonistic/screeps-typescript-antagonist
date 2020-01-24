@@ -31,12 +31,4 @@ export class PowerMission extends PairAttackMission {
     public finalize(): void {
         ;
     }
-
-    public getWarriorBody() {
-        ;
-    }
-
-    public getPriestBody() {
-        ;
-    }
 }
