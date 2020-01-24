@@ -316,7 +316,7 @@ export function actionUpgrade(creep: Creep, action: boolean): boolean {
   if (action === false) {
     if (creep.room.controller) {
       const target: StructureController = creep.room.controller;
-      if (creep.upgradeController(target) === ERR_NOT_IN_RANGE) {
+      if (creep.upgradeController(target) === ERR_NOT_IN_RANGE || !creep.pos.inRangeTo(target, 2)) {
         moveTo(creep, target);
       } else {
         yieldRoad(creep, creep.room.controller, true);
@@ -629,21 +629,23 @@ export function actionFillEnergy(creep: Creep, action: boolean, room?: Room): bo
     if (!room) { room = creep.room; }
     const spawn: Structure[] = room.find(FIND_MY_SPAWNS, {
       filter:
-        (x: StructureSpawn) => x.energy < x.energyCapacity
+        (x: StructureSpawn) => x.store.getFreeCapacity(RESOURCE_ENERGY) > 0
     });
     const extentions: Structure[] = room.find(FIND_MY_STRUCTURES, {
       filter:
         (x: Structure) => x.structureType === STRUCTURE_EXTENSION &&
-          (x as StructureExtension).energy < (x as StructureExtension).energyCapacity
+          (x as StructureExtension).store.getFreeCapacity(RESOURCE_ENERGY) > 0
     });
     const targets: Structure[] = spawn.concat(extentions);
     if (targets.length) {
       const target: Structure | null = creep.pos.findClosestByRange(targets);
       if (target) {
-        creep.memory.target = target.id;
-        if (creep.transfer(target, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
+        // creep.memory.target = target.id;
+        // console.log(target);
+        creep.setTarget(target, TargetAction.DEPOSITENERGY);
+        /*if (creep.transfer(target, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
           moveTo(creep, target);
-        }
+        }*/
         // console.log(creep.name + " filling energy!");
         return true;
       }

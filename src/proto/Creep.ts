@@ -154,9 +154,10 @@ Creep.prototype.actionTarget = function (): boolean {
         }
         case TargetAction.DEPOSITENERGY: {
             const _t = t as Creep | AnyStoreStructure;
-            if (_t.store.getFreeCapacity() > 10) {
+            if (_t.store.getFreeCapacity(RESOURCE_ENERGY) > 0) {
                 creepActions.moveToTransfer(this, _t);
                 this.action = true;
+                this.say("💰");
                 return true;
             } else {
                 this.clearTarget();

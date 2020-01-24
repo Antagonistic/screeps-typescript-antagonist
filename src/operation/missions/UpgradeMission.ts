@@ -75,7 +75,7 @@ export class UpgradeMission extends Mission {
 
     public getMaxCarts = (): number => {
         if (!this.room || !this.controller || !this.container) { return 0; }
-        if (this.controller.ticksToDowngrade < 10000) { return 1; }
+        // if (this.controller.ticksToDowngrade < 10000) { return 1; }
         if (this.isLink) { return 0; }
         if (this.controller.level >= 5 && this.room.storage) {
             if (this.room.storage.store.energy > 10000) {
@@ -172,18 +172,19 @@ export class UpgradeMission extends Mission {
     public runHaulers(creeps: Creep[]): void {
         for (const h of this.haulers) {
 
-            let action: boolean = false;
-            action = creepActions.actionRecycle(h, action);
+            // let action: boolean = false;
+            h.action = creepActions.actionRecycle(h, h.action);
 
-            if (!action && creepActions.canWork(h)) {
+            if (!h.action && creepActions.canWork(h)) {
                 if (this.container) {
-                    action = creepActions.actionTransfer(h, action, this.container);
+                    h.action = creepActions.actionTransfer(h, h.action, this.container);
                 } else {
-                    if (!action) { creepActions.moveTo(h, this.operation.rallyPos); };
+                    if (!h.action) { creepActions.moveTo(h, this.operation.rallyPos); };
                 }
             } else {
-                action = creepActions.actionGetStorageEnergy(h, action, 20);
-                if (!action) { creepActions.moveTo(h, this.operation.rallyPos); };
+                h.action = creepActions.actionGetStorageEnergy(h, h.action, 20);
+                if (!h.action) { creepActions.moveTo(h, this.operation.rallyPos); };
+                // if (!h.action) { h.action = this.operation.creepGetEnergy(h, h.action, true, true); };
             }
         }
     }

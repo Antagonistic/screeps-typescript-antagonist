@@ -369,6 +369,10 @@ export class BuilderMission extends Mission {
                 if (b.working) {
                     b.actionTarget();
                     if (b.action) { continue; }
+                    if (!this.operation.stableOperation) {
+                        b.action = creepActions.actionFillEnergy(b, b.action, this.spawnRoom.room);
+                        if (b.action) { continue; }
+                    }
                     const container = this.prioritySites.find(x => x.structureType === STRUCTURE_CONTAINER)
                     if (container) {
                         // Build existing roads first
@@ -490,8 +494,12 @@ export class BuilderMission extends Mission {
             if (b.working) {
                 b.actionTarget();
                 b.action = this.actionPriorityWall(b, b.action);
+                if (!this.operation.stableOperation) {
+                    b.action = creepActions.actionFillEnergy(b, b.action, this.spawnRoom.room);
+                    // console.log(b.action);
+                }
                 // action = creepActions.actionMoveToRoom(b, action, this.operation.roomName);
-                if (b.room.controller && b.room.controller.ticksToDowngrade < 2000) {
+                if (!b.action && b.room.controller && b.room.controller.ticksToDowngrade < 2000) {
                     b.action = creepActions.actionUpgrade(b, b.action);
                 }
                 if (!b.action && this.prioritySites.length > 0) {
@@ -502,8 +510,10 @@ export class BuilderMission extends Mission {
                     // action = creepActions.actionBuild(b, action, this.sites[0]);
                     b.setTarget(this.sites[0], TargetAction.BUILD);
                 }
-                b.action = creepActions.actionRepair(b, b.action, false);
-                b.action = creepActions.actionRepair(b, b.action, true);
+                if (!b.action) {
+                    b.action = creepActions.actionRepair(b, b.action, false);
+                    b.action = creepActions.actionRepair(b, b.action, true);
+                }
                 // action = creepActions.actionUpgrade(b, action);
                 // action = creepActions.actionRally(b, action);
             } else {

@@ -93,7 +93,7 @@ export class MiningMission extends Mission {
             this.memory.dist = undefined;
         }
         if (Game.time % 1000 === 633) {
-            this.memory.pavedPath = undefined;
+            this.memory.isPathPaved = undefined;
             this.memory.cartAnalyze = undefined;
         }
         if (Game.time % 1000 === 786) {
@@ -568,7 +568,7 @@ export class MiningMission extends Mission {
 
     public isPathPaved() {
         if (this.memory.isPathPaved === undefined) {
-            if (!this.remoteSpawning && this.spawnRoom.energyCapacityAvailable <= 450) { this.memory.isPathPaved = true; }
+            if (!this.remoteSpawning && this.spawnRoom.energyCapacityAvailable < 450) { this.memory.isPathPaved = true; }
             else {
                 const path = this.haulPath();
                 if (path.length <= 6) { return true; }
