@@ -105,6 +105,14 @@ Creep.prototype.actionTarget = function (): boolean {
     const t = this.target;
     if (!t) { return false; }
     switch (this.memory.targetAction) {
+        case TargetAction.MOVETO: {
+            const _t = t as Creep | Structure;
+            if (this.pos.isNearTo(_t.pos.x, _t.pos.y)) {
+                this.clearTarget();
+                return false;
+            }
+            creepActions.moveTo(this, _t, false);
+        }
         case TargetAction.BUILD: {
             creepActions.moveToBuild(this, t as ConstructionSite);
             this.say("🛠️");

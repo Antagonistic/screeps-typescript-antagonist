@@ -231,10 +231,17 @@ export function clampDirection(direction: number): number {
 
 export function cartAnalyze(dist: number, load: number, spawnRoom: SpawnRoom, offRoad: boolean = false): cartAnalyze {
     const maxEnergy = spawnRoom.energyCapacityAvailable;
+    // console.log('offRoad ' + offRoad);
+    // console.log('maxEnergy ' + maxEnergy);
     const maxParts = Math.min(Math.floor(offRoad ? (maxEnergy / 200) : (maxEnergy / 150)), 16);
+    // console.log('maxParts ' + maxParts);
     const throughput = dist * load * 2.1;
+    // console.log('throughput ' + throughput);
     const carryNeeded = Math.ceil(throughput / (CARRY_CAPACITY * 2));
+    // console.log('carryNeeded ' + carryNeeded);
     const cartsNeed = Math.max(Math.ceil(carryNeeded / maxParts), 1);
+    // console.log('cartsNeed ' + cartsNeed);
     const carryNeed = Math.min(Math.max(Math.floor(carryNeeded / cartsNeed), 1) + 1, maxParts);
+    // console.log('carryNeed ' + carryNeed);
     return { count: cartsNeed, carry: carryNeed };
 }

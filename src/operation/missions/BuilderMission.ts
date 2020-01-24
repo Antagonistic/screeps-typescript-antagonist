@@ -267,7 +267,7 @@ export class BuilderMission extends Mission {
         if (this.sites.length === 0) {
             return 0;
         }
-        if (this.spawnRoom.rclLevel === 1) { return 2; }
+        if (this.spawnRoom.rclLevel <= 2) { return 2; }
         return 1;
     }
 
@@ -363,13 +363,22 @@ export class BuilderMission extends Mission {
                 console.log('this.memory.roadRepIds ' + JSON.stringify(this.memory.roadRepIds || 'none'));
                 console.log('this.memory.roadConstruct ' + this.memory.roadConstruct);
                 console.log('this.memory.destination ' + JSON.stringify(this.memory.destination));
+                console.log('this.roadsites.length ' + JSON.stringify(this.roadsites.length));
             }
             if (!b.action) {
                 if (b.working) {
                     b.actionTarget();
+                    if (b.action) { continue; }
+                    const container = this.prioritySites.find(x => x.structureType === STRUCTURE_CONTAINER)
+                    if (container) {
+                        // Build existing roads first
+                        b.setTarget(container, TargetAction.BUILD);
+                        continue;
+                    }
                     if (this.roadsites.length > 0) {
                         // Build existing roads first
                         b.setTarget(this.roadsites[0], TargetAction.BUILD);
+                        continue;
                     }
                     const site = this.getRoadConstruct();
                     if (b.memory.debug) {
@@ -382,6 +391,7 @@ export class BuilderMission extends Mission {
                         if (b.memory.debug) { console.log('repsite ' + repSite); }
                         if (repSite) {
                             b.setTarget(repSite, TargetAction.REPAIR);
+                            continue;
                         }
                         if (repSite === null) {
                             this.getNextDestination();
@@ -475,55 +485,33 @@ export class BuilderMission extends Mission {
 
     public runBuilders() {
         for (const b of this.builders) {
-            let action: boolean = false;
-            action = creepActions.actionRecycle(b, action);
-            if (creepActions.canWork(b)) {
-                action = creepActions.actionBuildRepairCache(b, action);
-                action = this.actionPriorityWall(b, action);
+            // let action: boolean = false;
+            // b.action = creepActions.actionRecycle(b, action);
+            if (b.working) {
+                b.actionTarget();
+                b.action = this.actionPriorityWall(b, b.action);
                 // action = creepActions.actionMoveToRoom(b, action, this.operation.roomName);
                 if (b.room.controller && b.room.controller.ticksToDowngrade < 2000) {
-                    action = creepActions.actionUpgrade(b, action);
+                    b.action = creepActions.actionUpgrade(b, b.action);
                 }
-                if (!action && this.prioritySites.length > 0) {
-                    action = creepActions.actionBuild(b, action, this.prioritySites[0]);
+                if (!b.action && this.prioritySites.length > 0) {
+                    // b.action = creepActions.actionBuild(b, action, this.prioritySites[0]);
+                    b.setTarget(this.prioritySites[0], TargetAction.BUILD);
                 }
-                if (!action && this.sites.length > 0) {
-                    action = creepActions.actionBuild(b, action, this.sites[0]);
+                if (!b.action && this.sites.length > 0) {
+                    // action = creepActions.actionBuild(b, action, this.sites[0]);
+                    b.setTarget(this.sites[0], TargetAction.BUILD);
                 }
-                action = creepActions.actionRepair(b, action, false);
-                action = creepActions.actionRepair(b, action, true);
+                b.action = creepActions.actionRepair(b, b.action, false);
+                b.action = creepActions.actionRepair(b, b.action, true);
                 // action = creepActions.actionUpgrade(b, action);
                 // action = creepActions.actionRally(b, action);
             } else {
-                /*if (this.remoteSpawning) {
-                    action = creepActions.actionGetEnergyCache(b, action);
-                    action = creepActions.actionGetDroppedEnergy(b, action, true);
-                    action = creepActions.actionGetContainerEnergy(b, action, 2, true);
-                    if (!action) {
 
-                        // No containers, so gonna go mine, hopefully have a miner refill
-                        const sources = this.room!.find(FIND_SOURCES);
-                        const source = sources[b.memory.uuid % sources.length];
-                        const ret: number = b.harvest(source);
-                        b.say("Mine! " + source);
-                        if (ret === ERR_NOT_IN_RANGE) {
-                            b.moveTo(source.pos);
-                            b.memory.energyTarget = source.id;
-                            // creepActions.moveTo(b, source.pos, true);
-                        }
-                        action = true;
-                    }
-                } else {
-                    action = creepActions.actionGetEnergyCache(b, action);
-                    action = creepActions.actionMoveToRoom(b, action, this.spawnRoom.room.name);
-                    action = creepActions.actionGetStorageEnergy(b, action);
-                    action = creepActions.actionGetBatteryEnergy(b, action);
-                }*/
-                // action = creepActions.actionMoveToRoom(b, action, this.operation.roomName);
-                action = this.operation.creepGetEnergy(b, action, true, true);
+                b.action = this.operation.creepGetEnergy(b, b.action, true, true);
                 // b.say("" + action);
             }
-            if (!action) { creepActions.moveTo(b, this.operation.rallyPos); b.say('🍺'); };
+            if (!b.action) { b.rally() };
         }
     }
 
@@ -531,8 +519,9 @@ export class BuilderMission extends Mission {
         if (action === false) {
             const walls = creep.room.find(FIND_STRUCTURES, { filter: x => (x.structureType === STRUCTURE_WALL || x.structureType === STRUCTURE_RAMPART) && x.hits < 100 });
             if (walls && walls.length > 0) {
-                creep.memory.target = walls[0].id;
-                creepActions.moveToRepair(creep, walls[0]);
+                // creep.memory.target = walls[0].id;
+                // creepActions.moveToRepair(creep, walls[0]);
+                creep.setTarget(walls[0], TargetAction.REPAIR);
                 return true;
             }
         }

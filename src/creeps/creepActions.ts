@@ -1,4 +1,5 @@
 import * as Config from "config/config";
+import { TargetAction } from "config/config";
 import { profile } from "Profiler";
 import { getRally } from "rooms/roomHelper";
 import * as roomHelper from "rooms/roomHelper"
@@ -31,12 +32,13 @@ export function moveTo(creep: Creep, target: Structure | Creep | RoomPosition, e
     creep.move(TOP);
     return OK;
   }
+  const movingTarget = target instanceof Creep;
   if (exact) {
     // return creep.moveTo(target, { visualizePathStyle: { stroke: "#ffffff" }, range: 1 });
-    return Traveler.travelTo(creep, target, { range: 0, ignoreCreeps: true });
+    return Traveler.travelTo(creep, target, { range: 0, ignoreCreeps: true, movingTarget });
   } else {
     // return creep.moveTo(target, { range: 1 });
-    return Traveler.travelTo(creep, target, { range: 1, ignoreCreeps: true });
+    return Traveler.travelTo(creep, target, { range: 1, ignoreCreeps: true, movingTarget });
   }
 }
 
@@ -455,8 +457,9 @@ export function actionRepair(creep: Creep, action: boolean,
     if (targets.length) {
       const salt: number = (creep.memory.uuid || 0) % targets.length;
       // console.log(creep.name + " " + salt + " " + targets.length);
-      creep.memory.target = targets[salt].id;
-      moveToRepair(creep, targets[salt]);
+      // creep.memory.target = targets[salt].id;
+      // moveToRepair(creep, targets[salt]);
+      creep.setTarget(targets[salt], TargetAction.REPAIR);
       return true;
     }
   }

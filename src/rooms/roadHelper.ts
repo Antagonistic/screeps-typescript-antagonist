@@ -37,7 +37,7 @@ export function getNextUnbuiltRoad(start: RoomPosition, finish: RoomPosition): C
 export function getUnbuiltRoads(pos: RoomPosition[]): RoomPosition[] {
     const ret = [];
     for (const r of pos) {
-        if (r.room && r.lookForStructure(STRUCTURE_ROAD)) {
+        if (r.room && !r.lookForStructure(STRUCTURE_ROAD)) {
             ret.push(r);
         }
     }

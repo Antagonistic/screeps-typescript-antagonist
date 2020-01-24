@@ -1,5 +1,6 @@
 import { profile } from "Profiler";
 import { SpawnRoom } from "./SpawnRoom";
+import { Traveler } from "utils/Traveler";
 
 @profile
 export class WorldMap implements WorldMap {
@@ -11,24 +12,36 @@ export class WorldMap implements WorldMap {
 
   public init(): { [roomName: string]: SpawnRoom } {
     const spawnGroups: { [roomName: string]: SpawnRoom } = {};
+    if (!Memory.rooms) { Memory.rooms = {} };
+
     for (const roomName in Game.rooms) {
-      if (!Memory.rooms) { Memory.rooms = {} };
       const memory = Memory.rooms[roomName];
       const room = Game.rooms[roomName];
 
       if (room) {
         // this.updateMemory(room);
+        Traveler.updateRoomStatus(room);
         room.memory.lastSeen = Game.time;
-        if (room.controller && room.controller.my) {
-          this.controlledRooms[roomName] = room;
-          if (room.find(FIND_MY_SPAWNS).length > 0) {
-            spawnGroups[roomName] = new SpawnRoom(room);
-            if (room.memory.remoteRoom) { this.sphere = this.sphere.concat(room.memory.remoteRoom); }
-            if (Game.time % 1000 === 673) { this.expandInfluence(spawnGroups[roomName]); }
+        if (room.controller) {
+          if (room.controller.my) {
+            this.controlledRooms[roomName] = room;
+            if (room.find(FIND_MY_SPAWNS).length > 0) {
+              spawnGroups[roomName] = new SpawnRoom(room);
+              if (room.memory.remoteRoom) { this.sphere = this.sphere.concat(room.memory.remoteRoom); }
+              if (Game.time % 1000 === 673) { this.expandInfluence(spawnGroups[roomName]); }
+            }
+          } else if (room.controller.owner && !room.controller.my) {
+            room.memory.hostile = true;
           }
         }
       }
     }
+    /*for (const roomName in Memory.rooms) {
+      const memory = Memory.rooms[roomName];
+      if (memory.hostile) {
+
+      }
+    }*/
     for (const _sR in spawnGroups) {
       this.doObserver(spawnGroups[_sR].room);
     }

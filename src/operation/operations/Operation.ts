@@ -2,6 +2,7 @@ import { SpawnRoom } from "rooms/SpawnRoom";
 import { Mission } from "../missions/Mission";
 
 import * as creepActions from "creeps/creepActions";
+import { TargetAction } from "config/config";
 
 export enum OperationPriority { Emergency, OwnedRoom, VeryHigh, High, Medium, Low, VeryLow }
 
@@ -145,6 +146,11 @@ export abstract class Operation {
     // } else {
     if (!creepActions.actionGetEnergyCache(creep, false)) {
       if (!this.initGetEnergy) {
+        const hauler = creep.room.find(FIND_MY_CREEPS, { filter: x => x.memory.target === creep.id && x.store.energy > 10 });
+        if (hauler && hauler.length > 0) {
+          creep.setTarget(hauler[0], TargetAction.MOVETO);
+          return true;
+        }
         this.droppedEnergy = creep.room.find(FIND_DROPPED_RESOURCES, { filter: x => x.resourceType === RESOURCE_ENERGY && x.amount >= 10 });
         this.tombStones = creep.room.find(FIND_TOMBSTONES, { filter: x => x.store.energy >= 10 });
         this.ruins = creep.room.find(FIND_RUINS, { filter: x => x.store.energy >= 10 });
@@ -191,6 +197,8 @@ export abstract class Operation {
         if (hauler && hauler.length > 0) {
           hauler[0].say("HiJack");
           hauler[0].memory.target = creep.id;
+          creep.setTarget(hauler[0], TargetAction.MOVETO);
+          return true;
         }
       }
       if (scavange) {

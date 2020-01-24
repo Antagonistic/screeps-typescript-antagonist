@@ -22,6 +22,7 @@ export class BodyFactory {
 
     protected workerBodyRoad(maxE: number = 1600): BodyPartConstant[] {
         const E: number = Math.min(this.spawnRoom.energyCapacityAvailable, maxE);
+        if (E < 400) { return this.workerBody(2, 1, 1); }
         const P = Math.floor(E / 200);
         return this.workerBody(P, P, P);
 
@@ -29,6 +30,7 @@ export class BodyFactory {
 
     protected workerBodyOffRoad(maxE: number = 1750): BodyPartConstant[] {
         const E: number = Math.min(this.spawnRoom.energyCapacityAvailable, maxE);
+        if (E < 400) { return this.workerBody(2, 1, 1); }
         const P = Math.floor(E / 250);
         return this.workerBody(P, P, P * 2);
     }
