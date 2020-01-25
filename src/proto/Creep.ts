@@ -43,8 +43,10 @@ Object.defineProperty(Creep.prototype, 'partner', {
 });
 
 Creep.prototype.setTarget = function (target: _HasId, targetAction: TargetAction) {
-    this.target = target;
-    this.memory.targetAction = targetAction;
+    if (!this.target && !this.action) {
+        this.target = target;
+        this.memory.targetAction = targetAction;
+    }
     return this.actionTarget();
 }
 
@@ -235,6 +237,27 @@ Creep.prototype.actionTarget = function (): boolean {
             const _t = t as Structure;
             if (this.pos.isNearTo(_t)) {
                 this.dismantle(_t)
+            } else {
+                creepActions.moveTo(this, _t.pos);
+            }
+            this.action = true;
+            return true;
+        }
+        case TargetAction.PRAISE: {
+            const _t = t as StructureController;
+            if (this.pos.inRangeTo(_t, 2)) {
+                this.upgradeController(_t);
+            } else {
+                creepActions.moveTo(this, _t.pos);
+            }
+            this.action = true;
+            return true;
+        }
+        case TargetAction.SIGN: {
+            const _t = t as StructureController;
+            if (!_t.sign || _t.sign.text === Memory.sign) { this.clearTarget(); return false; }
+            if (this.pos.isNearTo(_t.pos)) {
+                this.signController(_t, Memory.sign);
             } else {
                 creepActions.moveTo(this, _t.pos);
             }

@@ -18,6 +18,20 @@ Object.defineProperty(Room.prototype, 'creeps', {
     configurable: true,
 });
 
+Object.defineProperty(Room.prototype, 'owner', {
+    get() {
+        return this.controller && this.controller.owner ? this.controller.owner.username : undefined;
+    },
+    configurable: true,
+});
+
+Object.defineProperty(Room.prototype, 'reserved', {
+    get() {
+        return this.controller && this.controller.reserved ? this.controller.reserved.username : undefined;
+    },
+    configurable: true,
+});
+
 Object.defineProperty(Room.prototype, 'rally', {
     get() {
         if (!this._rally) {

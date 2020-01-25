@@ -28,6 +28,8 @@ export const AVOID_COST = 7;
 
 export enum TargetAction {
     MOVETO = "moveto",
+    PRAISE = 'praise',
+    SIGN = 'sign',
     BUILD = "build",
     REPAIR = "repair",
     MINE = "mine",

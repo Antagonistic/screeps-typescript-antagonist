@@ -21,7 +21,7 @@ export class ClaimMission extends Mission {
         ;
     }
     public spawn(): void {
-        const needClaimer = () => this.controller && !this.controller.my && this.spawnRoom.availableSpawnEnergy >= 650 ? 1 : 0;
+        const needClaimer = () => this.controller && !this.controller.my && this.room!.dangerousHostiles.length === 0 && this.spawnRoom.availableSpawnEnergy >= 650 ? 1 : 0;
         this.claimers = this.spawnRole("claim", needClaimer, this.claimBody);
     }
     public work(): void {

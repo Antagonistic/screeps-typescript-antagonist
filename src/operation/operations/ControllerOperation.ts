@@ -12,6 +12,7 @@ import { ClaimMission } from "operation/missions/ClaimMission";
 import { LinkMission } from "operation/missions/LinkMission";
 import { MineralMission } from "operation/missions/MineralMission";
 import { ScoutMission } from "operation/missions/ScoutMission";
+import { ScoutRandomMission } from "operation/missions/ScoutRandomMission";
 import { SupervisorMission } from "operation/missions/SupervisorMission";
 import * as layoutManager from "rooms/layoutManager";
 import * as StructureManager from "rooms/structureManager";
@@ -66,12 +67,14 @@ export class ControllerOperation extends Operation {
 
             this.addMission(new UpgradeMission(this));
 
+            this.addMission(new ScoutRandomMission(this));
+
             if (this.spawnRoom.rclLevel >= 6) {
                 this.addMission(new MineralMission(this));
             }
 
             if (Game.time % 50 === 1) {
-                console.log("Operation stable: " + this.stableOperation);
+                console.log(this.roomName + " Operation stable: " + this.stableOperation);
                 if (this.stableOperation) {
                     // this.buildMineRoads();
                 }

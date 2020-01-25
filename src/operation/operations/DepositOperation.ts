@@ -1,10 +1,10 @@
-/*import { ScoutMission } from "operation/missions/ScoutMission";
+import { ScoutMission } from "operation/missions/ScoutMission";
 import { Operation, OperationPriority } from "./Operation";
 
 const FIND_DEPOSITS: FindConstant = 122;
 
 export class DepositOperation extends Operation {
-    public deposit?: StructureDeposit;
+    public deposit?: Deposit;
     constructor(flag: Flag, name: string, type: string) {
         super(flag, name, type)
     }
@@ -23,4 +23,4 @@ export class DepositOperation extends Operation {
     public finalizeOperation(): void {
         ;
     }
-};*/
+};

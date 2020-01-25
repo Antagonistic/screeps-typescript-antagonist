@@ -86,6 +86,7 @@ export class BuilderMission extends Mission {
 
     public hasEnergy(): boolean {
         if (!this.room) { return false; }
+        if (this.room.dangerousHostiles.length > 0) { return false; }
         if (this.room.controller && this.room.controller.level > 5 && this.room.storage) {
             if (this.room.storage.store.energy > 5000) {
                 return true;
@@ -267,6 +268,7 @@ export class BuilderMission extends Mission {
         if (this.sites.length === 0) {
             return 0;
         }
+        if (this.remoteSpawning && this.spawnRoom.rclLevel <= 5) { return 2; }
         if (this.spawnRoom.rclLevel <= 2) { return 2; }
         return 1;
     }

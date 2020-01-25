@@ -245,3 +245,38 @@ export function cartAnalyze(dist: number, load: number, spawnRoom: SpawnRoom, of
     // console.log('carryNeed ' + carryNeed);
     return { count: cartsNeed, carry: carryNeed };
 }
+
+export function getRoomCoordinates(roomName: string): RoomCoord {
+
+    const coordinateRegex = /(E|W)(\d+)(N|S)(\d+)/g;
+    const match = coordinateRegex.exec(roomName);
+    if (!match) { return { x: 0, y: 0, xDir: "", yDir: "" }; }
+
+    const xDir = match[1];
+    const x = match[2];
+    const yDir = match[3];
+    const y = match[4];
+
+    return {
+        x: Number(x),
+        xDir,
+        y: Number(y),
+        yDir,
+    };
+}
+
+/**
+ * Get the type of the room
+ */
+export function roomType(roomName: string): 'SK' | 'CORE' | 'CTRL' | 'ALLEY' {
+    const coords = getRoomCoordinates(roomName);
+    if (coords.x % 10 === 0 || coords.y % 10 === 0) {
+        return 'ALLEY';
+    } else if (coords.x % 10 !== 0 && coords.x % 5 === 0 && coords.y % 10 !== 0 && coords.y % 5 === 0) {
+        return 'CORE';
+    } else if (coords.x % 10 <= 6 && coords.x % 10 >= 4 && coords.y % 10 <= 6 && coords.y % 10 >= 4) {
+        return 'SK';
+    } else {
+        return 'CTRL';
+    }
+}

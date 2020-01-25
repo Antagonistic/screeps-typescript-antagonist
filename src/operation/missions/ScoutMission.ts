@@ -33,6 +33,7 @@ export class ScoutMission extends Mission {
                     creepActions.moveTo(creep, this.operation.flag.pos);
                 }
             }
+            // if (Game.time % 25 === 0) { this.processRoomScout(creep.room); }
         }
     }
     public finalize(): void {

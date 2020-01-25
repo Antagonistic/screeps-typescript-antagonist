@@ -33,12 +33,15 @@ export function moveTo(creep: Creep, target: Structure | Creep | RoomPosition, e
     return OK;
   }
   const movingTarget = target instanceof Creep;
+  const _target = Traveler.normalizePos(target);
+  const maxRooms = creep.room.name === _target.roomName ? 0 : 1;
+
   if (exact) {
     // return creep.moveTo(target, { visualizePathStyle: { stroke: "#ffffff" }, range: 1 });
-    return Traveler.travelTo(creep, target, { range: 0, ignoreCreeps: true, movingTarget });
+    return Traveler.travelTo(creep, _target, { range: 0, ignoreCreeps: true, movingTarget });
   } else {
     // return creep.moveTo(target, { range: 1 });
-    return Traveler.travelTo(creep, target, { range: 1, ignoreCreeps: true, movingTarget });
+    return Traveler.travelTo(creep, _target, { range: 1, ignoreCreeps: true, movingTarget });
   }
 }
 

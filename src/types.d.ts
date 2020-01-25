@@ -86,12 +86,14 @@ interface RoomMemory {
   homelevel?: number;
   spawns?: string[];
   remote?: string[];
+  neighbors?: string[];
   layout?: LayoutMemory[];
   lastSeen?: Number;
   nextScan?: Number;
   visual?: boolean;
   dest?: RoomPosition[];
   hostile?: boolean;
+  type?: string;
 
   towers?: string[];
   // mine_structures: number;
@@ -120,6 +122,7 @@ interface Memory {
   uuid: number;
   log: any;
   empire: any;
+  sign?: any;
   cpu: {
     history: number[];
     average: number;
@@ -130,6 +133,14 @@ interface WorldMap {
   controlledRooms: { [roomName: string]: Room };
   init(): { [roomName: string]: SpawnRoom };
   expandInfluence(spawn: SpawnRoom): string[];
+}
+
+
+interface RoomCoord {
+  x: number;
+  y: number;
+  xDir: string;
+  yDir: string;
 }
 
 interface SpawnRoom {
@@ -200,6 +211,8 @@ interface RoomPosition {
 
 interface Room {
   _storage?: StructureStorage;
+  owner: string | undefined;
+  reserved: string | undefined;
   readonly rally: RoomPosition;
   readonly creeps: Creep[];
   readonly hostiles: Creep[];

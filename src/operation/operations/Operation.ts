@@ -3,6 +3,7 @@ import { Mission } from "../missions/Mission";
 
 import * as creepActions from "creeps/creepActions";
 import { TargetAction } from "config/config";
+import { Traveler } from "utils/Traveler";
 
 export enum OperationPriority { Emergency, OwnedRoom, VeryHigh, High, Medium, Low, VeryLow }
 
@@ -110,11 +111,27 @@ export abstract class Operation {
     }
   }
 
+  public getToHomeRange() {
+    if (this.memory.range === undefined) {
+      if (!this.room || !this.room.memory.home) { return 99; }
+      const route = Traveler.routeDistance(this.room.memory.home, this.room.name);
+      if (!route) {
+        this.memory.range = 99;
+      } else {
+        this.memory.range = Object.keys(route).length;
+      }
+    }
+    return this.memory.range;
+  }
+
   public finalize(): void {
     for (const missionName in this.missions) {
       try {
         this.missions[missionName].finalize();
         //  this.memory[missionName] = this.missions[missionName].memory;
+        if (Game.time % 1000 === 88) {
+          this.memory.range = undefined;
+        }
       } catch (e) {
         console.log("error caught in finalize phase, operation:", this.name, "mission:", missionName);
         console.log(e.stack);
