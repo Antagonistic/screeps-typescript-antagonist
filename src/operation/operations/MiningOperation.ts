@@ -1,10 +1,10 @@
 import { LogisticsManager } from "operation/LogisticsManager";
+import { GuardMission } from "operation/missions/GuardMission";
 import { BuilderMission } from "../missions/BuilderMission";
 import { MiningMission } from "../missions/MiningMission";
 import { ReserveMission } from "../missions/ReserveMission";
 import { ScoutMission } from "../missions/ScoutMission";
 import { Operation, OperationPriority } from "./Operation";
-import { GuardMission } from "operation/missions/GuardMission";
 
 export class MiningOperation extends Operation {
     public sources: Source[] = [];
