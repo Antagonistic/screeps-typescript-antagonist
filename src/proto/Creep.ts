@@ -203,7 +203,7 @@ Creep.prototype.actionTarget = function (): boolean {
         }
         case TargetAction.WITHDRAW: {
             const _t = t as AnyStoreStructure | Ruin | Tombstone;
-            if (_t.store.energy > 10) {
+            if (_.sum(_t.store) > 10) {
                 creepActions.moveToWithdrawAll(this, _t);
                 this.action = true;
                 return true;
