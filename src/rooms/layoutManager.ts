@@ -79,7 +79,7 @@ export function layoutCoord(room: Room, x: number, y: number) {
 }
 
 export function run(room: Room, rcl: number = -1, force: boolean = false): void {
-    console.log('Running layouts in room ' + room.name);
+    // console.log('Running layouts in room ' + room.name);
     const layouts = getLayouts(room);
     if (!room.memory.buildState) { room.memory.buildState = 0; }
     for (const l of layouts) {
@@ -115,6 +115,43 @@ export function run(room: Room, rcl: number = -1, force: boolean = false): void 
     }
 };
 
+export function makeNextBuildSite(room: Room, road: boolean = false): boolean {
+    if (room.controller && room.controller.my) {
+        const level = room.controller.level;
+        if (level > 1) {
+            const layouts = getLayouts(room);
+            for (const l of layouts) {
+                const layout = l.layout;
+                const pos = l.pos;
+                for (let i = 1; i <= level; i++) {
+                    const _l = layout[i];
+                    if (_l) {
+                        for (const key in _l.build) {
+                            const _key = key as BuildableStructureConstant;
+                            if (road && _key !== STRUCTURE_ROAD) { continue; }
+                            if (!road && _key === STRUCTURE_ROAD) { continue; }
+                            const build = _l.build[key];
+                            for (const p of build) {
+                                const _x = p.x - pos.x;
+                                const _y = p.y - pos.y;
+                                const _pos = new RoomPosition(_x, _y, room.name);
+                                if (!roomHelper.hasStructure(_pos, _key, false)) {
+                                    if (roomHelper.buildIfNotExist(_pos, _key) === OK) {
+                                        console.log('Making new ' + _key + ' at ' + _pos.print);
+                                        return true;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+            }
+        }
+    }
+    return false;
+}
+
 function runConstruct(room: Room, layout: RoomLayout, pos: LightRoomPos): ScreepsReturnCode {
     let ret: ScreepsReturnCode = OK;
     if (layout) {
@@ -125,11 +162,14 @@ function runConstruct(room: Room, layout: RoomLayout, pos: LightRoomPos): Screep
                 const _x = p.x - pos.x;
                 const _y = p.y - pos.y;
                 const _ret = roomHelper.buildIfNotExist(new RoomPosition(_x, _y, room.name), key as BuildableStructureConstant);
-                if (_ret !== OK) {
-                    console.log("Error construct: " + ret);
-                    if (ret === OK) { ret = _ret; }
+                if (ret === ERR_RCL_NOT_ENOUGH) {
+                    ;
+                } else {
+                    if (_ret !== OK) {
+                        console.log("Error construct: " + ret);
+                        if (ret === OK) { ret = _ret; }
+                    }
                 }
-
             }
         }
         if (layout.memory) {

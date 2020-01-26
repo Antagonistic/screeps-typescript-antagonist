@@ -37,7 +37,7 @@ export class MiningMission extends Mission {
     constructor(operation: Operation, name: string, source: Source, active: boolean = true) {
         super(operation, name);
         this.source = source;
-        this.active = active && ((!this.remoteSpawning) || (this.remoteSpawning && this.spawnRoom.rclLevel >= 4));
+        this.active = this.getActive(active);
         if (!this.memory.stableMission) { this.memory.stableMission = false; }
         this.stableMission = this.memory.stableMission;
         this.operation.stableOperation = this.operation.stableOperation && this.stableMission;
@@ -46,6 +46,18 @@ export class MiningMission extends Mission {
         this.wait = this.memory.wait || 0;
         // this.pavedPath = this.memory.isPathPaved === undefined ? this.isPathPaved() : this.memory.isPathPaved;
         if (this.spawnRoom.room.storage && this.spawnRoom.room.storage.store.energy >= 900000) { this.active = false; }
+    }
+
+    public getActive(active: boolean) {
+        if (!active) { return false; }
+        if (!this.room) { return false; }
+        if (this.remoteSpawning) {
+            if (this.room.dangerousHostiles.length > 0) { return false; }
+            if (this.spawnRoom.rclLevel < 4) { return false; }
+        } else {
+            if (this.operation.stableOperation && this.room.dangerousHostiles.length > 0) { return false; }
+        }
+        return true;
     }
 
     public initMission(): void {
@@ -427,7 +439,7 @@ export class MiningMission extends Mission {
             if (!this.spawnRoom.room.storage || this.spawnRoom.rclLevel <= 4) {
                 action = this.runHaulers_earlyFill(creep, action);
             } else {
-                if (!this.operation.stableOperation || creep.room.find(FIND_MY_CREEPS, { filter: x => x.memory.role === "refill" }).length === 0) {
+                if (!this.operation.stableOperation) {
                     action = creepActions.actionFillEnergy(creep, action);
                 }
                 if (this.storage.structureType === STRUCTURE_LINK) {

@@ -27,7 +27,7 @@ Object.defineProperty(Room.prototype, 'owner', {
 
 Object.defineProperty(Room.prototype, 'reserved', {
     get() {
-        return this.controller && this.controller.reserved ? this.controller.reserved.username : undefined;
+        return this.controller && this.controller.reservation ? this.controller.reservation.username : undefined;
     },
     configurable: true,
 });

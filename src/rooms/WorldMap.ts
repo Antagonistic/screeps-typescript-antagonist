@@ -20,6 +20,20 @@ export class WorldMap implements WorldMap {
       const memory = Memory.rooms[roomName];
       const room = Game.rooms[roomName];
       // console.log('processing ' + roomName);
+      if (room.controller) {
+        if (room.controller.my) {
+          // Update my room
+          this.controlledRooms[roomName] = room;
+          if (room.find(FIND_MY_SPAWNS).length > 0) {
+            this.spawnGroups[roomName] = new SpawnRoom(room);
+            if (room.memory.remoteRoom) { this.sphere = this.sphere.concat(room.memory.remoteRoom); }
+          }
+        }
+      }
+    }
+    for (const roomName in Game.rooms) {
+      const memory = Memory.rooms[roomName];
+      const room = Game.rooms[roomName];
       this.processSeenRoom(room);
     }
     /*for (const roomName in Memory.rooms) {
@@ -77,17 +91,14 @@ export class WorldMap implements WorldMap {
   }
 
   public processSeenRoom(room: Room) {
+    if (!room) { return; }
     const roomName = room.name;
     Traveler.updateRoomStatus(room);
     room.memory.lastSeen = Game.time;
     if (room.controller) {
       if (room.controller.my) {
         // Update my room
-
-        this.controlledRooms[roomName] = room;
         if (room.find(FIND_MY_SPAWNS).length > 0) {
-          this.spawnGroups[roomName] = new SpawnRoom(room);
-          if (room.memory.remoteRoom) { this.sphere = this.sphere.concat(room.memory.remoteRoom); }
           if (Game.time % 1000 === 673) { this.expandInfluence(this.spawnGroups[roomName]); }
         }
       } else if (room.controller.owner && !room.controller.my) {
@@ -122,9 +133,9 @@ export class WorldMap implements WorldMap {
           if (spawnRoom.room.memory.neighbors && spawnRoom.room.memory.neighbors.find(x => x === room.name)) {
             // Neighbor clear room!
             if (sources.length > 2) {
-              room.createFlag(25, 25, "source_" + room.name);
+              room.createFlag(25, 25, "source_" + room.name + 'S');
             } else {
-              room.createFlag(25, 25, "mining_" + room.name);
+              room.createFlag(25, 25, "mining_" + room.name + 'M');
             }
             console.log('Creating remote mining room ' + room.name);
           }
@@ -138,7 +149,7 @@ export class WorldMap implements WorldMap {
     room.memory.type = type;
     if (type === 'SK') {
       if (this.isNeighborToSpawn(room) && !_.any(room.flags, x => x.name.indexOf('source') > -1)) {
-        room.createFlag(25, 25, 'source_' + room.name);
+        room.createFlag(25, 25, 'source_' + room.name + 'S');
         console.log('Creating remote SK room ' + room.name);
       }
     }
@@ -146,14 +157,14 @@ export class WorldMap implements WorldMap {
       const deposits = room.find(FIND_DEPOSITS);
       if (deposits && deposits.length > 0) {
         if (!_.any(room.flags, x => x.name.indexOf('deposit') > -1)) {
-          room.createFlag(deposits[0].pos, 'deposit_' + room.name);
+          room.createFlag(deposits[0].pos, 'deposit_' + room.name + 'D');
           console.log('Creating remote deposit room ' + room.name);
         }
       }
       const power = room.find(FIND_DEPOSITS);
       if (power && power.length > 0) {
         if (!_.any(room.flags, x => x.name.indexOf('power') > -1)) {
-          room.createFlag(power[0].pos, 'power_' + room.name);
+          room.createFlag(power[0].pos, 'power_' + room.name + 'P');
           console.log('Creating remote power room ' + room.name);
         }
       }
@@ -164,7 +175,7 @@ export class WorldMap implements WorldMap {
     const core = _.head(room.find(FIND_STRUCTURES, { filter: x => x.structureType === STRUCTURE_INVADER_CORE }));
     if (core) {
       if (!_.any(room.flags, x => x.name.indexOf('invader') > -1)) {
-        room.createFlag(core.pos, 'invader_' + room.name);
+        room.createFlag(core.pos, 'invader_' + room.name + 'I');
         console.log('Creating remote invader room ' + room.name);
       }
     }
@@ -172,8 +183,8 @@ export class WorldMap implements WorldMap {
 
   public isNeighborToSpawn(room: Room): boolean {
     if (!room.memory.home) { return false; }
-    const spawnRoom = global.emp.getSpawnRoom(room.memory.home) as SpawnRoom;
-    if (spawnRoom.room.memory.neighbors && spawnRoom.room.memory.neighbors.find(x => x === room.name)) {
+    const spawnRoom = this.spawnGroups[room.memory.home];
+    if (spawnRoom && spawnRoom.room.memory.neighbors && spawnRoom.room.memory.neighbors.find(x => x === room.name)) {
       return true;
     }
     return false;

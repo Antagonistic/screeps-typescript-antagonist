@@ -4,13 +4,15 @@ import * as roomHelper from "./roomHelper";
 export function repRoadsListIds(start: RoomPosition, finish: RoomPosition): Array<Id<StructureContainer | StructureRoad>> {
     const ret: Array<Id<StructureContainer | StructureRoad>> = [];
     for (const r of pavePath(start, finish)) {
-        const road = r.lookForStructure(STRUCTURE_ROAD) as StructureRoad;
-        const cont = r.lookForStructure(STRUCTURE_CONTAINER) as StructureContainer;
-        if (road && road.hits < road.hitsMax * 0.8) {
-            ret.push(road.id);
-        }
-        if (cont && cont.hits < cont.hitsMax * 0.8) {
-            ret.push(cont.id);
+        if (r.room) {
+            const road = r.lookForStructure(STRUCTURE_ROAD) as StructureRoad;
+            const cont = r.lookForStructure(STRUCTURE_CONTAINER) as StructureContainer;
+            if (road && road.hits < road.hitsMax * 0.8) {
+                ret.push(road.id);
+            }
+            if (cont && cont.hits < cont.hitsMax * 0.8) {
+                ret.push(cont.id);
+            }
         }
     }
     return ret;

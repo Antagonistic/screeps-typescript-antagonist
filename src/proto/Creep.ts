@@ -43,6 +43,7 @@ Object.defineProperty(Creep.prototype, 'partner', {
 });
 
 Creep.prototype.setTarget = function (target: _HasId, targetAction: TargetAction) {
+    if (this.memory.debug) { console.log('target: ' + target + ' ' + targetAction); }
     if (!this.target && !this.action) {
         this.target = target;
         this.memory.targetAction = targetAction;
@@ -86,6 +87,9 @@ Object.defineProperty(Creep.prototype, 'action', {
                 return true;
             }
         }
+        /*if (this.memory.recycle) {
+            this._action = false;
+        }*/
         this._action = false;
         return false;
     },
@@ -105,7 +109,10 @@ Creep.prototype.actionTarget = function (): boolean {
     if (this.action) { return true; }
     if (!this.memory.target || !this.memory.targetAction) { return false; }
     const t = this.target;
-    if (!t) { return false; }
+    if (!t) {
+        this.clearTarget();
+        return false;
+    }
     switch (this.memory.targetAction) {
         case TargetAction.MOVETO: {
             const _t = t as Creep | Structure;
@@ -134,6 +141,12 @@ Creep.prototype.actionTarget = function (): boolean {
         }
         case TargetAction.MINE: {
             const tMine = t as Source | Mineral | Deposit;
+            if (tMine instanceof Source) {
+                if (tMine.energy <= 0) {
+                    this.clearTarget();
+                    return false;
+                }
+            }
             const ret = this.harvest(tMine);
             if (ret === ERR_NOT_IN_RANGE) {
                 creepActions.moveTo(this, tMine.pos, false);
@@ -247,6 +260,7 @@ Creep.prototype.actionTarget = function (): boolean {
             const _t = t as StructureController;
             if (this.pos.inRangeTo(_t, 2)) {
                 this.upgradeController(_t);
+                creepActions.yieldRoad(this, _t, true);
             } else {
                 creepActions.moveTo(this, _t.pos);
             }

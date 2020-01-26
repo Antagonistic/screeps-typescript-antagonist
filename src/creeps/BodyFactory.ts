@@ -47,7 +47,7 @@ export class BodyFactory {
         return this.workerBody(0, P, P);
     }
 
-    protected configBody(config: { [partType: string]: number }): BodyPartConstant[] {
+    public configBody(config: { [partType: string]: number }): BodyPartConstant[] {
         const body: BodyPartConstant[] = [];
         for (const partType in config) {
             const amount = config[partType];
@@ -95,14 +95,20 @@ export class BodyFactory {
     }
 
     public getWarriorBody() {
-        const bodyUnit = this.configBody({ [TOUGH]: 1, [ATTACK]: 5, [MOVE]: 6 });
-        const maxUnits = Math.min(this.spawnRoom.maxUnits(bodyUnit), 4);
-        return this.configBody({ [TOUGH]: maxUnits, [ATTACK]: maxUnits * 5, [MOVE]: maxUnits * 6 });
+        let bodyUnit = this.configBody({ [TOUGH]: 1, [ATTACK]: 4, [MOVE]: 5 });
+        let maxUnits = Math.min(this.spawnRoom.maxUnits(bodyUnit), 4);
+        if (maxUnits >= 1) {
+            return this.configBody({ [TOUGH]: maxUnits, [ATTACK]: maxUnits * 5, [MOVE]: maxUnits * 6 });
+        } else {
+            bodyUnit = this.configBody({ [ATTACK]: 2, [MOVE]: 2 });
+            maxUnits = Math.min(this.spawnRoom.maxUnits(bodyUnit), 4);
+            return this.configBody({ [TOUGH]: maxUnits, [ATTACK]: maxUnits * 5, [MOVE]: maxUnits * 6 });
+        }
     }
 
     public getPriestBody() {
-        const bodyUnit = this.configBody({ [TOUGH]: 1, [HEAL]: 5, [MOVE]: 6 });
+        const bodyUnit = this.configBody({ [TOUGH]: 1, [HEAL]: 1, [MOVE]: 2 });
         const maxUnits = Math.min(this.spawnRoom.maxUnits(bodyUnit), 4);
-        return this.configBody({ [TOUGH]: maxUnits, [HEAL]: maxUnits * 5, [MOVE]: maxUnits * 6 });
+        return this.configBody({ [TOUGH]: maxUnits, [MOVE]: maxUnits * 2, [HEAL]: maxUnits * 1 });
     }
 }

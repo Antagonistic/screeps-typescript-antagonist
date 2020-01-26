@@ -81,7 +81,28 @@ export class BuilderMission extends Mission {
         this.runTowers();
     }
     public finalize(): void {
-        ;
+        // Create new sites
+        if (!this.remoteSpawning && this.room && this.operation.stableOperation) {
+            const wait = Game.cpu.bucket <= 5000 ? 200 : 50;
+            if (this.roadsites.length <= 1) {
+                if (!this.memory.nextBuildRoad || this.memory.nextBuildRoad <= Game.time) {
+                    if (layoutManager.makeNextBuildSite(this.room, true)) {
+                        this.memory.nextBuildRoad = Game.time + wait;
+                    } else {
+                        this.memory.nextBuildRoad = Game.time + wait * 5;
+                    }
+                }
+            }
+            if (this.sites.length <= 1) {
+                if (!this.memory.nextBuildSite || this.memory.nextBuildSite <= Game.time) {
+                    if (layoutManager.makeNextBuildSite(this.room, false)) {
+                        this.memory.nextBuildSite = Game.time + wait;
+                    } else {
+                        this.memory.nextBuildSite = Game.time + wait * 5;
+                    }
+                }
+            }
+        }
     }
 
     public hasEnergy(): boolean {
@@ -407,6 +428,9 @@ export class BuilderMission extends Mission {
                     } else {
                         b.setTarget(site, TargetAction.BUILD);
                     }
+                    if (!b.action && this.remoteSpawning && this.room && this.room.controller && this.room.controller.my) {
+                        b.action = creepActions.actionUpgrade(b, b.action);
+                    }
                 } else {
                     b.action = this.operation.creepGetEnergy(b, b.action, true, true);
                 }
@@ -515,6 +539,9 @@ export class BuilderMission extends Mission {
                 if (!b.action) {
                     b.action = creepActions.actionRepair(b, b.action, false);
                     b.action = creepActions.actionRepair(b, b.action, true);
+                }
+                if (!b.action && this.room && this.room.controller && this.room.controller.my) {
+                    b.action = creepActions.actionUpgrade(b, b.action);
                 }
                 // action = creepActions.actionUpgrade(b, action);
                 // action = creepActions.actionRally(b, action);

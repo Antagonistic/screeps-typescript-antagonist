@@ -428,7 +428,9 @@ export function actionRepairStill(creep: Creep, action: boolean, factor: number 
   if (action === false) {
     const targets = creep.pos.findInRange<Structure>(FIND_STRUCTURES, 3, {
       filter:
-        (x: Structure) => ((x.hits < x.hitsMax / factor) || x.hits === 1)
+        (x: Structure) => ((x.hits < x.hitsMax / factor) || x.hits === 1) &&
+          x.structureType !== STRUCTURE_RAMPART &&
+          x.structureType !== STRUCTURE_WALL
     });
     if (targets && targets.length > 0) {
       creep.repair(targets[0]);
@@ -992,6 +994,7 @@ export function actionAttackStructure(creep: Creep, action: boolean, target?: St
       }
     }
     if (target) {
+      creep.memory.target = target.id;
       if (creep.getActiveBodyparts(RANGED_ATTACK)) {
         moveToRangedAttack(creep, target);
       } else if (creep.getActiveBodyparts(ATTACK)) {

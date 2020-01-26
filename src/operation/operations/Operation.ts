@@ -1,8 +1,8 @@
 import { SpawnRoom } from "rooms/SpawnRoom";
 import { Mission } from "../missions/Mission";
 
-import * as creepActions from "creeps/creepActions";
 import { TargetAction } from "config/config";
+import * as creepActions from "creeps/creepActions";
 import { Traveler } from "utils/Traveler";
 
 export enum OperationPriority { Emergency, OwnedRoom, VeryHigh, High, Medium, Low, VeryLow }
@@ -34,6 +34,7 @@ export abstract class Operation {
   public tombStones: Tombstone[] = [];
   public ruins: Ruin[] = [];
   public initGetEnergy: boolean;
+  public ended: boolean = false;
 
   constructor(flag: Flag, name: string, type: string) {
     this.flag = flag;
@@ -255,7 +256,7 @@ export abstract class Operation {
           }
         }
       }
-      if (this.remoteSpawning && creep.getActiveBodyparts(WORK)) {
+      if (creep.getActiveBodyparts(WORK) && creep.room.find(FIND_MY_CREEPS, { filter: x => x.memory.role === "miner" }).length === 0) {
         // Harvest for it
         const sources = creep.room.find(FIND_SOURCES);
         creep.memory.energyTarget = sources[creep.memory.uuid % sources.length].id;

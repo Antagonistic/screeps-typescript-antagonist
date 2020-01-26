@@ -111,7 +111,7 @@ export class Traveler {
             if (state.cpu > REPORT_CPU_THRESHOLD) {
                 // see note at end of file for more info on this
                 console.log(`TRAVELER: heavy cpu use: ${creep.name}, cpu: ${state.cpu} origin: ${
-                    creep.pos}, dest: ${destination}`);
+                    creep.pos.print}, dest: ${destination.print}`);
             }
 
             let color = "orange";

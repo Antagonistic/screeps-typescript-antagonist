@@ -115,14 +115,17 @@ export const commandConsole = {
   addLayout(flagName: string, layout: string) {
     const flag = getFlag(flagName);
     if (!flag) { return "invalid flag"; }
-    const room = flag!.room;
-    if (!room) { return "no room visibility"; }
-    if (room.memory.layout) {
-      if (_.any(room.memory.layout, x => x.flagName === flagName && x.name === layout)) { return "already added"; }
+    // const room = flag!.room;
+    // if (!room) { return "no room visibility"; }
+    const roomName = flag.pos.roomName;
+    if (!Memory.rooms[roomName]) { Memory.rooms[roomName] = {} }
+    const mem = Memory.rooms[roomName];
+    if (mem.layout) {
+      if (_.any(mem.layout, x => x.flagName === flagName && x.name === layout)) { return "already added"; }
     } else {
-      room.memory.layout = [];
+      mem.layout = [];
     }
-    room.memory.layout.push({ name: layout, flagName });
+    mem.layout.push({ name: layout, flagName });
     return "success"
   },
   clearLayout(roomName: string) {
@@ -170,17 +173,24 @@ export const commandConsole = {
     return "success";
   },
   vis(roomName: string = defaultRoom) {
-    const room = getRoom(roomName);
-    if (!room) {
+    // const room = getRoom(roomName);
+    if (!Memory.rooms[roomName]) {
       return "no room";
     }
-    room.memory.visual = true;
+    Memory.rooms[roomName].visual = true;
+    // room.memory.visual = true;
     return "success";
   },
   visOff() {
     for (const m in Memory.rooms) {
       const mem = Memory.rooms[m];
       mem.visual = undefined;
+    }
+  },
+  debugOff() {
+    for (const c in Memory.creeps) {
+      const mem = Memory.creeps[c];
+      mem.debug = undefined;
     }
   }
 };

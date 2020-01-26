@@ -83,9 +83,9 @@ export class ControllerOperation extends Operation {
     }
 
     public spawn(): void {
-        if (!this.remoteSpawning && this.stableOperation && Game.time % 1000 === 135 && Game.cpu.bucket > 5000 && this.room) {
+        /*if (!this.remoteSpawning && this.stableOperation && Game.time % 1000 === 135 && Game.cpu.bucket > 5000 && this.room) {
             layoutManager.run(this.room, -1, true);
-        }
+        }*/
         super.spawn();
     }
 

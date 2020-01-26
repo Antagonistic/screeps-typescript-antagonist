@@ -30,7 +30,8 @@ export class LootMission extends Mission {
                     // h.say("LOOT!");
                     creepActions.moveToWithdrawAll(h, this.target);
                 } else {
-                    h.suicide();
+                    h.memory.recycle = true;
+                    creepActions.actionRecycle(h, false);
                 }
             } else {
                 if (_.sum(h.carry) > 0) {

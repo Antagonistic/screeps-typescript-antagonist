@@ -80,7 +80,7 @@ export class UpgradeMission extends Mission {
         if (!this.room || !this.controller || !this.container) { return 0; }
         // if (this.controller.ticksToDowngrade < 10000) { return 1; }
         if (this.isLink) { return 0; }
-        if (this.controller.level >= 5 && this.room.storage) {
+        if (this.controller.level >= 4 && this.room.storage) {
             if (this.room.storage.store.energy > 10000) {
                 return 1;
             } else {

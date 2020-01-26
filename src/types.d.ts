@@ -94,6 +94,7 @@ interface RoomMemory {
   dest?: RoomPosition[];
   hostile?: boolean;
   type?: string;
+  fort?: number;
 
   towers?: string[];
   // mine_structures: number;
