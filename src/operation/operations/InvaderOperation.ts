@@ -43,7 +43,7 @@ export class InvaderOperation extends Operation {
             }
             if (this.getActive()) {
                 // this.addMission(new PairAttackMission(this, "att", this.core));
-                this.addMission(new GuardMission(this, true));
+                this.addMission(new GuardMission(this, !this.ended));
                 this.addMission(new LootMission(this, "loot", this.ruin));
             }
         }
