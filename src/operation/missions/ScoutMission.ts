@@ -16,9 +16,13 @@ export class ScoutMission extends Mission {
     public initMission(): void {
         ;
     }
+    public getMax() {
+        if (this.room) { return 0; }
+        if (this.spawnRoom.rclLevel < 3) { return 0; }
+        return 1;
+    }
     public spawn(): void {
-        const getMax = () => !this.room || this.spawnRoom.rclLevel <= 2 ? 0 : 1;
-        this.scouts = this.spawnRole("scout", getMax, () => this.workerBody(0, 0, 1), 50);
+        this.scouts = this.spawnRole("scout", () => this.getMax(), () => this.workerBody(0, 0, 1), 50);
     }
     public work(): void {
         for (const creep of this.scouts) {

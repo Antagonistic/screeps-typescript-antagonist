@@ -105,7 +105,7 @@ export class WorldMap implements WorldMap {
 
         room.memory.hostile = true;
       } else {
-        if (room.controller.reservation && room.controller.reservation.username === "Invader") {
+        if (room.find(FIND_HOSTILE_STRUCTURES, { filter: x => x.structureType === STRUCTURE_INVADER_CORE }).length > 0) {
           this.processInvaderRoom(room);
         } else {
           const flags = room.flags;

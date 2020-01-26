@@ -33,17 +33,17 @@ export class MiningOperation extends Operation {
         ;
     }
     public initOperation() {
-        if (!this.active) { return; }
+        // if (!this.active) { return; }
         this.addMission(new ScoutMission(this));
 
         this.addMission(new GuardMission(this));
 
         for (let i = 0; i < this.sources.length; i++) {
             ;
-            this.addMission(new MiningMission(this, "mining" + i, this.sources[i], true));
+            this.addMission(new MiningMission(this, "mining" + i, this.sources[i], this.active));
         }
 
-        if (this.room && this.room.controller && this.spawnRoom.room.storage) {
+        if (this.room && this.room.controller && this.spawnRoom.room.storage && this.active) {
             this.addMission(new ReserveMission(this));
         }
         // this.addMission(new BuilderMission(this));
