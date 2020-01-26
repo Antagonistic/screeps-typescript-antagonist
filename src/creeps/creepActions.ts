@@ -348,8 +348,8 @@ export function actionBuild(creep: Creep, action: boolean, target?: Construction
       target = creep.pos.findClosestByRange(FIND_MY_CONSTRUCTION_SITES);
     }
     if (target) {
-      moveToBuildSite(creep, target);
-      creep.memory.target = target.id;
+      // moveToBuildSite(creep, target);
+      creep.setTarget(target, TargetAction.BUILD);
       return true;
     }
   }
