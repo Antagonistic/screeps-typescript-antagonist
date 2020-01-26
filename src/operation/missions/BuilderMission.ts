@@ -86,6 +86,7 @@ export class BuilderMission extends Mission {
             const wait = Game.cpu.bucket <= 5000 ? 200 : 50;
             if (this.roadsites.length <= 1) {
                 if (!this.memory.nextBuildRoad || this.memory.nextBuildRoad <= Game.time) {
+                    this.getRoadConstruct()
                     if (layoutManager.makeNextBuildSite(this.room, true)) {
                         this.memory.nextBuildRoad = Game.time + wait;
                     } else {

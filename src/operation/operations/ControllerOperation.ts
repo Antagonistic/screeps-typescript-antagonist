@@ -41,6 +41,7 @@ export class ControllerOperation extends Operation {
     public initOperation() {
         if (this.remoteSpawning) {
             this.addMission(new ScoutMission(this));
+            this.addMission(new GuardMission(this));
             this.addMission(new ClaimMission(this));
             this.addMission(new BuilderMission(this, this.logistics));
         } else {
