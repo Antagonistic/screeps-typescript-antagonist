@@ -1,7 +1,9 @@
 import { SpawnRoom } from "rooms/SpawnRoom";
 import { Mission } from "../missions/Mission";
 
+import { TargetAction } from "config/config";
 import * as creepActions from "creeps/creepActions";
+import { Traveler } from "utils/Traveler";
 
 export enum OperationPriority { Emergency, OwnedRoom, VeryHigh, High, Medium, Low, VeryLow }
 
@@ -32,6 +34,7 @@ export abstract class Operation {
   public tombStones: Tombstone[] = [];
   public ruins: Ruin[] = [];
   public initGetEnergy: boolean;
+  public ended: boolean = false;
 
   constructor(flag: Flag, name: string, type: string) {
     this.flag = flag;
@@ -109,11 +112,27 @@ export abstract class Operation {
     }
   }
 
+  public getToHomeRange() {
+    if (this.memory.range === undefined) {
+      if (!this.room || !this.room.memory.home) { return 99; }
+      const route = Traveler.routeDistance(this.room.memory.home, this.room.name);
+      if (!route) {
+        this.memory.range = 99;
+      } else {
+        this.memory.range = Object.keys(route).length;
+      }
+    }
+    return this.memory.range;
+  }
+
   public finalize(): void {
     for (const missionName in this.missions) {
       try {
         this.missions[missionName].finalize();
         //  this.memory[missionName] = this.missions[missionName].memory;
+        if (Game.time % 1000 === 88) {
+          this.memory.range = undefined;
+        }
       } catch (e) {
         console.log("error caught in finalize phase, operation:", this.name, "mission:", missionName);
         console.log(e.stack);
@@ -145,6 +164,11 @@ export abstract class Operation {
     // } else {
     if (!creepActions.actionGetEnergyCache(creep, false)) {
       if (!this.initGetEnergy) {
+        const hauler = creep.room.find(FIND_MY_CREEPS, { filter: x => x.memory.target === creep.id && x.store.energy > 10 });
+        if (hauler && hauler.length > 0) {
+          creep.setTarget(hauler[0], TargetAction.MOVETO);
+          return true;
+        }
         this.droppedEnergy = creep.room.find(FIND_DROPPED_RESOURCES, { filter: x => x.resourceType === RESOURCE_ENERGY && x.amount >= 10 });
         this.tombStones = creep.room.find(FIND_TOMBSTONES, { filter: x => x.store.energy >= 10 });
         this.ruins = creep.room.find(FIND_RUINS, { filter: x => x.store.energy >= 10 });
@@ -191,6 +215,8 @@ export abstract class Operation {
         if (hauler && hauler.length > 0) {
           hauler[0].say("HiJack");
           hauler[0].memory.target = creep.id;
+          creep.setTarget(hauler[0], TargetAction.MOVETO);
+          return true;
         }
       }
       if (scavange) {
@@ -230,7 +256,7 @@ export abstract class Operation {
           }
         }
       }
-      if (this.remoteSpawning && creep.getActiveBodyparts(WORK)) {
+      if (creep.getActiveBodyparts(WORK) && creep.room.find(FIND_MY_CREEPS, { filter: x => x.memory.role === "miner" }).length === 0) {
         // Harvest for it
         const sources = creep.room.find(FIND_SOURCES);
         creep.memory.energyTarget = sources[creep.memory.uuid % sources.length].id;

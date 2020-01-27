@@ -29,7 +29,7 @@ export class MiningMission extends Mission {
     public isLink: boolean;
     public wait: number;
 
-    public pavedPath: boolean;
+    // public pavedPath: boolean;
     public cartAnalyze?: cartAnalyze;
 
     public extentions?: StructureExtension | StructureTower[];
@@ -37,15 +37,27 @@ export class MiningMission extends Mission {
     constructor(operation: Operation, name: string, source: Source, active: boolean = true) {
         super(operation, name);
         this.source = source;
-        this.active = active && ((!this.remoteSpawning) || (this.remoteSpawning && this.spawnRoom.rclLevel >= 4));
+        this.active = this.getActive(active);
         if (!this.memory.stableMission) { this.memory.stableMission = false; }
         this.stableMission = this.memory.stableMission;
         this.operation.stableOperation = this.operation.stableOperation && this.stableMission;
         this.isLink = false;
         this.storage = this.findStorage();
         this.wait = this.memory.wait || 0;
-        this.pavedPath = this.memory.isPathPaved === undefined ? this.isPathPaved() : this.memory.isPathPaved;
+        // this.pavedPath = this.memory.isPathPaved === undefined ? this.isPathPaved() : this.memory.isPathPaved;
         if (this.spawnRoom.room.storage && this.spawnRoom.room.storage.store.energy >= 900000) { this.active = false; }
+    }
+
+    public getActive(active: boolean) {
+        if (!active) { return false; }
+        if (!this.room) { return false; }
+        if (this.remoteSpawning) {
+            if (this.room.dangerousHostiles.length > 0) { return false; }
+            if (this.spawnRoom.rclLevel < 4) { return false; }
+        } else {
+            if (this.operation.stableOperation && this.room.dangerousHostiles.length > 0) { return false; }
+        }
+        return true;
     }
 
     public initMission(): void {
@@ -62,10 +74,10 @@ export class MiningMission extends Mission {
         // const cartBodyFunc = this.remoteSpawning ? this.getLongCartBody : this.getCartBody;
         const cartBodyFunc = () => {
             const P = this.getCartAnalyze().carry;
-            if (!this.pavedPath) {
-                return this.workerBody(0, P, P);
+            if (!this.isPathPaved()) {
+                return this.workerBody(0, P * 2, P * 2);
             }
-            return this.workerBody(0, P, Math.ceil(P / 2));
+            return this.workerBody(0, P * 2, P);
         }
         // const hasworkpart = _.contains(cartBodyFunc(), WORK);
         this.carts = this.spawnRole(this.name + "cart", this.getMaxCarts, cartBodyFunc, { role: "hauler" }, 0);
@@ -93,7 +105,7 @@ export class MiningMission extends Mission {
             this.memory.dist = undefined;
         }
         if (Game.time % 1000 === 633) {
-            this.memory.pavedPath = undefined;
+            this.memory.isPathPaved = undefined;
             this.memory.cartAnalyze = undefined;
         }
         if (Game.time % 1000 === 786) {
@@ -427,7 +439,7 @@ export class MiningMission extends Mission {
             if (!this.spawnRoom.room.storage || this.spawnRoom.rclLevel <= 4) {
                 action = this.runHaulers_earlyFill(creep, action);
             } else {
-                if (!this.operation.stableOperation || creep.room.find(FIND_MY_CREEPS, { filter: x => x.memory.role === "refill" }).length === 0) {
+                if (!this.operation.stableOperation) {
                     action = creepActions.actionFillEnergy(creep, action);
                 }
                 if (this.storage.structureType === STRUCTURE_LINK) {
@@ -568,15 +580,18 @@ export class MiningMission extends Mission {
 
     public isPathPaved() {
         if (this.memory.isPathPaved === undefined) {
-            const path = this.haulPath();
-            if (path.length <= 6) { return true; }
-            const unbuilt = roadHelper.getUnbuiltRoads(path);
-            if (path.length * 0.1 < unbuilt.length) {
-                this.memory.isPathPaved = false;
-                return false;
+            if (!this.remoteSpawning && this.spawnRoom.energyCapacityAvailable < 450) { this.memory.isPathPaved = true; }
+            else {
+                const path = this.haulPath();
+                if (path.length <= 6) { return true; }
+                const unbuilt = roadHelper.getUnbuiltRoads(path);
+                if (path.length * 0.1 < unbuilt.length) {
+                    this.memory.isPathPaved = false;
+                    return false;
+                }
+                this.memory.isPathPaved = true;
+                return true;
             }
-            this.memory.isPathPaved = true;
-            return true;
         }
         return this.memory.isPathPaved;
     }
@@ -584,9 +599,16 @@ export class MiningMission extends Mission {
     public getCartAnalyze(): cartAnalyze {
         if (!this.cartAnalyze) {
             if (!this.memory.cartAnalyze) {
+                const workParts = _.without(this.getMinerBody(), MOVE, CARRY).length;
+                const miners = this.minersNeeded();
+                const parts = miners * workParts;
+                let energyRate = this.source.energyPerTick;
+                if (parts < 6) {
+                    energyRate = parts * energyRate / 6;
+                }
                 const distanceAdd = this.remoteSpawning ? 1.0 : this.spawnRoom.room.storage ? 1.0 : 2.0;  // Add some distance since haulers are refilling too
                 const dist = this.memory.dist = this.haulPath().length * distanceAdd;
-                this.memory.cartAnalyze = roomHelper.cartAnalyze(dist, this.source.energyPerTick, this.spawnRoom, this.pavedPath);
+                this.memory.cartAnalyze = roomHelper.cartAnalyze(dist, energyRate, this.spawnRoom, !this.isPathPaved());
             }
             this.cartAnalyze = this.memory.cartAnalyze;
         }

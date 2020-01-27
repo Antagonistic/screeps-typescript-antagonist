@@ -1,16 +1,18 @@
 import { Traveler } from "utils/Traveler";
 // tslint:disable-next-line:ordered-imports
 import { ROAD_COST, AVOID_COST, SWAMP_COST, PLAIN_COST } from "config/config";
+import { RSA_PKCS1_PADDING } from "constants";
 
-export function hasStructure(pos: RoomPosition, struct: BuildableStructureConstant): boolean {
+export function hasStructure(pos: RoomPosition, struct: BuildableStructureConstant, clear: boolean = false): boolean {
+    if (Game.map.getRoomTerrain(pos.roomName).get(pos.x, pos.y) === TERRAIN_MASK_WALL) { return true; }
     const structures = pos.lookFor(LOOK_STRUCTURES);
     if (_.any(structures, x => x.structureType === struct)) { return true; }
     const construct = pos.lookFor(LOOK_CONSTRUCTION_SITES);
     if (_.any(construct, x => x.structureType === struct)) { return true; }
-    if (struct !== "road" && struct !== "rampart" && struct !== "container") {
-        const road = _.findLast(structures, x => x.structureType === STRUCTURE_ROAD);
+    if (clear && struct !== "road" && struct !== "rampart" && struct !== "container") {
+        const road = _.find(structures, x => x.structureType === STRUCTURE_ROAD);
         if (road) { road.destroy(); }
-        const constRoad = _.findLast(construct, x => x.structureType === STRUCTURE_ROAD);
+        const constRoad = _.find(construct, x => x.structureType === STRUCTURE_ROAD);
         if (constRoad) { constRoad.remove(); }
     }
     return false;
@@ -29,7 +31,11 @@ export function buildIfNotExist(pos: RoomPosition, struct: BuildableStructureCon
         ret = pos.createConstructionSite(struct);
     }
     if (ret !== OK) {
-        console.log("Failed to construct " + struct + " at " + pos.x + "," + pos.y + "!");
+        if (ret === ERR_RCL_NOT_ENOUGH) {
+            return ret;
+        }
+        console.log("Failed to construct " + struct + " at " + pos.print + "! " + ret);
+
     }
     return ret;
 }
@@ -231,10 +237,73 @@ export function clampDirection(direction: number): number {
 
 export function cartAnalyze(dist: number, load: number, spawnRoom: SpawnRoom, offRoad: boolean = false): cartAnalyze {
     const maxEnergy = spawnRoom.energyCapacityAvailable;
+    // console.log('offRoad ' + offRoad);
+    // console.log('maxEnergy ' + maxEnergy);
     const maxParts = Math.min(Math.floor(offRoad ? (maxEnergy / 200) : (maxEnergy / 150)), 16);
+    // console.log('maxParts ' + maxParts);
     const throughput = dist * load * 2.1;
+    // console.log('throughput ' + throughput);
     const carryNeeded = Math.ceil(throughput / (CARRY_CAPACITY * 2));
+    // console.log('carryNeeded ' + carryNeeded);
     const cartsNeed = Math.max(Math.ceil(carryNeeded / maxParts), 1);
+    // console.log('cartsNeed ' + cartsNeed);
     const carryNeed = Math.min(Math.max(Math.floor(carryNeeded / cartsNeed), 1) + 1, maxParts);
+    // console.log('carryNeed ' + carryNeed);
     return { count: cartsNeed, carry: carryNeed };
+}
+
+export function getRoomCoordinates(roomName: string): RoomCoord {
+
+    const coordinateRegex = /(E|W)(\d+)(N|S)(\d+)/g;
+    const match = coordinateRegex.exec(roomName);
+    if (!match) { return { x: 0, y: 0, xDir: "", yDir: "" }; }
+
+    const xDir = match[1];
+    const x = match[2];
+    const yDir = match[3];
+    const y = match[4];
+
+    return {
+        x: Number(x),
+        xDir,
+        y: Number(y),
+        yDir,
+    };
+}
+
+/**
+ * Get the type of the room
+ */
+export function roomType(roomName: string): 'SK' | 'CORE' | 'CTRL' | 'ALLEY' {
+    const coords = getRoomCoordinates(roomName);
+    if (coords.x % 10 === 0 || coords.y % 10 === 0) {
+        return 'ALLEY';
+    } else if (coords.x % 10 !== 0 && coords.x % 5 === 0 && coords.y % 10 !== 0 && coords.y % 5 === 0) {
+        return 'CORE';
+    } else if (coords.x % 10 <= 6 && coords.x % 10 >= 4 && coords.y % 10 <= 6 && coords.y % 10 >= 4) {
+        return 'SK';
+    } else {
+        return 'CTRL';
+    }
+}
+
+export function getRoomWallLevel(room: Room) {
+    if (!room.memory.fort) {
+        room.memory.fort = 10000;
+    }
+    if (Game.time % 200 === 20) {
+        if (room.controller && room.controller.my && room.controller.level >= 5) {
+            const walls = room.find(FIND_STRUCTURES, { filter: x => x.structureType === STRUCTURE_WALL || x.structureType === STRUCTURE_RAMPART });
+            const maxWall = _.max(walls, x => x.hits).hits;
+            const minWall = _.min(walls, x => x.hits).hits;
+            if (minWall > room.memory.fort * 0.9) {
+                if (room.storage && room.storage.store.energy > 40000) {
+                    room.memory.fort = room.memory.fort += 10000;
+                }
+            }
+        } else {
+            room.memory.fort = undefined;
+        }
+    }
+    return room.memory.fort;
 }

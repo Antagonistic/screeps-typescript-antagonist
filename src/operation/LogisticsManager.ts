@@ -9,6 +9,7 @@ import { UpgradeMission } from "./missions/UpgradeMission";
 import * as creepActions from "creeps/creepActions";
 import * as layoutManager from "rooms/layoutManager";
 import * as roadHelper from "rooms/roadHelper";
+import { BuilderMission } from "./missions/BuilderMission";
 
 export class LogisticsManager {
     public spawnRoom: SpawnRoom;
@@ -125,6 +126,7 @@ export class LogisticsManager {
                 console.log("  * " + m.name);
                 if (m instanceof MiningMission) { this.reportMiningMission(m); }
                 if (m instanceof UpgradeMission) { this.reportUpgraderMission(m); }
+                if (m instanceof BuilderMission) { this.reportBuilderMission(m); }
             }
         }
     }
@@ -144,6 +146,13 @@ export class LogisticsManager {
         console.log("   Link?     : " + m.isLink);
         console.log("   Upgraders : " + m.upgraders.length + " W: " + numWork);
         console.log("   Haulers   : " + m.haulers.length + " C: " + numCarry);
+    }
+
+    public reportBuilderMission(m: BuilderMission): void {
+        const numBuild = _.sum(m.builders, (x: Creep) => x.getActiveBodyparts(WORK));
+        const numPave = _.sum(m.pavers, (x: Creep) => x.getActiveBodyparts(WORK));
+        console.log("   Builders  : " + m.builders.length + " W: " + numBuild);
+        console.log("   Pavers    : " + m.pavers.length + " C: " + numPave);
     }
 
     public finalize(): void {

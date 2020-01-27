@@ -21,7 +21,7 @@ export class ClaimMission extends Mission {
         ;
     }
     public spawn(): void {
-        const needClaimer = () => this.controller && !this.controller.my && this.spawnRoom.availableSpawnEnergy >= 650 ? 1 : 0;
+        const needClaimer = () => this.controller && !this.controller.my && this.room!.dangerousHostiles.length === 0 && this.spawnRoom.availableSpawnEnergy >= 650 ? 1 : 0;
         this.claimers = this.spawnRole("claim", needClaimer, this.claimBody);
     }
     public work(): void {
@@ -48,7 +48,11 @@ export class ClaimMission extends Mission {
         }
     }
     public finalize(): void {
-        ;
+        if (this.room && Game.time % 100 === 32) {
+            if (this.room.find(FIND_MY_SPAWNS).length === 0) {
+                const ret = buildIfNotExist(this.operation.flag.pos, STRUCTURE_SPAWN);
+            }
+        }
     }
 
     public claimBody = (): BodyPartConstant[] => this.configBody({ claim: 1, move: 1 });

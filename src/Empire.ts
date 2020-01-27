@@ -13,6 +13,7 @@ export class Empire implements Empire {
 
   constructor() {
     if (!Memory.empire) { Memory.empire = {}; }
+    if (!Memory.sign) { Memory.sign = "FooBar"; }
     // this.operations = {};
     this.map = new WorldMap();
     this.spawnRooms = this.init();

@@ -1,8 +1,11 @@
 import { profile } from "Profiler";
+import * as roomHelper from "rooms/roomHelper";
+import { Traveler } from "utils/Traveler";
 import { SpawnRoom } from "./SpawnRoom";
 
 @profile
 export class WorldMap implements WorldMap {
+  public spawnGroups: { [roomName: string]: SpawnRoom } = {};
   public controlledRooms: { [roomName: string]: Room } = {};
   public sphere: string[] = [];
 
@@ -10,29 +13,39 @@ export class WorldMap implements WorldMap {
   // public foesRooms: Room[] = [];
 
   public init(): { [roomName: string]: SpawnRoom } {
-    const spawnGroups: { [roomName: string]: SpawnRoom } = {};
+    // const spawnGroups: { [roomName: string]: SpawnRoom } = {};
+    if (!Memory.rooms) { Memory.rooms = {} };
+
     for (const roomName in Game.rooms) {
-      if (!Memory.rooms) { Memory.rooms = {} };
       const memory = Memory.rooms[roomName];
       const room = Game.rooms[roomName];
-
-      if (room) {
-        // this.updateMemory(room);
-        room.memory.lastSeen = Game.time;
-        if (room.controller && room.controller.my) {
+      // console.log('processing ' + roomName);
+      if (room.controller) {
+        if (room.controller.my) {
+          // Update my room
           this.controlledRooms[roomName] = room;
           if (room.find(FIND_MY_SPAWNS).length > 0) {
-            spawnGroups[roomName] = new SpawnRoom(room);
+            this.spawnGroups[roomName] = new SpawnRoom(room);
             if (room.memory.remoteRoom) { this.sphere = this.sphere.concat(room.memory.remoteRoom); }
-            if (Game.time % 1000 === 673) { this.expandInfluence(spawnGroups[roomName]); }
           }
         }
       }
     }
-    for (const _sR in spawnGroups) {
-      this.doObserver(spawnGroups[_sR].room);
+    for (const roomName in Game.rooms) {
+      const memory = Memory.rooms[roomName];
+      const room = Game.rooms[roomName];
+      this.processSeenRoom(room);
     }
-    return spawnGroups;
+    /*for (const roomName in Memory.rooms) {
+      const memory = Memory.rooms[roomName];
+      if (memory.hostile) {
+
+      }
+    }*/
+    for (const _sR in this.spawnGroups) {
+      this.doObserver(this.spawnGroups[_sR].room);
+    }
+    return this.spawnGroups;
   }
 
 
@@ -73,7 +86,108 @@ export class WorldMap implements WorldMap {
       }
     }
     spawn.room.memory.remoteRoom = remoteList;
+    spawn.room.memory.neighbors = neighbors;
     return remoteList;
+  }
+
+  public processSeenRoom(room: Room) {
+    if (!room) { return; }
+    const roomName = room.name;
+    Traveler.updateRoomStatus(room);
+    room.memory.lastSeen = Game.time;
+    if (room.controller) {
+      if (room.controller.my) {
+        // Update my room
+        if (room.find(FIND_MY_SPAWNS).length > 0) {
+          if (Game.time % 1000 === 673) { this.expandInfluence(this.spawnGroups[roomName]); }
+        }
+      } else if (room.controller.owner && !room.controller.my) {
+
+        room.memory.hostile = true;
+      } else {
+        if (room.find(FIND_HOSTILE_STRUCTURES, { filter: x => x.structureType === STRUCTURE_INVADER_CORE }).length > 0) {
+          this.processInvaderRoom(room);
+        } else {
+          const flags = room.flags;
+          if (!_.any(flags, x => x.name.indexOf('controller') > -1 || x.name.indexOf('mining') > -1 || x.name.indexOf('source') > -1)) {
+            this.remoteMineCandidate(room);
+          }
+        }
+      }
+    } else {
+      // Non-controller room
+      this.processNonControlRoom(room);
+    }
+  }
+
+  public remoteMineCandidate(room: Room) {
+    const sources = room.find(FIND_SOURCES);
+    // potential remote mining
+    if (sources.length > 0) {
+
+      // console.log('Room ' + room.name + ' a possible remote mining candidate');
+      if (room.memory.home) {
+        if (room.dangerousHostiles.length === 0 &&
+          !room.owner && !room.reserved) {
+          const spawnRoom = global.emp.getSpawnRoom(room.memory.home) as SpawnRoom;
+          if (spawnRoom.room.memory.neighbors && spawnRoom.room.memory.neighbors.find(x => x === room.name)) {
+            // Neighbor clear room!
+            if (sources.length > 2) {
+              room.createFlag(25, 25, "source_" + room.name + 'S');
+            } else {
+              room.createFlag(25, 25, "mining_" + room.name + 'M');
+            }
+            console.log('Creating remote mining room ' + room.name);
+          }
+        }
+      }
+    }
+  }
+
+  public processNonControlRoom(room: Room) {
+    const type = roomHelper.roomType(room.name);
+    room.memory.type = type;
+    if (type === 'SK') {
+      if (this.isNeighborToSpawn(room) && !_.any(room.flags, x => x.name.indexOf('source') > -1)) {
+        room.createFlag(25, 25, 'source_' + room.name + 'S');
+        console.log('Creating remote SK room ' + room.name);
+      }
+    }
+    if (type === 'ALLEY') {
+      const deposits = room.find(FIND_DEPOSITS);
+      if (deposits && deposits.length > 0) {
+        if (!_.any(room.flags, x => x.name.indexOf('deposit') > -1)) {
+          room.createFlag(deposits[0].pos, 'deposit_' + room.name + 'D');
+          console.log('Creating remote deposit room ' + room.name);
+        }
+      }
+      const power = room.find(FIND_DEPOSITS);
+      if (power && power.length > 0) {
+        if (!_.any(room.flags, x => x.name.indexOf('power') > -1)) {
+          room.createFlag(power[0].pos, 'power_' + room.name + 'P');
+          console.log('Creating remote power room ' + room.name);
+        }
+      }
+    }
+  }
+
+  public processInvaderRoom(room: Room) {
+    const core = _.head(room.find(FIND_STRUCTURES, { filter: x => x.structureType === STRUCTURE_INVADER_CORE }));
+    if (core) {
+      if (!_.any(room.flags, x => x.name.indexOf('invader') > -1)) {
+        room.createFlag(core.pos, 'invader_' + room.name + 'I');
+        console.log('Creating remote invader room ' + room.name);
+      }
+    }
+  }
+
+  public isNeighborToSpawn(room: Room): boolean {
+    if (!room.memory.home) { return false; }
+    const spawnRoom = this.spawnGroups[room.memory.home];
+    if (spawnRoom && spawnRoom.room.memory.neighbors && spawnRoom.room.memory.neighbors.find(x => x === room.name)) {
+      return true;
+    }
+    return false;
   }
 
   public doObserver(room: Room) {
@@ -144,19 +258,4 @@ export class WorldMap implements WorldMap {
     return visited;
   }
 
-	/**
-	 * Get the type of the room
-	 */
-  /*public static roomType(roomName: string): 'SK' | 'CORE' | 'CTRL' | 'ALLEY' {
-    const coords = this.getRoomCoordinates(roomName);
-    if (coords.x % 10 === 0 || coords.y % 10 === 0) {
-      return ROOMTYPE_ALLEY;
-    } else if (coords.x % 10 != 0 && coords.x % 5 === 0 && coords.y % 10 != 0 && coords.y % 5 === 0) {
-      return ROOMTYPE_CORE;
-    } else if (coords.x % 10 <= 6 && coords.x % 10 >= 4 && coords.y % 10 <= 6 && coords.y % 10 >= 4) {
-      return ROOMTYPE_SOURCEKEEPER;
-    } else {
-      return ROOMTYPE_CONTROLLER;
-    }
-  }*/
 }

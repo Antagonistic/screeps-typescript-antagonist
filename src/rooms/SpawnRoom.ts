@@ -43,7 +43,7 @@ export class SpawnRoom implements SpawnRoom {
           // success!
           Memory.uuid = uuid + 1;
           this.availableSpawnCount = 0;
-          console.log("spawning " + name);
+          console.log("spawning " + name + ' ' + spawn.pos.print);
           return true;
         }
         if (status === ERR_INVALID_ARGS) {

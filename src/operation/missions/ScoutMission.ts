@@ -16,8 +16,13 @@ export class ScoutMission extends Mission {
     public initMission(): void {
         ;
     }
+    public getMax() {
+        if (this.room) { return 0; }
+        if (this.spawnRoom.rclLevel < 3) { return 0; }
+        return 1;
+    }
     public spawn(): void {
-        this.scouts = this.spawnRole("scout", () => this.room ? 0 : 1, () => this.workerBody(0, 0, 1), 50);
+        this.scouts = this.spawnRole("scout", () => this.getMax(), () => this.workerBody(0, 0, 1), 50);
     }
     public work(): void {
         for (const creep of this.scouts) {
@@ -26,12 +31,13 @@ export class ScoutMission extends Mission {
                 if (creep.ticksToLive && creep.ticksToLive >= 1499) {
                     creep.notifyWhenAttacked(false);
                 }
-                if (creep.pos.isEqualTo(this.operation.flag.pos)) {
+                if (creep.pos.isNearTo(this.operation.flag.pos)) {
                     creep.memory.inPosition = true;
                 } else {
-                    creepActions.moveTo(creep, this.operation.flag.pos);
+                    creepActions.moveTo(creep, this.operation.flag.pos, false);
                 }
             }
+            // if (Game.time % 25 === 0) { this.processRoomScout(creep.room); }
         }
     }
     public finalize(): void {

@@ -1,8 +1,11 @@
 import { Operation } from "../operations/Operation";
 import { Mission } from "./Mission";
 
+import { TargetAction } from "config/config";
 import * as creepActions from "creeps/creepActions";
 import { profile } from "Profiler";
+
+import * as task from "creeps/tasks";
 
 @profile
 export class GuardMission extends Mission {
@@ -11,12 +14,14 @@ export class GuardMission extends Mission {
     public hostiles: Creep[] = [];
     public hostileHealers: Creep[] = [];
     public active: boolean = false;
+    public stage: boolean;
 
-    constructor(operation: Operation) {
+    constructor(operation: Operation, stage?: boolean) {
         super(operation, "Guard");
+        this.stage = stage === true;
     }
     public initMission(): void {
-        if (this.room) {
+        if (this.room && !this.remoteSpawning) {
             this.towers = this.room.find<StructureTower>(FIND_MY_STRUCTURES,
                 { filter: (x: Structure) => x.structureType === STRUCTURE_TOWER });
         }
@@ -30,30 +35,49 @@ export class GuardMission extends Mission {
         this.runGuards();
         this.runTowers();
     }
-    public finalize(): void { ; }
+    public finalize(): void {
+        this.report()
+    }
 
     public getMaxGuards = () => {
+        if (this.stage) { return 1; }
         if (!this.room) { return 0; }
         const hostiles = this.room.find(FIND_HOSTILE_CREEPS);
-        if (hostiles && hostiles.length) {
+        if (this.hostiles.length > 0) {
             return hostiles.length;
         }
         return 0;
     }
 
     protected defenderBody = (): BodyPartConstant[] => {
-        const bodyUnit = this.configBody({ [TOUGH]: 1, [ATTACK]: 5, [MOVE]: 6 });
-        const maxUnits = Math.min(this.spawnRoom.maxUnits(bodyUnit), 4);
-        return this.configBody({ [TOUGH]: maxUnits, [ATTACK]: maxUnits * 5, [MOVE]: maxUnits * 6 });
+        if (this.spawnRoom.energyCapacityAvailable >= 2710) {
+            const bodyUnit = this.configBody({ [TOUGH]: 1, [ATTACK]: 5, [MOVE]: 6 });
+            const maxUnits = Math.min(this.spawnRoom.maxUnits(bodyUnit), 4);
+            return this.configBody({ [TOUGH]: maxUnits, [ATTACK]: maxUnits * 5, [MOVE]: maxUnits * 6 });
+        } else {
+            const bodyUnit = this.configBody({ [ATTACK]: 1, [MOVE]: 1 });
+            const maxUnits = Math.min(this.spawnRoom.maxUnits(bodyUnit), 8);
+            return this.configBody({ [ATTACK]: maxUnits, [MOVE]: maxUnits });
+        }
     }
 
     public runGuards(): void {
         for (const g of this.defenders) {
-            let action: boolean = false;
-            action = creepActions.actionRecycle(g, action);
-            action = creepActions.actionMoveToRoom(g, action);
-            action = creepActions.actionAttackHostile(g, action);
-            if (!action) { creepActions.moveTo(g, this.operation.rallyPos); };
+            // let action: boolean = false;
+            // action = creepActions.actionRecycle(g, action);
+            // action = creepActions.actionMoveToRoom(g, action);
+            g.action = creepActions.actionRecycle(g, g.action);
+            task.moveToRoom(g, this.operation.roomName);
+            g.actionTarget()
+            if (this.active) {
+                task.taskAttackHostile(g);
+            } else {
+                if (!this.stage) {
+                    g.memory.recycle = true;
+                }
+            }
+            g.rally();
+
         }
     }
 
@@ -86,11 +110,26 @@ export class GuardMission extends Mission {
 
     protected findHostiles() {
         if (this.room) {
-            this.hostiles = this.room.find(FIND_HOSTILE_CREEPS);
+            // this.hostiles = this.room.find(FIND_HOSTILE_CREEPS);
+            this.hostiles = this.room.dangerousHostiles;
             if (this.hostiles.length > 0) {
                 this.hostileHealers = this.room.find(FIND_HOSTILE_CREEPS, { filter: (c: Creep) => c.getActiveBodyparts(HEAL) });
                 this.active = true;
+                this.defenders.forEach(x => x.memory.recycle = false);
+            } else {
+                if (!this.remoteSpawning) {
+                    this.defenders.forEach(x => x.memory.recycle = true);
+                }
             }
+        }
+        if (this.remoteSpawning) {
+            this.active = true;
+        }
+    }
+
+    public report() {
+        if (this.hostiles.length > 0 && Game.time % 10 === 0) {
+            console.log('GUARD: Room ' + this.spawnRoom.room.name + ' responding to attack ' + this.hostiles[0].pos.print + ' ' + this.defenders.length + '/' + this.getMaxGuards());
         }
     }
 

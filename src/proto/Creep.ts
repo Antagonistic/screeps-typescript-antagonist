@@ -43,8 +43,11 @@ Object.defineProperty(Creep.prototype, 'partner', {
 });
 
 Creep.prototype.setTarget = function (target: _HasId, targetAction: TargetAction) {
-    this.target = target;
-    this.memory.targetAction = targetAction;
+    if (this.memory.debug) { console.log('target: ' + target + ' ' + targetAction); }
+    if (!this.target && !this.action) {
+        this.target = target;
+        this.memory.targetAction = targetAction;
+    }
     return this.actionTarget();
 }
 
@@ -84,6 +87,9 @@ Object.defineProperty(Creep.prototype, 'action', {
                 return true;
             }
         }
+        /*if (this.memory.recycle) {
+            this._action = false;
+        }*/
         this._action = false;
         return false;
     },
@@ -103,8 +109,19 @@ Creep.prototype.actionTarget = function (): boolean {
     if (this.action) { return true; }
     if (!this.memory.target || !this.memory.targetAction) { return false; }
     const t = this.target;
-    if (!t) { return false; }
+    if (!t) {
+        this.clearTarget();
+        return false;
+    }
     switch (this.memory.targetAction) {
+        case TargetAction.MOVETO: {
+            const _t = t as Creep | Structure;
+            if (this.pos.isNearTo(_t.pos.x, _t.pos.y)) {
+                this.clearTarget();
+                return false;
+            }
+            creepActions.moveTo(this, _t, false);
+        }
         case TargetAction.BUILD: {
             creepActions.moveToBuild(this, t as ConstructionSite);
             this.say("🛠️");
@@ -124,6 +141,12 @@ Creep.prototype.actionTarget = function (): boolean {
         }
         case TargetAction.MINE: {
             const tMine = t as Source | Mineral | Deposit;
+            if (tMine instanceof Source) {
+                if (tMine.energy <= 0) {
+                    this.clearTarget();
+                    return false;
+                }
+            }
             const ret = this.harvest(tMine);
             if (ret === ERR_NOT_IN_RANGE) {
                 creepActions.moveTo(this, tMine.pos, false);
@@ -146,9 +169,10 @@ Creep.prototype.actionTarget = function (): boolean {
         }
         case TargetAction.DEPOSITENERGY: {
             const _t = t as Creep | AnyStoreStructure;
-            if (_t.store.getFreeCapacity() > 10) {
+            if (_t.store.getFreeCapacity(RESOURCE_ENERGY) > 0) {
                 creepActions.moveToTransfer(this, _t);
                 this.action = true;
+                this.say("💰");
                 return true;
             } else {
                 this.clearTarget();
@@ -179,7 +203,7 @@ Creep.prototype.actionTarget = function (): boolean {
         }
         case TargetAction.WITHDRAW: {
             const _t = t as AnyStoreStructure | Ruin | Tombstone;
-            if (_t.store.energy > 10) {
+            if (_.sum(_t.store) > 10) {
                 creepActions.moveToWithdrawAll(this, _t);
                 this.action = true;
                 return true;
@@ -226,6 +250,28 @@ Creep.prototype.actionTarget = function (): boolean {
             const _t = t as Structure;
             if (this.pos.isNearTo(_t)) {
                 this.dismantle(_t)
+            } else {
+                creepActions.moveTo(this, _t.pos);
+            }
+            this.action = true;
+            return true;
+        }
+        case TargetAction.PRAISE: {
+            const _t = t as StructureController;
+            if (this.pos.inRangeTo(_t, 2)) {
+                this.upgradeController(_t);
+                creepActions.yieldRoad(this, _t, true);
+            } else {
+                creepActions.moveTo(this, _t.pos);
+            }
+            this.action = true;
+            return true;
+        }
+        case TargetAction.SIGN: {
+            const _t = t as StructureController;
+            if (!_t.sign || _t.sign.text === Memory.sign) { this.clearTarget(); return false; }
+            if (this.pos.isNearTo(_t.pos)) {
+                this.signController(_t, Memory.sign);
             } else {
                 creepActions.moveTo(this, _t.pos);
             }

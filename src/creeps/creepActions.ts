@@ -1,4 +1,5 @@
 import * as Config from "config/config";
+import { TargetAction } from "config/config";
 import { profile } from "Profiler";
 import { getRally } from "rooms/roomHelper";
 import * as roomHelper from "rooms/roomHelper"
@@ -31,12 +32,16 @@ export function moveTo(creep: Creep, target: Structure | Creep | RoomPosition, e
     creep.move(TOP);
     return OK;
   }
+  const movingTarget = target instanceof Creep;
+  const _target = Traveler.normalizePos(target);
+  const maxRooms = creep.room.name === _target.roomName ? 0 : 1;
+
   if (exact) {
     // return creep.moveTo(target, { visualizePathStyle: { stroke: "#ffffff" }, range: 1 });
-    return Traveler.travelTo(creep, target, { range: 0, ignoreCreeps: true });
+    return Traveler.travelTo(creep, _target, { range: 0, ignoreCreeps: true, movingTarget });
   } else {
     // return creep.moveTo(target, { range: 1 });
-    return Traveler.travelTo(creep, target, { range: 1, ignoreCreeps: true });
+    return Traveler.travelTo(creep, _target, { range: 1, ignoreCreeps: true, movingTarget });
   }
 }
 
@@ -314,7 +319,7 @@ export function actionUpgrade(creep: Creep, action: boolean): boolean {
   if (action === false) {
     if (creep.room.controller) {
       const target: StructureController = creep.room.controller;
-      if (creep.upgradeController(target) === ERR_NOT_IN_RANGE) {
+      if (creep.upgradeController(target) === ERR_NOT_IN_RANGE || !creep.pos.inRangeTo(target, 2)) {
         moveTo(creep, target);
       } else {
         yieldRoad(creep, creep.room.controller, true);
@@ -343,8 +348,8 @@ export function actionBuild(creep: Creep, action: boolean, target?: Construction
       target = creep.pos.findClosestByRange(FIND_MY_CONSTRUCTION_SITES);
     }
     if (target) {
-      moveToBuildSite(creep, target);
-      creep.memory.target = target.id;
+      // moveToBuildSite(creep, target);
+      creep.setTarget(target, TargetAction.BUILD);
       return true;
     }
   }
@@ -423,7 +428,9 @@ export function actionRepairStill(creep: Creep, action: boolean, factor: number 
   if (action === false) {
     const targets = creep.pos.findInRange<Structure>(FIND_STRUCTURES, 3, {
       filter:
-        (x: Structure) => ((x.hits < x.hitsMax / factor) || x.hits === 1)
+        (x: Structure) => ((x.hits < x.hitsMax / factor) || x.hits === 1) &&
+          x.structureType !== STRUCTURE_RAMPART &&
+          x.structureType !== STRUCTURE_WALL
     });
     if (targets && targets.length > 0) {
       creep.repair(targets[0]);
@@ -455,8 +462,9 @@ export function actionRepair(creep: Creep, action: boolean,
     if (targets.length) {
       const salt: number = (creep.memory.uuid || 0) % targets.length;
       // console.log(creep.name + " " + salt + " " + targets.length);
-      creep.memory.target = targets[salt].id;
-      moveToRepair(creep, targets[salt]);
+      // creep.memory.target = targets[salt].id;
+      // moveToRepair(creep, targets[salt]);
+      creep.setTarget(targets[salt], TargetAction.REPAIR);
       return true;
     }
   }
@@ -626,21 +634,23 @@ export function actionFillEnergy(creep: Creep, action: boolean, room?: Room): bo
     if (!room) { room = creep.room; }
     const spawn: Structure[] = room.find(FIND_MY_SPAWNS, {
       filter:
-        (x: StructureSpawn) => x.energy < x.energyCapacity
+        (x: StructureSpawn) => x.store.getFreeCapacity(RESOURCE_ENERGY) > 0
     });
     const extentions: Structure[] = room.find(FIND_MY_STRUCTURES, {
       filter:
         (x: Structure) => x.structureType === STRUCTURE_EXTENSION &&
-          (x as StructureExtension).energy < (x as StructureExtension).energyCapacity
+          (x as StructureExtension).store.getFreeCapacity(RESOURCE_ENERGY) > 0
     });
     const targets: Structure[] = spawn.concat(extentions);
     if (targets.length) {
       const target: Structure | null = creep.pos.findClosestByRange(targets);
       if (target) {
-        creep.memory.target = target.id;
-        if (creep.transfer(target, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
+        // creep.memory.target = target.id;
+        // console.log(target);
+        creep.setTarget(target, TargetAction.DEPOSITENERGY);
+        /*if (creep.transfer(target, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
           moveTo(creep, target);
-        }
+        }*/
         // console.log(creep.name + " filling energy!");
         return true;
       }
@@ -984,6 +994,7 @@ export function actionAttackStructure(creep: Creep, action: boolean, target?: St
       }
     }
     if (target) {
+      creep.memory.target = target.id;
       if (creep.getActiveBodyparts(RANGED_ATTACK)) {
         moveToRangedAttack(creep, target);
       } else if (creep.getActiveBodyparts(ATTACK)) {

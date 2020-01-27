@@ -1,6 +1,7 @@
 import { Operation } from "../operations/Operation";
 import { Mission } from "./Mission";
 
+import { TargetAction } from "config/config";
 import * as creepActions from "creeps/creepActions";
 import { profile } from "Profiler";
 
@@ -52,7 +53,9 @@ export class UpgradeMission extends Mission {
         this.runHaulers(this.haulers);
     }
     public finalize(): void {
-        ;
+        if (Game.time % 1000 === 921) {
+            this.memory.isSigned = undefined;
+        }
     }
 
     public getUpgraderBody = (): BodyPartConstant[] => {
@@ -75,9 +78,9 @@ export class UpgradeMission extends Mission {
 
     public getMaxCarts = (): number => {
         if (!this.room || !this.controller || !this.container) { return 0; }
-        if (this.controller.ticksToDowngrade < 10000) { return 1; }
+        // if (this.controller.ticksToDowngrade < 10000) { return 1; }
         if (this.isLink) { return 0; }
-        if (this.controller.level >= 5 && this.room.storage) {
+        if (this.controller.level >= 4 && this.room.storage) {
             if (this.room.storage.store.energy > 10000) {
                 return 1;
             } else {
@@ -143,18 +146,32 @@ export class UpgradeMission extends Mission {
         return false;
     }
 
+    public isSigned(): boolean {
+        if (this.memory.isSigned === undefined) {
+            if (!this.controller) { this.memory.isSigned = true; }
+            else { this.memory.isSigned = this.controller.sign === Memory.sign; }
+        }
+        return this.memory.isSigned;
+    }
+
     public runUpgraders(creeps: Creep[]): void {
         for (const u of this.upgraders) {
-            let action: boolean = false;
+            // let action: boolean = false;
             // action = creepActions.actionRenew(creep, action);
+            if (!this.controller) { continue; }
 
-            if (!action && creepActions.canWork(u)) {
+            if (!u.action && creepActions.canWork(u)) {
                 // console.log("foo!");
-                if (!this.container) {
-                    action = creepActions.actionBuildStill(u, action);
-                    action = creepActions.actionRepairStill(u, action);
+                u.actionTarget();
+                if (!this.isSigned()) {
+                    u.setTarget(this.controller, TargetAction.SIGN);
                 }
-                action = creepActions.actionUpgrade(u, action);
+                if (!this.container) {
+                    u.action = creepActions.actionBuildStill(u, u.action);
+                    u.action = creepActions.actionRepairStill(u, u.action);
+                }
+                u.action = creepActions.actionUpgrade(u, u.action);
+                u.setTarget(this.controller, TargetAction.PRAISE);
                 if (u.carry.energy === 0) { u.memory.working = false; }
             } else {
                 // action = creepActions.actionGetStorageEnergy(u, action, 4);
@@ -172,18 +189,19 @@ export class UpgradeMission extends Mission {
     public runHaulers(creeps: Creep[]): void {
         for (const h of this.haulers) {
 
-            let action: boolean = false;
-            action = creepActions.actionRecycle(h, action);
+            // let action: boolean = false;
+            h.action = creepActions.actionRecycle(h, h.action);
 
-            if (!action && creepActions.canWork(h)) {
+            if (!h.action && creepActions.canWork(h)) {
                 if (this.container) {
-                    action = creepActions.actionTransfer(h, action, this.container);
+                    h.action = creepActions.actionTransfer(h, h.action, this.container);
                 } else {
-                    if (!action) { creepActions.moveTo(h, this.operation.rallyPos); };
+                    if (!h.action) { creepActions.moveTo(h, this.operation.rallyPos); };
                 }
             } else {
-                action = creepActions.actionGetStorageEnergy(h, action, 20);
-                if (!action) { creepActions.moveTo(h, this.operation.rallyPos); };
+                h.action = creepActions.actionGetStorageEnergy(h, h.action, 20);
+                if (!h.action) { creepActions.moveTo(h, this.operation.rallyPos); };
+                // if (!h.action) { h.action = this.operation.creepGetEnergy(h, h.action, true, true); };
             }
         }
     }

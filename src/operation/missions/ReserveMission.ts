@@ -9,11 +9,17 @@ export class ReserveMission extends Mission {
     public reservers: Creep[] = [];
     public roomName: string;
     public controller?: StructureController;
+    public signed: boolean;
 
     constructor(operation: Operation) {
         super(operation, "reserve");
         this.roomName = this.operation.roomName;
-        if (this.room && this.room.controller) { this.controller = this.room.controller; }
+        if (this.room && this.room.controller) {
+            this.controller = this.room.controller;
+            this.signed = (this.controller.sign !== undefined && this.controller.sign.text === Memory.sign);
+        } else {
+            this.signed = true;
+        }
     }
 
     public initMission(): void {
@@ -32,6 +38,11 @@ export class ReserveMission extends Mission {
 
             if (this.room && this.controller) {
                 creepActions.moveToReserve(creep, this.controller);
+                if (!this.signed) {
+                    if (creep.pos.isNearTo(this.controller)) {
+                        creep.signController(this.controller, Memory.sign);
+                    }
+                }
             } else {
                 creepActions.moveTo(creep, this.operation.flag.pos);
             }

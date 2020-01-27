@@ -5,6 +5,8 @@ import { Operation } from "./operations/Operation";
 import { Empire } from "../Empire";
 
 import { log } from "../lib/logger/log";
+import { GuardOperation } from "./operations/GuardOperation";
+import { InvaderOperation } from "./operations/InvaderOperation";
 import { LootOperation } from "./operations/LootOperation";
 import { PowerOperation } from "./operations/PowerOperation";
 
@@ -15,9 +17,11 @@ import { PowerOperation } from "./operations/PowerOperation";
 
 const OPERATION_CLASSES: any = {
   controller: ControllerOperation,
+  guard: GuardOperation,
+  invader: InvaderOperation,
   loot: LootOperation,
   mining: MiningOperation,
-  power: PowerOperation
+  power: PowerOperation,
 };
 
 export function init(): Operation[] {

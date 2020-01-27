@@ -1,6 +1,7 @@
 import { BodyFactory } from "creeps/BodyFactory";
 import { Operation } from "operation/operations/Operation";
 import { profile } from "Profiler";
+import * as roomHelper from "rooms/roomHelper";
 import { SpawnRoom } from "rooms/SpawnRoom";
 
 @profile
@@ -99,4 +100,39 @@ export abstract class Mission extends BodyFactory {
         }
         return action;
     }
+
+    /*public processRoomScout(room: Room): void {
+        const flags = room.flags;
+        if (!flags || flags.length === 0) {
+            if (room.reserved === 'Invader') {
+                const core = _.head(room.find(FIND_STRUCTURES, { filter: x => x.structureType === STRUCTURE_INVADER_CORE }));
+                if (core) {
+                    room.createFlag(core.pos.x, core.pos.y, "invader_" + room.name);
+                }
+            } else {
+                if (!room.memory.avoid) {
+                    const type = roomHelper.roomType(room.name);
+                    if (type === 'SK') {
+                        ;
+                    }
+                    if (type === 'CTRL') {
+                        if (room.find(FIND_SOURCES).length > 0) {
+                            // potential remote mining
+                            if (room.memory.home) {
+                                if (!room.dangerousHostiles &&
+                                    !room.owner && !room.reserved) {
+                                    const spawnRoom = global.emp.getSpawnRoom(room.memory.home) as SpawnRoom;
+                                    if (spawnRoom.room.memory.neighbors && spawnRoom.room.memory.neighbors.find(x => x === room.name)) {
+                                        // Neighbor clear room!
+                                        room.createFlag(25, 25, "mining_" + room.name);
+                                        console.log('Creating remote mining room ' + room.name);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+}*/
 }
