@@ -13,12 +13,18 @@ export function dynaDefenceLayout(room: Room): RCLRoomLayout {
             spots.push(s.pos);
         }
     }
+    const towers = room.find(FIND_MY_STRUCTURES, { filter: x => x.structureType === STRUCTURE_TOWER });
+    if (towers && towers.length > 0) {
+        for (const t of towers) {
+            spots.push(t.pos);
+        }
+    }
 
     if (room.storage) {
         spots.push(room.storage.pos);
     }
 
-    ret[6] = { build: { rampart: spots } };
+    ret[3] = { build: { rampart: spots } };
 
     return ret;
 }

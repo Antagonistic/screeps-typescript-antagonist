@@ -5,7 +5,7 @@ import * as creepActions from "creeps/creepActions";
 import { profile } from "Profiler";
 
 @profile
-export class ScoutMission extends Mission {
+export class IntelMission extends Mission {
     public scouts: Creep[] = [];
     public roomName: string;
     public active: boolean;
@@ -19,6 +19,7 @@ export class ScoutMission extends Mission {
         if (this.spawnRoom.room.memory.remoteRoom) {
             const unassigned = this.scouts.filter(x => !x.memory.home);
             const watchedRooms = this.scouts.filter(x => x.memory.home).map(x => x.memory.home);
+            // for(const r of this.spawnRoom.roo)
         }
     }
     public spawn(): void {

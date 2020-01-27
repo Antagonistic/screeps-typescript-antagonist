@@ -44,14 +44,10 @@ export class ControllerOperation extends Operation {
             this.addMission(new BuilderMission(this, this.logistics));
         } else {
             this.addMission(new EmergencyMission(this, this.emergency && !this.remoteSpawning));
+            this.addMission(new GuardMission(this));
 
             for (let i = 0; i < this.sources.length; i++) {
-
                 this.addMission(new MiningMission(this, "mining" + i, this.sources[i]))
-
-                if (i === 0) {
-                    this.addMission(new GuardMission(this));
-                }
             }
 
             this.addMission(new RefillMission(this));
