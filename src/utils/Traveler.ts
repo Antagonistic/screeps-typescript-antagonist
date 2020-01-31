@@ -1,3 +1,5 @@
+import { AVOID_COST } from "config/config";
+
 /**
  * To start using Traveler, require it in main.js:
  * Example: var Traveler = require('Traveler.js');
@@ -515,6 +517,12 @@ export class Traveler {
 
         for (const structure of impassibleStructures) {
             matrix.set(structure.pos.x, structure.pos.y, 0xff);
+        }
+
+        if (room.memory.supervisor) {
+            for (const sup of room.memory.supervisor) {
+                matrix.set(sup.x, sup.y, AVOID_COST);
+            }
         }
 
         return matrix;

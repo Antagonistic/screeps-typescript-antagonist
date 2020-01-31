@@ -3,9 +3,8 @@ import { Mission } from "./Mission";
 
 import { TargetAction } from "config/config";
 import * as creepActions from "creeps/creepActions";
+import { task } from "creeps/tasks";
 import { profile } from "Profiler";
-
-import * as task from "creeps/tasks";
 
 @profile
 export class GuardMission extends Mission {
@@ -70,7 +69,7 @@ export class GuardMission extends Mission {
             task.moveToRoom(g, this.operation.roomName);
             g.actionTarget()
             if (this.active) {
-                task.taskAttackHostile(g);
+                task.attackHostile(g);
             } else {
                 if (!this.stage) {
                     g.memory.recycle = true;

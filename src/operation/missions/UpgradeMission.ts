@@ -98,8 +98,9 @@ export class UpgradeMission extends Mission {
         if (this.room && this.room.controller && this.room.controller.level < 2) {
             return 1;
         }
+        // tslint:disable-next-line:prefer-const
         let numUpgraders = 2;
-        if (this.room && this.room.storage) {
+        /*if (this.room && this.room.storage) {
             const energy: number | undefined = this.room.storage.store.energy;
             if (energy) {
                 if (energy > 100000) {
@@ -114,7 +115,7 @@ export class UpgradeMission extends Mission {
                     numUpgraders += 0;
                 }
             }
-        }
+        }*/
         return numUpgraders;
     }
 
@@ -161,22 +162,31 @@ export class UpgradeMission extends Mission {
             if (!this.controller) { continue; }
 
             if (!u.action && creepActions.canWork(u)) {
-                // console.log("foo!");
+                if (!u.memory.inPosition) {
+                    // console.log("foo!");
+                    if (!this.isSigned()) {
+                        u.setTarget(this.controller, TargetAction.SIGN);
+                    }
+                    if (!this.container) {
+                        u.action = creepActions.actionBuildStill(u, u.action);
+                        u.action = creepActions.actionRepairStill(u, u.action);
+                    }
+                }
                 u.actionTarget();
-                if (!this.isSigned()) {
-                    u.setTarget(this.controller, TargetAction.SIGN);
-                }
-                if (!this.container) {
-                    u.action = creepActions.actionBuildStill(u, u.action);
-                    u.action = creepActions.actionRepairStill(u, u.action);
-                }
-                u.action = creepActions.actionUpgrade(u, u.action);
+                // u.action = creepActions.actionUpgrade(u, u.action);
                 u.setTarget(this.controller, TargetAction.PRAISE);
                 if (u.carry.energy === 0) { u.memory.working = false; }
+
             } else {
                 // action = creepActions.actionGetStorageEnergy(u, action, 4);
                 if (this._hasEnergy) {
-                    creepActions.moveToWithdraw(u, this.container!);
+                    if (u.pos.isNearTo(this.container!.pos) && u.pos.inRangeTo(this.controller.pos, 3)) {
+                        u.memory.inPosition = true;
+                    } else {
+                        u.memory.inPosition = false;
+                    }
+                    u.setTarget(this.container!, TargetAction.WITHDRAWENERGY);
+
                 }
                 // if (creep.room.energyCapacityAvailable < 550) {
                 //   action = creepActions.actionGetSourceEnergy(creep, action, 2);

@@ -1,3 +1,17 @@
+Object.defineProperty(Room.prototype, 'print', {
+    get() {
+        return '<a href="#!/room/' + Game.shard.name + '/' + this.name + '">[' + this.name + ']</a>';
+    },
+    configurable: true,
+});
+
+Object.defineProperty(Room.prototype, 'printPlain', {
+    get() {
+        return `[${this.name}]`;
+    },
+    configurable: true,
+});
+
 Object.defineProperty(Room.prototype, 'storage', {
     get() {
         if (!this._storage) {

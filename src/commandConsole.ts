@@ -41,6 +41,14 @@ export const commandConsole = {
       }
     }
   },*/
+  clearFlags() {
+    for (const _f in Game.flags) {
+      if (_f.indexOf('invader') > 0) { Game.flags[_f].remove(); }
+      if (_f.indexOf('deposit') > 0) { Game.flags[_f].remove(); }
+      if (_f.indexOf('power') > 0) { Game.flags[_f].remove(); }
+      if (_f.indexOf('mining') > 0) { Game.flags[_f].remove(); }
+    }
+  },
   report(roomName?: string): void {
     for (const _sR in global.emp.spawnRooms) {
       if (roomName && global.emp.spawnRooms[_sR].room.name !== roomName) { continue; }

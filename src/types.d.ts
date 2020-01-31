@@ -24,6 +24,11 @@ interface Game {
   operations: { [opName: string]: any }
 }
 
+interface _TargetAble {
+  id: Id<this>;
+  pos: RoomPosition;
+}
+
 interface MarketHistory {
   resourceType: ResourceConstant;
   date: string;
@@ -67,7 +72,7 @@ interface CreepMemory {
   sourceID?: string;
   squad?: string;
   renew?: boolean;
-  target?: Id<_HasId>;
+  target?: Id<_TargetAble>;
   targetAction?: string;
   energyTarget?: string;
   isBoosted?: boolean;
@@ -95,6 +100,7 @@ interface RoomMemory {
   hostile?: boolean;
   type?: string;
   fort?: number;
+  noRemote?: boolean;
 
   towers?: string[];
   // mine_structures: number;
@@ -185,11 +191,11 @@ interface cartAnalyze {
 
 // Prototypes
 interface Creep {
-  target?: _HasId;
+  target?: _TargetAble;
   action: boolean;
   partner?: Creep;
   readonly working: boolean;
-  setTarget(target: _HasId, targetAction: string): boolean;
+  setTarget(target: _TargetAble, targetAction: string): boolean;
   clearTarget(): void;
   actionTarget(): boolean;
   wait(time: number): void;
@@ -214,6 +220,8 @@ interface Room {
   _storage?: StructureStorage;
   owner: string | undefined;
   reserved: string | undefined;
+  readonly print: string;
+  readonly printPlain: string;
   readonly rally: RoomPosition;
   readonly creeps: Creep[];
   readonly hostiles: Creep[];

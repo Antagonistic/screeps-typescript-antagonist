@@ -101,6 +101,12 @@ export abstract class Mission extends BodyFactory {
         return action;
     }
 
+    public needEmergencyRefill(): boolean {
+        if (this.remoteSpawning) { return false; }
+        if (this.room && this.room.storage && this.room.find(FIND_MY_CREEPS, { filter: x => x.memory.role === "refill" }).length === 0) { return true; }
+        return false;
+    }
+
     /*public processRoomScout(room: Room): void {
         const flags = room.flags;
         if (!flags || flags.length === 0) {

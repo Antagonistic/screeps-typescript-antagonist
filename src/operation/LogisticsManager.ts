@@ -56,6 +56,7 @@ export class LogisticsManager {
             for (const _m in op.missions) {
                 const m = op.missions[_m];
                 if (m instanceof MiningMission) {
+                    if (m.remoteSpawning && this.room.memory.noRemote) { continue; }
                     console.log('  Checking ' + m.name);
                     if (m.source) {
                         dest.push(m.source.pos);

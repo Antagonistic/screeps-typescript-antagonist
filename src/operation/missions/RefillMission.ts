@@ -2,6 +2,7 @@ import { Operation } from "../operations/Operation";
 import { Mission } from "./Mission";
 
 import * as creepActions from "creeps/creepActions";
+import { task } from "creeps/tasks";
 import { profile } from "Profiler";
 
 @profile
@@ -26,34 +27,18 @@ export class RefillMission extends Mission {
 
     public runRefill(): void {
         for (const creep of this.haulers) {
-            let action: boolean = false;
-            action = creepActions.actionRecycle(creep, action);
-
-            if (!action && creepActions.canWork(creep)) {
-                action = creepActions.actionFillCache(creep, action);
-                // action = creepActions.actionMoveToRoom(creep, action, creep.memory.home);
-                action = creepActions.actionFillEnergy(creep, action);
-                action = creepActions.actionFillTower(creep, action);
-                // action = creepActions.actionFillBufferChest(creep, action);
-                // action = creepActions.actionFillEnergyStorage(creep, action);
-                // action = creepActions.actionFillBuilder(creep, action);
-                // action = creepActions.actionFillUpgrader(creep, action);
-                // action = creepActions.actionBuild(creep, action);
-                // action = creepActions.actionUpgrade(creep, action);
-                if (creep.store.energy < creep.store.getCapacity() / 2) {
-                    creep.memory.working = false; // Nothing to do, go refill
+            creep.actionTarget();
+            if (!creep.action) {
+                if (creepActions.canWork(creep)) {
+                    task.refill(creep);
+                    if (!creep.action && creep.store.energy < creep.store.getCapacity() / 2) {
+                        task.getEnergyStorage(creep, 0); // Nothing to do, go refill
+                    }
+                } else {
+                    task.getEnergyStorage(creep, 0);
                 }
-                if (!action) { creepActions.moveTo(creep, this.operation.rallyPos); };
-                // action = creepActions.actionRally(creep, action);
-            } else {
-                // action = creepActions.actionMoveToRoom(creep, action);
-                // action = creepActions.actionGetDroppedEnergy(creep, action, true);
-                // action = creepActions.actionGetContainerEnergy(creep, action, 2, true);
-                action = creepActions.actionGetStorageEnergy(creep, action);
+                creep.rally();
             }
-            if (!action) { creepActions.moveTo(creep, this.operation.rallyPos); };
         }
     }
-
-
 }

@@ -43,7 +43,7 @@ export class SpawnRoom implements SpawnRoom {
           // success!
           Memory.uuid = uuid + 1;
           this.availableSpawnCount = 0;
-          console.log("spawning " + name + ' ' + spawn.pos.print);
+          console.log("SPAWN: spawning " + name + ' ' + spawn.pos.print);
           return true;
         }
         if (status === ERR_INVALID_ARGS) {
@@ -52,7 +52,7 @@ export class SpawnRoom implements SpawnRoom {
         }
         else if (status === ERR_NOT_ENOUGH_RESOURCES) {
           if (Game.time % 10 === 0) {
-            console.log("SPAWN:", this.room.name, "not enough energy for", name, "cost:", SpawnRoom.calculateBodyCost(build),
+            console.log("SPAWN:", this.room.print, "not enough energy for", name, "cost:", SpawnRoom.calculateBodyCost(build),
               "current:", this.availableSpawnEnergy, "max", this.energyCapacityAvailable);
           }
           return false;

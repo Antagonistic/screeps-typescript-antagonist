@@ -15,7 +15,7 @@ Object.defineProperty(Creep.prototype, 'target', {
         }
         return undefined;
     },
-    set(newValue: _HasId) {
+    set(newValue: _TargetAble) {
         this.memory.target = newValue.id;
         this.memory.actionTarget = undefined;
     },
@@ -42,8 +42,8 @@ Object.defineProperty(Creep.prototype, 'partner', {
     configurable: true
 });
 
-Creep.prototype.setTarget = function (target: _HasId, targetAction: TargetAction) {
-    if (this.memory.debug) { console.log('target: ' + target + ' ' + targetAction); }
+Creep.prototype.setTarget = function (target: _TargetAble, targetAction: TargetAction) {
+    if (this.memory.debug) { console.log('DEBUG: settarget: ' + target + ' ' + targetAction); }
     if (!this.target && !this.action) {
         this.target = target;
         this.memory.targetAction = targetAction;
@@ -52,6 +52,7 @@ Creep.prototype.setTarget = function (target: _HasId, targetAction: TargetAction
 }
 
 Creep.prototype.clearTarget = function (): void {
+    if (this.memory.debug) { console.log('DEBUG: clearTarget: ' + this.name); }
     this.memory.target = undefined;
     this.memory.targetAction = undefined;
     this.memory.energyTarget = undefined;
@@ -94,7 +95,9 @@ Object.defineProperty(Creep.prototype, 'action', {
         return false;
     },
     set(newVal) {
-        this._action = newVal;
+        if (!this.action) {
+            this._action = newVal;
+        }
     },
     configurable: true,
 });
@@ -113,6 +116,7 @@ Creep.prototype.actionTarget = function (): boolean {
         this.clearTarget();
         return false;
     }
+    if (this.memory.debug) { console.log('DEBUG: actionTarget: ' + this.name + ' ' + this.memory.targetAction + ' ' + t + ' ' + t!.pos.print); }
     switch (this.memory.targetAction) {
         case TargetAction.MOVETO: {
             const _t = t as Creep | Structure;
@@ -169,8 +173,13 @@ Creep.prototype.actionTarget = function (): boolean {
         }
         case TargetAction.DEPOSITENERGY: {
             const _t = t as Creep | AnyStoreStructure;
-            if (_t.store.getFreeCapacity(RESOURCE_ENERGY) > 0) {
-                creepActions.moveToTransfer(this, _t);
+            // if (this.memory.debug) { console.log('DEBUG: getFreeCapacity ' + _t.store.getFreeCapacity(RESOURCE_ENERGY)) }
+            if (_t.store.getFreeCapacity(RESOURCE_ENERGY) > 0 && this.store.energy > 0) {
+                // creepActions.moveToTransfer(this, _t);
+                const ret = this.transfer(_t, RESOURCE_ENERGY);
+                if (ret === ERR_NOT_IN_RANGE) {
+                    creepActions.moveTo(this, _t.pos);
+                }
                 this.action = true;
                 this.say("💰");
                 return true;
@@ -181,7 +190,7 @@ Creep.prototype.actionTarget = function (): boolean {
         }
         case TargetAction.DEPOSIT: {
             const _t = t as Creep | AnyStoreStructure;
-            if (_t.store.getFreeCapacity() > 10) {
+            if (_t.store.getFreeCapacity() > 10 && this.store.getUsedCapacity() > 0) {
                 creepActions.moveToTransferAll(this, _t);
                 this.action = true;
                 return true;
@@ -192,7 +201,7 @@ Creep.prototype.actionTarget = function (): boolean {
         }
         case TargetAction.WITHDRAWENERGY: {
             const _t = t as AnyStoreStructure | Ruin | Tombstone;
-            if (_t.store.energy > 10) {
+            if (_t.store.energy > 10 && this.store.getFreeCapacity(RESOURCE_ENERGY) > 0) {
                 creepActions.moveToWithdraw(this, _t);
                 this.action = true;
                 return true;
@@ -203,7 +212,7 @@ Creep.prototype.actionTarget = function (): boolean {
         }
         case TargetAction.WITHDRAW: {
             const _t = t as AnyStoreStructure | Ruin | Tombstone;
-            if (_.sum(_t.store) > 10) {
+            if (_.sum(_t.store) > 10 && this.store.getFreeCapacity() > 0) {
                 creepActions.moveToWithdrawAll(this, _t);
                 this.action = true;
                 return true;
@@ -258,9 +267,12 @@ Creep.prototype.actionTarget = function (): boolean {
         }
         case TargetAction.PRAISE: {
             const _t = t as StructureController;
+            if (this.store.energy === 0) { this.clearTarget(); }
             if (this.pos.inRangeTo(_t, 2)) {
                 this.upgradeController(_t);
-                creepActions.yieldRoad(this, _t, true);
+                if (!this.memory.inPosition) {
+                    creepActions.yieldRoad(this, _t, true);
+                }
             } else {
                 creepActions.moveTo(this, _t.pos);
             }
@@ -288,6 +300,8 @@ Creep.prototype.actionTarget = function (): boolean {
 
 Creep.prototype.rally = function (): void {
     if (!this.action) {
+        if (this.memory.debug) { console.log('DEBUG: rally: ' + this.name); }
+        this.clearTarget();
         const rally = this.room.rally;
         if (this.pos.isNearTo(rally)) {
             this.wait(3);

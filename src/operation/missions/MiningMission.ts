@@ -260,16 +260,35 @@ export class MiningMission extends Mission {
             const ret = Game.getObjectById<StructureStorage | StructureSpawn | StructureLink>(this.memory.storageId);
             if (ret) { return ret; }
         }
-        const destinations = this.spawnRoom.room.find<StructureLink | StructureStorage>(FIND_MY_STRUCTURES, { filter: x => x.structureType === STRUCTURE_STORAGE || x.structureType === STRUCTURE_LINK })
+        const _destinations = this.spawnRoom.room.find<StructureLink | StructureStorage>(FIND_MY_STRUCTURES, { filter: x => x.structureType === STRUCTURE_STORAGE || x.structureType === STRUCTURE_LINK })
+
         // console.log('Possible destinations: ' + destinations);
-        if (destinations != null) {
-            // const destPos = this.source.pos.findClosestByPath(_.map(destinations, x => x.pos));
-            const dest = roomHelper.findShortestPath(this.source.pos, destinations);
-            if (dest) {
-                // console.log('new storage for ' + this.name + ': ' + dest);
-                this.memory.storageId = dest.id;
-                const ret = Game.getObjectById<StructureStorage | StructureSpawn | StructureLink>(this.memory.storageId);
-                if (ret) { return ret; }
+        if (_destinations != null) {
+            const destinations: Array<StructureLink | StructureStorage> = [];
+            for (const _d of _destinations) {
+                // Dont feed controller or storage links
+                if (this.room!.storage && _d.structureType === STRUCTURE_LINK) {
+                    if (_d.pos.inRangeTo(this.room!.storage!.pos, 3)) {
+                        continue;
+                    }
+                }
+                if (this.room!.controller) {
+                    if (_d.pos.inRangeTo(this.room!.controller!.pos, 3)) {
+                        continue;
+                    }
+                }
+
+                destinations.push(_d);
+            }
+            if (destinations.length > 0) {
+                // const destPos = this.source.pos.findClosestByPath(_.map(destinations, x => x.pos));
+                const dest = roomHelper.findShortestPath(this.source.pos, destinations);
+                if (dest) {
+                    // console.log('new storage for ' + this.name + ': ' + dest);
+                    this.memory.storageId = dest.id;
+                    const ret = Game.getObjectById<StructureStorage | StructureSpawn | StructureLink>(this.memory.storageId);
+                    if (ret) { return ret; }
+                }
             }
         }
 
@@ -439,11 +458,15 @@ export class MiningMission extends Mission {
             if (!this.spawnRoom.room.storage || this.spawnRoom.rclLevel <= 4) {
                 action = this.runHaulers_earlyFill(creep, action);
             } else {
-                if (!this.operation.stableOperation) {
+                if (this.needEmergencyRefill()) {
                     action = creepActions.actionFillEnergy(creep, action);
                 }
                 if (this.storage.structureType === STRUCTURE_LINK) {
-                    action = creepActions.actionTransfer(creep, action, this.storage);
+                    if (!this.remoteSpawning && this.storage.store.getFreeCapacity(RESOURCE_ENERGY) < 50) {
+                        action = creepActions.actionFillEnergyStorage(creep, action);
+                    } else {
+                        action = creepActions.actionTransfer(creep, action, this.storage);
+                    }
                 } else {
                     action = creepActions.actionFillEnergyStorage(creep, action);
                 }

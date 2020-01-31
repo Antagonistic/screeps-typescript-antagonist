@@ -126,11 +126,13 @@ export function canWork(creep: Creep): boolean {
     creep.memory.working = false;
     if (creep.memory.target !== undefined) {
       creep.memory.target = undefined; // Zero out existing targets
+      creep.memory.targetAction = undefined;
     }
     return false;
   } else if (!working && _.sum(creep.carry) === creep.carryCapacity) {
     creep.memory.working = true;
     creep.memory.energyTarget = undefined;
+    creep.memory.targetAction = undefined;
     return true;
   } else {
     return creep.memory.working;

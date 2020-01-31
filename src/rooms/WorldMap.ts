@@ -110,13 +110,13 @@ export class WorldMap implements WorldMap {
         } else {
           const flags = room.flags;
           if (!_.any(flags, x => x.name.indexOf('controller') > -1 || x.name.indexOf('mining') > -1 || x.name.indexOf('source') > -1)) {
-            this.remoteMineCandidate(room);
+            // this.remoteMineCandidate(room);
           }
         }
       }
     } else {
       // Non-controller room
-      this.processNonControlRoom(room);
+      // this.processNonControlRoom(room);
     }
   }
 

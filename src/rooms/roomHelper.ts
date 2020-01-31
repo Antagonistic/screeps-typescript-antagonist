@@ -71,7 +71,7 @@ export function createCostMatrix(roomName: string): CostMatrix | undefined {
     Traveler.addStructuresToMatrix(room, matrix, ROAD_COST);
 
     // add construction sites too
-    const constructionSites = room.find(FIND_MY_CONSTRUCTION_SITES);
+    /*const constructionSites = room.find(FIND_MY_CONSTRUCTION_SITES);
     for (const site of constructionSites) {
         if (site.structureType === STRUCTURE_ROAD) {
             matrix.set(site.pos.x, site.pos.y, ROAD_COST);
@@ -79,7 +79,7 @@ export function createCostMatrix(roomName: string): CostMatrix | undefined {
         else {
             matrix.set(site.pos.x, site.pos.y, 0xff);
         }
-    }
+    }*/
 
     return matrix;
 }
@@ -89,14 +89,15 @@ export function createPathfindingMatrix(roomName: string): boolean | CostMatrix 
     if (!room) {
         return true;
     }
-    const matrix = createCostMatrix(roomName);
-    if (!matrix) {
-        return false;
-    }
+    const matrix = new PathFinder.CostMatrix();
+
+    Traveler.addStructuresToMatrix(room, matrix, ROAD_COST);
+    // addTerrainToMatrix(matrix, roomName);
 
     // avoid controller
     if (room.controller) {
         blockOffPosition(matrix, room.controller, 3, AVOID_COST);
+        blockOffPosition(matrix, room.controller, 2, AVOID_COST + 3);
     }
 
     // avoid container/link adjacency
@@ -124,9 +125,11 @@ export function blockOffPosition(costs: CostMatrix, roomObject: RoomObject, rang
     const terrainLookup = Game.map.getRoomTerrain(roomObject.room!.name);
     for (let xDelta = -range; xDelta <= range; xDelta++) {
         for (let yDelta = -range; yDelta <= range; yDelta++) {
-            const terrain = terrainLookup.get(roomObject.pos.x + xDelta, roomObject.pos.y + yDelta)
+            const _x = roomObject.pos.x + xDelta;
+            const _y = roomObject.pos.y + yDelta;
+            const terrain = terrainLookup.get(_x, _y)
             if (terrain === TERRAIN_MASK_WALL) { continue; }
-            costs.set(roomObject.pos.x + xDelta, roomObject.pos.y + yDelta, cost);
+            costs.set(_x, _y, Math.max(costs.get(_x, _y), cost));
         }
     }
 }
@@ -287,23 +290,25 @@ export function roomType(roomName: string): 'SK' | 'CORE' | 'CTRL' | 'ALLEY' {
     }
 }
 
-export function getRoomWallLevel(room: Room) {
+export function getRoomWallLevel(room: Room, forceCheck: boolean = false) {
     if (!room.memory.fort) {
         room.memory.fort = 10000;
     }
-    if (Game.time % 200 === 20) {
+    if (forceCheck || Game.time % 200 === 20) {
         if (room.controller && room.controller.my && room.controller.level >= 5) {
             const walls = room.find(FIND_STRUCTURES, { filter: x => x.structureType === STRUCTURE_WALL || x.structureType === STRUCTURE_RAMPART });
             const maxWall = _.max(walls, x => x.hits).hits;
             const minWall = _.min(walls, x => x.hits).hits;
+            console.log('FORT: minWall: ' + minWall + '  maxWall: ' + maxWall + ' fort: ' + room.memory.fort);
             if (minWall > room.memory.fort * 0.9) {
-                if (room.storage && room.storage.store.energy > 40000) {
+                if (room.storage && room.storage.store.energy > 100000) {
                     room.memory.fort = room.memory.fort += 10000;
+                    console.log('FORT: new fort level: ' + room.memory.fort);
                 }
             }
         } else {
             room.memory.fort = undefined;
         }
     }
-    return room.memory.fort;
+    return room.memory.fort || 0;
 }
