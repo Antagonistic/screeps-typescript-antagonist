@@ -9,85 +9,18 @@ export class AutoLayout {
     public walls?: RoomPosition[];
     public testMatrix?: CostMatrix;
     public visual: RoomVisual;
+
+
     constructor(roomName: string) {
         this.roomName = roomName;
         this.visual = new RoomVisual(this.roomName);
     }
 
-    public run() {
-        // this.distanceMatrix = this.distanceTransform();
-        // this.gridWalkableMatrix = this.ComputeWalkableGridMatrix();
-        // const cost = roomHelper.createPathfindingMatrix(this.roomName);
-        if (Game.rooms[this.roomName]) {
-            // roomHelper.blockOffPosition(cost, Game.rooms[this.roomName].controller!, 3, 0xff);
-            this.testMatrix = this.combine(this.getWalkableGridMatrix(), this.blockOffMatrix());
-            this.viewCostMatrix(this.testMatrix);
-            // this.visual.poly(roomHelper.findPath(Game.rooms[this.roomName].controller!.pos, new RoomPosition(25, 25, this.roomName), 1)!);
-        }
-
-        this.placeSourceSpawn();
+    public run(visual: boolean = false) {
+        ;
     }
 
-    public placeSourceSpawn() {
-        const room = Game.rooms[this.roomName];
-        if (room) {
-            let road1: RoomPosition[];
-            let road2: RoomPosition[];
-            const sources = room.find(FIND_SOURCES);
-            const controller = room.controller;
-            if (sources.length > 0 && controller) {
-                const controlSpot = this.getSpotCandidate2(controller.pos);
-                if (controlSpot) {
-                    this.visual.structure(controlSpot.x, controlSpot.y, STRUCTURE_STORAGE);
-                    // this.visual.circle(controlSpot.x, controlSpot.y, { radius: 0.25, fill: '#0000BB' });
-                    // const closest = controller.pos.findClosestByRange(sources);
-                    let roadSpot: RoomPosition | undefined;
-                    for (const s of sources) {
-                        const spot = this.getSpotCandidate1(s.pos);
-                        if (spot) {
-                            this.visual.structure(spot.x, spot.y, STRUCTURE_CONTAINER);
-                            this.visual.line(s.pos, controller.pos);
-                            if (!roadSpot) {
-                                const path = this.PathFind(spot, controlSpot, this.testMatrix!, 1);
-                                roadSpot = _.last(path);
-                                road1 = path;
-                                this.visual.poly(path, { stroke: '#0000AA' });
-                            } else {
-                                const path = this.PathFind(spot, roadSpot, this.testMatrix!, 0);
-                                road2 = path;
-                                this.visual.poly(path, { stroke: '#00AA00' });
-                            }
 
-                            // const path = roomHelper.findPath(new RoomPosition(25, 25, this.roomName), s.pos, 1)!
-                            // console.log(JSON.stringify(path));
-                        }
-                    }
-                }
-
-                const ext1 = _.unique(_.flatten(_.map(road1!, x => this.getOpenCardinalPosition(x, true))), false, x => x.printPlain);
-                let count1 = 1;
-                for (const ex of ext1) {
-                    if (ex.isNearTo(sources[0])) { continue; }
-                    if (count1 === 1) {
-                        this.visual.structure(ex.x, ex.y, STRUCTURE_SPAWN);
-                    } else {
-                        this.visual.structure(ex.x, ex.y, STRUCTURE_EXTENSION);
-                    }
-                    count1++;
-                    if (count1 > 30) { break; }
-                }
-                const ext2 = _.unique(_.flatten(_.map(road2!, x => this.getOpenCardinalPosition(x, true))), false, x => x.printPlain);
-                let count2 = 1;
-                for (const ex of ext2) {
-                    if (ex.isNearTo(sources[1])) { continue; }
-                    this.visual.structure(ex.x, ex.y, STRUCTURE_EXTENSION);
-                    count2++;
-                    if (count2 > 30) { break; }
-                }
-            }
-
-        }
-    }
 
     public viewCostMatrix(costMatrix: CostMatrix) {
         for (let y = 0; y < 50; ++y) {
@@ -222,14 +155,28 @@ export class AutoLayout {
         return ret.path;
     }
 
+    public getAjacentOpenSpots(pos: RoomPosition) {
+
+        const positions = [];
+        for (let i = 1; i <= 8; i++) {
+            const testPosition = pos.getPositionAtDirection(i);
+
+            if (!testPosition.isNearExit(0) && _.head(testPosition.lookFor(LOOK_TERRAIN)) !== "wall") {
+                // passed all tests
+                positions.push(testPosition);
+            }
+        }
+        return positions;
+    }
+
     public getSpotCandidate1(pos: RoomPosition) {
-        const spots = pos.openAdjacentSpots(true);
+        const spots = this.getAjacentOpenSpots(pos);
         if (spots.length === 0) { return undefined; }
         const spotArr = [];
         let maxOpen = 0;
         let maxS;
         for (const s1 of spots) {
-            const _s = s1.openAdjacentSpots(true);
+            const _s = this.getAjacentOpenSpots(s1);
             // this.visual.text('' + _s.length, s1);
             if (_s.length > maxOpen) {
                 maxOpen = _s.length;
@@ -240,21 +187,45 @@ export class AutoLayout {
     }
 
     public getSpotCandidate2(pos: RoomPosition) {
-        const spots = pos.openAdjacentSpots(true);
+        const spots = this.getAjacentOpenSpots(pos);
         if (spots.length === 0) { return undefined; }
         const spotArr = [];
         let maxOpen = 0;
         let maxS;
         for (const s1 of spots) {
-            const _s = s1.openAdjacentSpots(true);
+            const _s = this.getAjacentOpenSpots(s1);
             // this.visual.text('' + _s.length, s1);
             for (const s2 of _s) {
                 if ((s2.x + s2.y) % 2 === 0) { continue; }
-                const _s2 = s2.openAdjacentSpots(true);
+                const _s2 = this.getAjacentOpenSpots(s2);
                 // this.visual.text('' + _s2.length, s2);
                 if (_s2.length > maxOpen) {
                     maxOpen = _s2.length;
                     maxS = s2;
+                }
+            }
+        }
+        return maxS;
+    }
+
+    public getSpotCandidate3(pos: RoomPosition) {
+        const spots = this.getAjacentOpenSpots(pos);
+        if (spots.length === 0) { return undefined; }
+        const spotArr = [];
+        let maxOpen = 0;
+        let maxS;
+        for (const s1 of spots) {
+            const _s = this.getAjacentOpenSpots(s1);
+            for (const s2 of _s) {
+                if ((s2.x + s2.y) % 2 === 0) { continue; }
+                const _s2 = this.getAjacentOpenSpots(s2);
+                for (const s3 of _s2) {
+                    if ((s3.x + s3.y) % 2 === 0) { continue; }
+                    const _s3 = this.getAjacentOpenSpots(s3);
+                    if (_s3.length > maxOpen) {
+                        maxOpen = _s3.length;
+                        maxS = s3;
+                    }
                 }
             }
         }

@@ -34,7 +34,12 @@ export class ScoutRandomMission extends Mission {
             }
             // this.processRoomScout(creep.room);
             creep.notifyWhenAttacked(false);
-            this.memory.nextSpawn = Game.time + 20;
+            if (Game.cpu.bucket < 10000) {
+                this.memory.nextSpawn = Game.time + 500;
+            }
+            else {
+                this.memory.nextSpawn = Game.time + 20;
+            }
             const exits = _.values(Game.map.describeExits(creep.room.name)) as string[];
             const exit = _.sample(exits);
             if (Game.map.isRoomAvailable(exit)) {

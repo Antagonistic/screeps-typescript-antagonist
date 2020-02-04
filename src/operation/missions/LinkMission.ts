@@ -88,10 +88,7 @@ export class LinkMission extends Mission {
 
     public finalize(): void {
         if (Game.time % 1000 === 892) {
-            this.memory.init = undefined;
-            this.memory.sLink = undefined;
-            this.memory.cLink = undefined;
-            this.memory.links = undefined;
+            this.memory = undefined;
         }
     }
 

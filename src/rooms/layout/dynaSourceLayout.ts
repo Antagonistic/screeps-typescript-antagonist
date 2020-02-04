@@ -9,13 +9,26 @@ export function dynaSourceLayout(room: Room, source: Source | Mineral): RCLRoomL
 
     if (!room.controller || !room.controller.my) { return ret; }
     const pos = source.pos;
-
+    let spots: LightRoomPos[] = [];
     const infrastruct = pos.findInRange(FIND_STRUCTURES, 2, { filter: x => x.structureType === STRUCTURE_CONTAINER || x.structureType === STRUCTURE_LINK || x.structureType === STRUCTURE_EXTENSION });
     if (infrastruct && infrastruct.length > 0) {
-        const spots: LightRoomPos[] = _.map(infrastruct, o => ({ x: o.pos.x, y: o.pos.y }))
+        spots = _.map(infrastruct, o => ({ x: o.pos.x, y: o.pos.y }))
 
+
+    }
+
+    if (source instanceof Mineral) {
+        const deposit = _.head(room.find(FIND_DEPOSITS));
+        if (deposit) {
+            if (room.terminal) {
+                const extractor = [{ x: deposit.pos.x, y: deposit.pos.y }];
+                ret[6] = { build: { rampart: spots, extractor } };
+            }
+        }
+    } else {
         ret[6] = { build: { rampart: spots } };
     }
+
 
     return ret;
 }

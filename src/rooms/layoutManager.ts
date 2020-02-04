@@ -6,6 +6,7 @@ import { dynaSourceLayout } from "./layout/dynaSourceLayout";
 import { headLayout } from "./layout/headLayout";
 import { noLayout } from "./layout/noLayout";
 import { sealedLayout } from "./layout/sealedLayout"
+import { snakeLayout } from "./layout/snakeLayout";
 import * as roomHelper from "./roomHelper"
 
 export interface SingleLayout {
@@ -22,15 +23,18 @@ export function getLayouts(room: Room): SingleLayout[] {
         if (flag) {
             switch (l.name) {
                 case "sealed":
-                    layout = sealedLayout;
+                    layout = sealedLayout(room, flag);
                     // ret.push({ pos: flag.pos, layout: sealedLayout });
                     break;
                 case "head":
-                    layout = headLayout;
+                    layout = headLayout(room, flag);
                     // ret.push({ pos: flag.pos, layout: headLayout });
                     break;
+                case "snake":
+                    layout = snakeLayout(room, flag);
+                    break;
                 default:
-                    layout = noLayout;
+                    layout = noLayout(room, flag);
                 // ret.push({ pos: flag.pos, layout: noLayout });
             }
         }
@@ -38,6 +42,7 @@ export function getLayouts(room: Room): SingleLayout[] {
             const x = layout.anchor.x - flag.pos.x;
             const y = layout.anchor.y - flag.pos.y;
             ret.push({ pos: { x, y }, layout });
+            console.log(JSON.stringify(ret));
         }
     }
     if (room.controller) {
@@ -132,13 +137,20 @@ export function makeNextBuildSite(room: Room, road: boolean = false): boolean {
                             if (!road && _key === STRUCTURE_ROAD) { continue; }
                             const build = _l.build[key];
                             for (const p of build) {
+                                if (!p) {
+                                    console.log('LAYOUT: ' + p + ' erronous expected ' + key + ' room ' + room.print);
+                                }
                                 const _x = p.x - pos.x;
                                 const _y = p.y - pos.y;
                                 const _pos = new RoomPosition(_x, _y, room.name);
                                 if (!roomHelper.hasStructure(_pos, _key, false)) {
-                                    if (roomHelper.buildIfNotExist(_pos, _key) === OK) {
+                                    const ret = roomHelper.buildIfNotExist(_pos, _key);
+                                    if (ret === OK) {
                                         console.log('Making new ' + _key + ' at ' + _pos.print);
                                         return true;
+                                    }
+                                    if (ret === ERR_RCL_NOT_ENOUGH) { // No more of this type allowed, skip to next key
+                                        break;
                                     }
                                 }
                             }
@@ -159,6 +171,9 @@ function runConstruct(room: Room, layout: RoomLayout, pos: LightRoomPos): Screep
             const _key = key as BuildableStructureConstant;
             const build = layout.build[key];
             for (const p of build) {
+                if (!p) {
+                    console.log('LAYOUT: ' + p + ' erronous expected ' + key + ' room ' + room.print);
+                }
                 const _x = p.x - pos.x;
                 const _y = p.y - pos.y;
                 const _ret = roomHelper.buildIfNotExist(new RoomPosition(_x, _y, room.name), key as BuildableStructureConstant);

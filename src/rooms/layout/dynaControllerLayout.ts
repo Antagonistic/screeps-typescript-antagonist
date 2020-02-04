@@ -18,7 +18,5 @@ export function dynaControllerLayout(room: Room): RCLRoomLayout {
         spots = spots.concat(_.map(infrastruct, o => ({ x: o.pos.x, y: o.pos.y })));
     }
 
-    ret[6] = { build: { rampart: spots } };
-
     return ret;
 }

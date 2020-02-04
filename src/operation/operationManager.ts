@@ -9,6 +9,7 @@ import { GuardOperation } from "./operations/GuardOperation";
 import { InvaderOperation } from "./operations/InvaderOperation";
 import { LootOperation } from "./operations/LootOperation";
 import { PowerOperation } from "./operations/PowerOperation";
+import { SnakeOperation } from "./operations/SnakeOperation";
 
 // interface IOPERATION_CLASSES {
 // {[opType: string]: IOperation; };
@@ -22,6 +23,7 @@ const OPERATION_CLASSES: any = {
   loot: LootOperation,
   mining: MiningOperation,
   power: PowerOperation,
+  snake: SnakeOperation
 };
 
 export function init(): Operation[] {

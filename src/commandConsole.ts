@@ -61,6 +61,13 @@ export const commandConsole = {
       layoutManager.run(room, rcl, true);
     }
   },
+  runBuild2(roomName: string = defaultRoom, road: boolean = false) {
+    const room = getRoom(roomName);
+    if (room) {
+      return layoutManager.makeNextBuildSite(room, road);
+    }
+    return false;
+  },
   runBuildRoad(roomName: string = defaultRoom) {
     if (global.emp.spawnRooms[roomName]) {
       return getLogistics(roomName).buildRoads();

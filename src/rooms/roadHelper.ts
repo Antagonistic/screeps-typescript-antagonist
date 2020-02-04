@@ -18,6 +18,12 @@ export function repRoadsListIds(start: RoomPosition, finish: RoomPosition): Arra
     return ret;
 }
 
+export function repRoadsListIdsRoom(room: Room): Array<Id<StructureContainer | StructureRoad>> {
+    const ret: Array<Id<StructureContainer | StructureRoad>> = [];
+    const _targets = room.find(FIND_STRUCTURES, { filter: x => (x.structureType === STRUCTURE_ROAD || x.structureType === STRUCTURE_CONTAINER) && x.hits < x.hitsMax * 0.8 }) as Array<StructureContainer | StructureRoad>;
+    return _targets.map(x => x.id);
+}
+
 export function getNextUnbuiltRoad(start: RoomPosition, finish: RoomPosition): ConstructionSite | RoomPosition | null {
     for (const r of pavePath(start, finish)) {
         if (r.isEdge) { continue; }

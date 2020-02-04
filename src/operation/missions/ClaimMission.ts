@@ -10,11 +10,17 @@ export class ClaimMission extends Mission {
     public claimers: Creep[] = [];
     public roomName: string;
     public controller?: StructureController;
+    public signed: boolean;
 
     constructor(operation: Operation) {
         super(operation, "reserve");
         this.roomName = this.operation.roomName;
-        if (this.room && this.room.controller) { this.controller = this.room.controller; }
+        if (this.room && this.room.controller) {
+            this.controller = this.room.controller;
+            this.signed = (this.controller.sign !== undefined && this.controller.sign.text === Memory.sign);
+        } else {
+            this.signed = false;
+        }
     }
 
     public initMission(): void {
@@ -38,15 +44,24 @@ export class ClaimMission extends Mission {
                     // We've claimed, need a spawn
                     if (this.room) {
                         this.clearRoom();
-                        const ret = buildIfNotExist(this.operation.flag.pos, STRUCTURE_SPAWN);
-                        if (ret === OK) {
-                            creep.suicide();
+                        if (!this.signed) {
+                            if (creep.pos.isNearTo(this.controller)) {
+                                creep.signController(this.controller, Memory.sign);
+                            } else {
+                                creepActions.moveTo(creep, this.controller);
+                            }
+                        } else {
+                            const ret = buildIfNotExist(this.operation.flag.pos, STRUCTURE_SPAWN);
+                            if (ret === OK) {
+                                creep.suicide();
+                            }
                         }
                     }
                 }
             }
         }
     }
+
     public finalize(): void {
         if (this.room && Game.time % 100 === 32) {
             if (this.room.find(FIND_MY_SPAWNS).length === 0) {

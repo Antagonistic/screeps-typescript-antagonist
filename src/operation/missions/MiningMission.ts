@@ -32,7 +32,7 @@ export class MiningMission extends Mission {
     // public pavedPath: boolean;
     public cartAnalyze?: cartAnalyze;
 
-    public extentions?: StructureExtension | StructureTower[];
+    public extentions?: Array<StructureExtension | StructureTower | StructureSpawn>;
 
     constructor(operation: Operation, name: string, source: Source, active: boolean = true) {
         super(operation, name);
@@ -115,6 +115,7 @@ export class MiningMission extends Mission {
 
     public getMaxMiners = () => {
         if (!this.active) { return 0; }
+        if (this.container && this.container.store.getFreeCapacity(RESOURCE_ENERGY) === 0) { return 0; }
         if (this.remoteSpawning) { return 1; }
         return this.minersNeeded();
     };
@@ -122,7 +123,7 @@ export class MiningMission extends Mission {
     public getExtention(creep: Creep): StructureExtension | StructureTower | null {
         if (this.remoteSpawning) { return null; }
         if (!this.memory.extentions) {
-            const extentions = this.source.pos.findInRange(FIND_MY_STRUCTURES, 2, { filter: x => x.structureType === STRUCTURE_EXTENSION || x.structureType === STRUCTURE_TOWER });
+            const extentions = this.source.pos.findInRange(FIND_MY_STRUCTURES, 2, { filter: x => x.structureType === STRUCTURE_EXTENSION || x.structureType === STRUCTURE_TOWER || x.structureType === STRUCTURE_SPAWN });
             if (extentions && extentions.length > 0) {
                 this.memory.extentions = _.map(extentions, x => x.id);
             }

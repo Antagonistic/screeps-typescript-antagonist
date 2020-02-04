@@ -26,6 +26,7 @@ import { commandConsole } from "./commandConsole";
 // var Traveler = require('Traveler');
 
 import { AutoLayout } from "rooms/AutoLayout";
+import { AutoSnakeLayout } from "rooms/AutoSnakeLayout";
 import { LayoutVisualizer } from "rooms/layoutVisualizer";
 import { Traveler } from "utils/Traveler"
 
@@ -119,8 +120,8 @@ export const loop = ErrorMapper.wrapLoop(() => {
   for (const i in Game.rooms) {
     const room: Room = Game.rooms[i];
     if (room.memory.visual) {
-      // new LayoutVisualizer(room.name).run();
-      new AutoLayout(room.name).run();
+      new LayoutVisualizer(room.name).run();
+      // new AutoSnakeLayout(room.name).run(true);
     }
   }
 

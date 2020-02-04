@@ -118,6 +118,15 @@ interface RoomMemory {
   spawnRoom?: string;
   controllerBattery?: Id<StructureContainer | StructureLink>;
   avoid?: number;
+
+  // snake layout variables
+  snakeInit?: boolean;
+  snakeRoad1?: RoomPosition[];
+  snakeRoad2?: RoomPosition[];
+  snakeExt1?: RoomPosition[];
+  snakeExt2?: RoomPosition[];
+  snakeStorage?: RoomPosition;
+  snakeSpawn?: RoomPosition;
 }
 
 interface LayoutMemory {

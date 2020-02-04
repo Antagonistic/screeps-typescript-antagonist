@@ -18,11 +18,11 @@ export class UpgradeMission extends Mission {
 
     constructor(operation: Operation) {
         super(operation, "upgrade")
+        this.isLink = false;
         if (this.room) {
             this.controller = this.room.controller;
             this.container = this.findContainer();
         }
-        this.isLink = false;
         this._hasEnergy = this.hasEnergy();
     }
     public initMission(): void {
@@ -160,38 +160,24 @@ export class UpgradeMission extends Mission {
             // let action: boolean = false;
             // action = creepActions.actionRenew(creep, action);
             if (!this.controller) { continue; }
-
-            if (!u.action && creepActions.canWork(u)) {
-                if (!u.memory.inPosition) {
-                    // console.log("foo!");
+            u.actionTarget();
+            if (!u.action) {
+                if (u.working) {
                     if (!this.isSigned()) {
                         u.setTarget(this.controller, TargetAction.SIGN);
                     }
-                    if (!this.container) {
-                        u.action = creepActions.actionBuildStill(u, u.action);
-                        u.action = creepActions.actionRepairStill(u, u.action);
+                    u.setTarget(this.controller, TargetAction.PRAISE);
+
+                } else {
+                    if (this._hasEnergy) {
+                        if (u.pos.isNearTo(this.container!.pos) && u.pos.inRangeTo(this.controller.pos, 3)) {
+                            u.memory.inPosition = true;
+                        } else {
+                            u.memory.inPosition = false;
+                        }
+                        u.setTarget(this.container!, TargetAction.WITHDRAWENERGY);
                     }
                 }
-                u.actionTarget();
-                // u.action = creepActions.actionUpgrade(u, u.action);
-                u.setTarget(this.controller, TargetAction.PRAISE);
-                if (u.carry.energy === 0) { u.memory.working = false; }
-
-            } else {
-                // action = creepActions.actionGetStorageEnergy(u, action, 4);
-                if (this._hasEnergy) {
-                    if (u.pos.isNearTo(this.container!.pos) && u.pos.inRangeTo(this.controller.pos, 3)) {
-                        u.memory.inPosition = true;
-                    } else {
-                        u.memory.inPosition = false;
-                    }
-                    u.setTarget(this.container!, TargetAction.WITHDRAWENERGY);
-
-                }
-                // if (creep.room.energyCapacityAvailable < 550) {
-                //   action = creepActions.actionGetSourceEnergy(creep, action, 2);
-                // }
-                // action = creepActions.actionGetDroppedEnergy(creep, action, false);
             }
         }
     }

@@ -4,7 +4,7 @@ import { ROAD_COST, AVOID_COST, SWAMP_COST, PLAIN_COST } from "config/config";
 import { RSA_PKCS1_PADDING } from "constants";
 
 export function hasStructure(pos: RoomPosition, struct: BuildableStructureConstant, clear: boolean = false): boolean {
-    if (Game.map.getRoomTerrain(pos.roomName).get(pos.x, pos.y) === TERRAIN_MASK_WALL) { return true; }
+    if (Game.map.getRoomTerrain(pos.roomName).get(pos.x, pos.y) === TERRAIN_MASK_WALL && struct !== STRUCTURE_EXTRACTOR) { return true; }
     const structures = pos.lookFor(LOOK_STRUCTURES);
     if (_.any(structures, x => x.structureType === struct)) { return true; }
     const construct = pos.lookFor(LOOK_CONSTRUCTION_SITES);
@@ -21,7 +21,7 @@ export function hasStructure(pos: RoomPosition, struct: BuildableStructureConsta
 export function buildIfNotExist(pos: RoomPosition, struct: BuildableStructureConstant, name?: string): ScreepsReturnCode {
     if (hasStructure(pos, struct)) { return OK; }
     let ret: ScreepsReturnCode;
-    if (Game.rooms[pos.roomName] && Game.rooms[pos.roomName].getTerrain().get(pos.x, pos.y) === TERRAIN_MASK_WALL) { return OK; }
+    if (Game.rooms[pos.roomName] && Game.rooms[pos.roomName].getTerrain().get(pos.x, pos.y) === TERRAIN_MASK_WALL && struct !== STRUCTURE_EXTRACTOR) { return OK; }
     if (struct === STRUCTURE_SPAWN) {
         if (!name) {
             name = "Spawn_" + pos.roomName + "_" + Memory.uuid++;
@@ -299,11 +299,11 @@ export function getRoomWallLevel(room: Room, forceCheck: boolean = false) {
             const walls = room.find(FIND_STRUCTURES, { filter: x => x.structureType === STRUCTURE_WALL || x.structureType === STRUCTURE_RAMPART });
             const maxWall = _.max(walls, x => x.hits).hits;
             const minWall = _.min(walls, x => x.hits).hits;
-            console.log('FORT: minWall: ' + minWall + '  maxWall: ' + maxWall + ' fort: ' + room.memory.fort);
+            console.log('FORT: ' + room.print + ' minWall: ' + minWall + '  maxWall: ' + maxWall + ' fort: ' + room.memory.fort);
             if (minWall > room.memory.fort * 0.9) {
                 if (room.storage && room.storage.store.energy > 100000) {
                     room.memory.fort = room.memory.fort += 10000;
-                    console.log('FORT: new fort level: ' + room.memory.fort);
+                    console.log('FORT: ' + room.print + ' new fort level: ' + room.memory.fort);
                 }
             }
         } else {
