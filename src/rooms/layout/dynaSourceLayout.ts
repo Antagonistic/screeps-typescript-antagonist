@@ -1,3 +1,4 @@
+import { AutoLayout } from "rooms/AutoLayout";
 import * as roomHelper from "rooms/roomHelper"
 
 
@@ -22,7 +23,8 @@ export function dynaSourceLayout(room: Room, source: Source | Mineral): RCLRoomL
         if (deposit) {
             if (room.terminal) {
                 const extractor = [{ x: deposit.pos.x, y: deposit.pos.y }];
-                ret[6] = { build: { rampart: spots, extractor } };
+                const container = [AutoLayout.getSpotCandidate1(deposit.pos)!.lightRoomPos];
+                ret[6] = { build: { rampart: spots, extractor, container } };
             }
         }
     } else {

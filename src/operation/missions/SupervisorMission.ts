@@ -128,14 +128,19 @@ export class SupervisorMission extends Mission {
     }
 
     public work_Link(sup: Creep, link: StructureLink, creepE: number): number {
-        if (link.energy < 400) {
+        const controlLink = _.head(this.room!.controller!.pos.findInRange(FIND_MY_STRUCTURES, 3, { filter: (x: Structure) => x.structureType === STRUCTURE_LINK }));
+        let balanceAmount = 400;
+        if (controlLink) {
+            balanceAmount = 800 - (controlLink as StructureLink).energy;
+        }
+        if (link.energy < balanceAmount) {
             sup.say("+link");
-            const amount = Math.min(400 - link.energy, creepE);
+            const amount = Math.min(balanceAmount - link.energy, creepE);
             sup.transfer(link, RESOURCE_ENERGY, amount);
             creepE -= amount;
-        } else if (link.energy > 400) {
+        } else if (link.energy > balanceAmount) {
             sup.say("-link");
-            const amount = link.energy - 400;
+            const amount = link.energy - balanceAmount;
             sup.withdraw(link, RESOURCE_ENERGY);
             creepE += amount;
         }

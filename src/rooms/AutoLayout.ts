@@ -155,7 +155,7 @@ export class AutoLayout {
         return ret.path;
     }
 
-    public getAjacentOpenSpots(pos: RoomPosition) {
+    public static getAjacentOpenSpots(pos: RoomPosition) {
 
         const positions = [];
         for (let i = 1; i <= 8; i++) {
@@ -169,7 +169,7 @@ export class AutoLayout {
         return positions;
     }
 
-    public getSpotCandidate1(pos: RoomPosition) {
+    public static getSpotCandidate1(pos: RoomPosition) {
         const spots = this.getAjacentOpenSpots(pos);
         if (spots.length === 0) { return undefined; }
         const spotArr = [];
@@ -186,7 +186,7 @@ export class AutoLayout {
         return maxS;
     }
 
-    public getSpotCandidate2(pos: RoomPosition) {
+    public static getSpotCandidate2(pos: RoomPosition) {
         const spots = this.getAjacentOpenSpots(pos);
         if (spots.length === 0) { return undefined; }
         const spotArr = [];
@@ -208,7 +208,7 @@ export class AutoLayout {
         return maxS;
     }
 
-    public getSpotCandidate3(pos: RoomPosition) {
+    public static getSpotCandidate3(pos: RoomPosition) {
         const spots = this.getAjacentOpenSpots(pos);
         if (spots.length === 0) { return undefined; }
         const spotArr = [];

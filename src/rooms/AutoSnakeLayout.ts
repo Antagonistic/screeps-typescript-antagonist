@@ -76,11 +76,11 @@ export class AutoSnakeLayout extends AutoLayout {
         if (room) {
             const sources = room.find(FIND_SOURCES);
             for (const s of sources) {
-                const pos = this.getSpotCandidate1(s.pos);
+                const pos = AutoLayout.getSpotCandidate1(s.pos);
                 if (pos) { ret.push(pos); }
             }
             if (room.controller) {
-                const pos = this.getSpotCandidate2(room.controller.pos);
+                const pos = AutoLayout.getSpotCandidate2(room.controller.pos);
                 if (pos) { ret.push(pos); }
             }
         }
@@ -93,16 +93,16 @@ export class AutoSnakeLayout extends AutoLayout {
             const sources = room.find(FIND_SOURCES);
             const controller = room.controller;
             if (sources.length > 0 && controller) {
-                this.storage = this.getSpotCandidate3(controller.pos);
+                this.storage = AutoLayout.getSpotCandidate3(controller.pos);
                 if (this.storage) {
                     const closestSource = this.storage.findClosestByRange(sources);
-                    this.spawn = this.getSpotCandidate2(closestSource!.pos);
+                    this.spawn = AutoLayout.getSpotCandidate2(closestSource!.pos);
                     // this.visual.structure(this.storage.x, this.storage.y, STRUCTURE_STORAGE);
                     // this.visual.circle(controlSpot.x, controlSpot.y, { radius: 0.25, fill: '#0000BB' });
                     // const closest = controller.pos.findClosestByRange(sources);
                     let roadSpot: RoomPosition | undefined;
                     for (const s of sources) {
-                        const sourceSpot = this.getSpotCandidate1(s.pos);
+                        const sourceSpot = AutoLayout.getSpotCandidate1(s.pos);
                         if (sourceSpot) {
                             // this.visual.structure(sourceSpot.x, sourceSpot.y, STRUCTURE_CONTAINER);
                             if (visual) { this.visual.line(s.pos, controller.pos); }

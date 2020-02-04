@@ -44,8 +44,8 @@ export class LinkMission extends Mission {
             this.active = true;
         }
         if (this.memory.links && this.memory.links.length > 0) {
-            for (const l in this.memory.links) {
-                const _l: StructureLink | undefined = Game.getObjectById(this.memory.link) || undefined;
+            for (const l of this.memory.links) {
+                const _l: StructureLink | undefined = Game.getObjectById(l) || undefined;
                 if (_l) {
                     this.links.push(_l);
                 }
@@ -62,9 +62,11 @@ export class LinkMission extends Mission {
     }
     public work(): void {
         if (this.active) {
+            // console.log('LINK: ' + this.room!.print + ' has ' + this.links.length + ' links');
             let transController = false;
             for (const l of this.links) {
                 if (!l.cooldown && l.energy > 200) {
+                    // console.log('LINK: ' + l.pos.print + ' wants to send energy');
                     // Need to send energy
                     if (this.cLink && this.cLink.energy <= 300 && !transController) {
                         l.transferEnergy(this.cLink);
@@ -74,11 +76,12 @@ export class LinkMission extends Mission {
                             l.transferEnergy(this.sLink);
                         } else {
                             // Nowhere to send
+                            console.log('LINK: ' + this.room!.print + ' nowhere to send from ' + l.pos.print);
                         }
                     }
                 }
             }
-            if (this.cLink && this.cLink.energy < 700) {
+            if (this.cLink && this.cLink.energy < 700 && !transController) {
                 if (this.sLink && this.sLink.energy >= 400) {
                     this.sLink.transferEnergy(this.cLink);
                 }
@@ -88,7 +91,7 @@ export class LinkMission extends Mission {
 
     public finalize(): void {
         if (Game.time % 1000 === 892) {
-            this.memory = undefined;
+            this.memory.init = false;
         }
     }
 

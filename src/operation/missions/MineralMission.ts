@@ -36,20 +36,19 @@ export class MineralMission extends Mission {
                     roomHelper.buildIfNotExist(this.mineral.pos, STRUCTURE_EXTRACTOR);
                 }
             } else {
-                if (this.mineral.mineralAmount > 0 && this.storage && _.sum(this.storage.store) < this.storage.storeCapacity * 0.8) {
+                if (this.mineral.mineralAmount > 0 && this.storage && this.storage.store.getFreeCapacity() > this.storage.store.getCapacity() * 0.8) {
                     this.active = true;
                 }
             }
         }
     }
     public spawn(): void {
-        if (this.active) {
-            const maxMiners = () => 1;
-            this.miners = this.spawnRole(this.name, maxMiners, this.getMinerBody, {}, 10);
-            const maxHaulers = () => 1;
-            this.haulers = this.spawnRole(this.name + "_cart", maxHaulers, this.getCartBody, {}, 0);
-        }
+        const maxMiners = () => this.active ? 1 : 0;
+        this.miners = this.spawnRole(this.name, maxMiners, this.getMinerBody, {}, 10);
+        const maxHaulers = () => this.active ? 1 : 0;
+        this.haulers = this.spawnRole(this.name + "_cart", maxHaulers, this.getCartBody, {}, 0);
     }
+
     public work(): void {
         if (this.active) {
             this.runMiners();
@@ -61,7 +60,7 @@ export class MineralMission extends Mission {
     }
 
     public getMinerBody = () => {
-        return this.workerBody(33, 0, 17);
+        return this.getMineralMinerBody();
     };
 
     public runMiners() {

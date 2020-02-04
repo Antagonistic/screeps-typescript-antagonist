@@ -111,4 +111,10 @@ export class BodyFactory {
         const maxUnits = Math.min(this.spawnRoom.maxUnits(bodyUnit), 4);
         return this.configBody({ [TOUGH]: maxUnits, [MOVE]: maxUnits * 2, [HEAL]: maxUnits * 1 });
     }
+
+    public getMineralMinerBody() {
+        const bodyUnit = this.configBody({ [WORK]: 2, [MOVE]: 1 });
+        const maxUnits = Math.min(this.spawnRoom.maxUnits(bodyUnit), 8);
+        return this.configBody({ [WORK]: maxUnits * 2, [MOVE]: maxUnits * 1 });
+    }
 }

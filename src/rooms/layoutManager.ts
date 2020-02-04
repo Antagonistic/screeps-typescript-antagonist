@@ -42,7 +42,7 @@ export function getLayouts(room: Room): SingleLayout[] {
             const x = layout.anchor.x - flag.pos.x;
             const y = layout.anchor.y - flag.pos.y;
             ret.push({ pos: { x, y }, layout });
-            console.log(JSON.stringify(ret));
+            // console.log(JSON.stringify(ret));
         }
     }
     if (room.controller) {
