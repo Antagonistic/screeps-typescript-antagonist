@@ -41,7 +41,7 @@ export class MiningOperation extends Operation {
 
         for (let i = 0; i < this.sources.length; i++) {
             ;
-            this.addMission(new MiningMission(this, "mining" + i, this.sources[i], this.active));
+            this.addMission(new MiningMission(this, "mining" + i, this.sources[i], this.logistics, this.active));
         }
 
         if (this.room && this.room.controller && this.spawnRoom.room.storage && this.active) {

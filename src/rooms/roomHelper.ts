@@ -1,7 +1,9 @@
-import { Traveler } from "utils/Traveler";
 // tslint:disable-next-line:ordered-imports
-import { ROAD_COST, AVOID_COST, SWAMP_COST, PLAIN_COST } from "config/config";
+import { AVOID_COST, PLAIN_COST, ROAD_COST, SWAMP_COST } from "config/config";
 import { RSA_PKCS1_PADDING } from "constants";
+import { BodyFactory } from "creeps/BodyFactory";
+import { Traveler } from "utils/Traveler";
+import { SpawnRoom } from "./SpawnRoom";
 
 export function hasStructure(pos: RoomPosition, struct: BuildableStructureConstant, clear: boolean = false): boolean {
     if (Game.map.getRoomTerrain(pos.roomName).get(pos.x, pos.y) === TERRAIN_MASK_WALL && struct !== STRUCTURE_EXTRACTOR) { return true; }
@@ -255,6 +257,24 @@ export function cartAnalyze(dist: number, load: number, spawnRoom: SpawnRoom, of
     return { count: cartsNeed, carry: carryNeed };
 }
 
+export function workAnalyze(workNeeded: number, spawnRoom: SpawnRoom, offRoad: boolean = false): workAnalyze {
+    const maxEnergy = spawnRoom.energyCapacityAvailable;
+    let unitCost;
+    let potency;
+    if (offRoad || maxEnergy <= 450) {
+        unitCost = SpawnRoom.calculateBodyCost(BodyFactory.workerBody(1, 1, 1))
+        potency = 1;
+    } else {
+        unitCost = SpawnRoom.calculateBodyCost(BodyFactory.workerBody(3, 1, 2))
+        potency = 3;
+    }
+    const maxParts = Math.max(Math.floor(maxEnergy / unitCost), 20);
+    const potencyNeeded = Math.ceil(workNeeded / potency)
+    const workersNeeded = Math.max(Math.ceil(potencyNeeded / maxParts), 1);
+    const workPerWorker = Math.min(Math.max(Math.ceil(potencyNeeded / workersNeeded), 1), maxParts) * potency;
+    return { count: workersNeeded, work: workPerWorker };
+}
+
 export function getRoomCoordinates(roomName: string): RoomCoord {
 
     const coordinateRegex = /(E|W)(\d+)(N|S)(\d+)/g;
@@ -272,6 +292,20 @@ export function getRoomCoordinates(roomName: string): RoomCoord {
         y: Number(y),
         yDir,
     };
+}
+
+export function layoutPushPosition(layout: RCLRoomLayout, rcl: number, struct: BuildableStructureConstant, pos?: RoomPosition) {
+    if (pos) {
+        if (!layout[rcl]) { layout[rcl] = { build: {} } };
+        layout[rcl].build[struct] = [pos.lightRoomPos]
+    }
+}
+
+export function layoutPushPositions(layout: RCLRoomLayout, rcl: number, struct: BuildableStructureConstant, pos?: RoomPosition[]) {
+    if (pos && pos.length > 0) {
+        if (!layout[rcl]) { layout[rcl] = { build: {} } };
+        layout[rcl].build[struct] = _.map(pos, x => x.lightRoomPos);
+    }
 }
 
 /**

@@ -232,12 +232,12 @@ export class AutoLayout {
         return maxS;
     }
 
-    public getOpenCardinalPosition(pos: RoomPosition, ignoreCreeps?: boolean): RoomPosition[] {
+    public static getOpenCardinalPosition(pos: RoomPosition, ignoreCreeps?: boolean): RoomPosition[] {
         const positions = [];
         for (let i = 1; i <= 8; i += 2) {
             const testPosition = pos.getPositionAtDirection(i);
-
-            if (testPosition.isPassible(ignoreCreeps)) {
+            if (!testPosition.isNearExit(0) && _.head(testPosition.lookFor(LOOK_TERRAIN)) !== "wall") {
+                // if (testPosition.isPassible(ignoreCreeps)) {
                 // passed all tests
                 positions.push(testPosition);
             }

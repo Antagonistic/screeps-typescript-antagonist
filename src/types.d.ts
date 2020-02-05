@@ -116,7 +116,7 @@ interface RoomMemory {
   buildState?: number;
   supervisor?: LightRoomPos[];
   spawnRoom?: string;
-  controllerBattery?: Id<StructureContainer | StructureLink>;
+  controllerBattery?: Id<StructureContainer | StructureStorage | StructureLink>;
   avoid?: number;
 
   // snake layout variables
@@ -184,9 +184,11 @@ interface RCLRoomLayout {
 }
 
 interface RoomLayout {
-  build: { [key: string]: LightRoomPos[] };
+  build: RoomLayoutBuild;
   memory?: any;
 }
+
+type RoomLayoutBuild = { [key: string]: LightRoomPos[] };
 
 interface LightRoomPos {
   x: number;
@@ -196,6 +198,11 @@ interface LightRoomPos {
 interface cartAnalyze {
   count: number;
   carry: number;
+}
+
+interface workAnalyze {
+  count: number;
+  work: number;
 }
 
 // Prototypes
@@ -223,6 +230,7 @@ interface RoomPosition {
   getPositionAtDirection(direction: number, range?: number): RoomPosition;
   isPassible(ignoreCreeps?: boolean): boolean;
   isNearExit(range: number): boolean
+  findStructureInRange(structureType: StructureConstant, range: number): Structure | undefined;
 }
 
 interface Room {

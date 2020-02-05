@@ -2,16 +2,19 @@ import { Operation } from "../operations/Operation";
 import { Mission } from "./Mission";
 
 import { TargetAction } from "config/config";
+import { BodyFactory } from "creeps/BodyFactory";
 import * as creepActions from "creeps/creepActions";
 import { profile } from "Profiler";
+import { AutoLayout } from "rooms/AutoLayout";
 
 @profile
 export class UpgradeMission extends Mission {
 
     public upgraders: Creep[] = [];
     public haulers: Creep[] = [];
-    public container?: StructureContainer | StructureLink;
+    public container?: StructureContainer | StructureStorage | StructureLink;
     public isLink: boolean;
+    public needCart: boolean;
     public storage?: StructureStorage;
     public controller?: StructureController;
     public _hasEnergy: boolean;
@@ -19,6 +22,7 @@ export class UpgradeMission extends Mission {
     constructor(operation: Operation) {
         super(operation, "upgrade")
         this.isLink = false;
+        this.needCart = true;
         if (this.room) {
             this.controller = this.room.controller;
             this.container = this.findContainer();
@@ -60,26 +64,26 @@ export class UpgradeMission extends Mission {
 
     public getUpgraderBody = (): BodyPartConstant[] => {
         if (this.spawnRoom.rclLevel === 8) {
-            return this.workerBody(15, 6, 8);
+            return BodyFactory.workerBody(15, 6, 8);
         }
         const energyAvailable: number = this.spawnRoom.energyCapacityAvailable;
         if (energyAvailable >= 1300) {
-            return this.workerBody(8, 4, 4);
+            return BodyFactory.workerBody(8, 4, 4);
         } else if (energyAvailable >= 650) {
-            return this.workerBody(4, 3, 2);
+            return BodyFactory.workerBody(4, 3, 2);
         } else if (energyAvailable >= 550) {
-            return this.workerBody(3, 3, 2);
+            return BodyFactory.workerBody(3, 3, 2);
         } else if (energyAvailable >= 400) {
-            return this.workerBody(2, 2, 1);
+            return BodyFactory.workerBody(2, 2, 1);
         } else {
-            return this.workerBody(2, 1, 1);
+            return BodyFactory.workerBody(2, 1, 1);
         }
     }
 
     public getMaxCarts = (): number => {
         if (!this.room || !this.controller || !this.container) { return 0; }
         // if (this.controller.ticksToDowngrade < 10000) { return 1; }
-        if (this.isLink) { return 0; }
+        if (this.isLink || !this.needCart) { return 0; }
         if (this.controller.level >= 4 && this.room.storage) {
             if (this.room.storage.store.energy > 10000) {
                 return 1;
@@ -202,37 +206,39 @@ export class UpgradeMission extends Mission {
         }
     }
 
-    public findContainer(): StructureContainer | StructureLink | undefined {
+    public findContainer(): StructureContainer | StructureLink | StructureStorage | undefined {
 
         if (!this.room || !this.controller) { return undefined; }
-        let ret: StructureContainer | StructureLink | undefined | null;
+        let ret: StructureContainer | StructureStorage | StructureLink | undefined | null;
         if (this.room.memory.controllerBattery && Game.time % 1000 !== 77) {
             ret = Game.getObjectById(this.room.memory.controllerBattery);
             if (!ret) {
                 this.room.memory.controllerBattery = undefined;
             } else {
                 if (ret.structureType === STRUCTURE_LINK) { this.isLink = true; }
+                if (ret.structureType === STRUCTURE_LINK || ret.structureType === STRUCTURE_STORAGE) { this.needCart = false; }
                 return ret;
             }
         }
 
-        const containers = this.controller.pos.findInRange<StructureContainer | StructureLink>(FIND_STRUCTURES, 3,
-            { filter: (x: Structure) => x.structureType === STRUCTURE_CONTAINER || x.structureType === STRUCTURE_LINK });
+        const pos = this.controller.pos;
+        const store = pos.findStructureInRange(STRUCTURE_STORAGE, 3) as StructureStorage | undefined;
+        if (store) {
+            this.room.memory.controllerBattery = store.id;
+            return store;
+        }
+        const link = pos.findStructureInRange(STRUCTURE_LINK, 3) as StructureLink | undefined;
+        if (link) {
+            this.room.memory.controllerBattery = link.id;
+            return link;
+        }
+        const container = pos.findStructureInRange(STRUCTURE_CONTAINER, 3) as StructureContainer | undefined;
+        if (container) {
+            this.room.memory.controllerBattery = container.id;
+            return container;
+        }
 
-        if (!containers || containers.length === 0) {
-            this.placeContainer();
-        }
-        for (const c of containers) {
-            ret = c;
-            if (ret.structureType === STRUCTURE_LINK) {
-                this.isLink = true;
-                break;
-            }
-        }
-        if (ret) {
-            this.room.memory.controllerBattery = ret.id;
-            return ret;
-        }
+        this.placeContainer();
         return undefined;
     }
 
@@ -242,12 +248,13 @@ export class UpgradeMission extends Mission {
         const boxSite: ConstructionSite[] = this.controller.pos.findInRange(FIND_MY_CONSTRUCTION_SITES, 4,
             { filter: (x: ConstructionSite) => x.structureType === STRUCTURE_CONTAINER });
         if (!boxSite || boxSite.length === 0) {
-            const pos = this.haulPath()[1];
-            const ret = pos.createConstructionSite(STRUCTURE_CONTAINER);
-            if (ret !== OK) {
-                console.log("Placing upgrade box error: " + ret + " in " + this.operation.roomName + " pos : " + pos.x + "," + pos.y);
+            const pos = AutoLayout.getSpotCandidate2(this.controller.pos);
+            if (pos) {
+                const ret = pos.createConstructionSite(STRUCTURE_CONTAINER);
+                if (ret !== OK) {
+                    console.log("Placing upgrade box error: " + ret + " in " + this.operation.roomName + " pos : " + pos.x + "," + pos.y);
+                }
             }
-            return;
         }
     }
 

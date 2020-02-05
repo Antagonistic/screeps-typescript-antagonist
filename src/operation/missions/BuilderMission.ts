@@ -383,7 +383,7 @@ export class BuilderMission extends Mission {
                         }
                         if (repSite === null) {
                             this.getNextDestination();
-                            creepActions.yieldRoad(b, b);
+                            creepActions.yieldRoad2(b);
                             b.wait(2);
                         }
                     } else {

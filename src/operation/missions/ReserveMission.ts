@@ -1,6 +1,7 @@
 import { Operation } from "../operations/Operation";
 import { Mission } from "./Mission";
 
+import { BodyFactory } from "creeps/BodyFactory";
 import * as creepActions from "creeps/creepActions";
 import { profile } from "Profiler";
 
@@ -52,5 +53,5 @@ export class ReserveMission extends Mission {
         ;
     }
 
-    public reserveBody = (): BodyPartConstant[] => this.configBody({ claim: 2, move: 2 });
+    public reserveBody = (): BodyPartConstant[] => BodyFactory.configBody({ claim: 2, move: 2 });
 }

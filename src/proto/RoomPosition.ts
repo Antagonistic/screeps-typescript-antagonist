@@ -45,6 +45,12 @@ RoomPosition.prototype.lookForStructure = function (structureType: StructureCons
     return _.find(this.lookFor(LOOK_STRUCTURES), s => s.structureType === structureType);
 };
 
+RoomPosition.prototype.findStructureInRange = function (structureType: StructureConstant, range: number = 1): Structure | undefined {
+    const ret = _.find(this.findInRange(FIND_STRUCTURES, range, { filter: x => x.structureType === structureType }));
+    if (!ret) { return undefined; }
+    return ret;
+}
+
 RoomPosition.prototype.openAdjacentSpots = function (ignoreCreeps?: boolean): RoomPosition[] {
     const positions = [];
     for (let i = 1; i <= 8; i++) {

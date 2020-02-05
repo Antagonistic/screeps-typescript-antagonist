@@ -130,59 +130,6 @@ export function getRoomEnergyCapacity(room: Room): number {
   return energy;
 }
 
-function _buildStructures(room: Room) {
-  const state: RoomStates = room.memory.state;
-  switch (state) {
-    case RoomStates.MINE:
-      if (room.memory.mine_structures) {
-        return;
-      }
-      log.info(room.name + ": Placing mining room layouts!");
-      const home = room.memory.home;
-      if (home) {
-        const homeSpawn: StructureSpawn[] = Game.rooms[home].find(FIND_MY_SPAWNS);
-        const mineSources: Source[] = room.find(FIND_SOURCES);
-        if (homeSpawn && homeSpawn.length && mineSources && mineSources.length) {
-          for (const s of mineSources) {
-            _buildRoad(homeSpawn[0].pos, s.pos, true, true);
-          }
-          room.memory.mine_structures = Game.time;
-        }
-      }
-      break;
-    case RoomStates.TRANSITION:
-    case RoomStates.STABLE:
-      if (room.memory.stable_structures || room.energyCapacityAvailable < 550) {
-        return;
-      }
-      log.info(room.name + ": Placing stable room layouts!");
-      const spawns: StructureSpawn[] = room.find(FIND_MY_SPAWNS);
-      const spawnPos: RoomPosition[] = _.map(spawns, (x) => x.pos);
-      const sources: Source[] = room.find(FIND_SOURCES);
-      const sourcePos: RoomPosition[] = _.map(sources, (x) => x.pos);
-      if (!spawns || spawns.length === 0) {
-        log.info(room.name + ": StructureManager can't find any spawns!");
-        return;
-      }
-      // Place a container per source
-      // for (const source of sources) {
-      // const path: Path = room.findPath(source.pos, spawns[0].pos,
-      //  {ignoreCreeps: true, ignoreRoads: true, swampCost: 1 })
-      // }
-
-      for (const spawn of spawnPos) {
-        for (const source of sourcePos) {
-          _buildRoad(spawn, source, true, true);
-        }
-        if (room.controller) {
-          _buildRoad(spawn, room.controller.pos, true, false);
-        }
-      }
-      room.memory.stable_structures = true;
-      break;
-  }
-}
-
 function _findTowers(room: Room) {
   const towers: StructureTower[] = room.find<StructureTower>(FIND_STRUCTURES, { filter: (x: Structure) => x.structureType === STRUCTURE_TOWER });
   if (towers && towers.length) {

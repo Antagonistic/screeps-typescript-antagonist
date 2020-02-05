@@ -3,6 +3,8 @@ import { Mission } from "./mission";
 
 import * as creepActions from "creeps/creepActions";
 
+import { BodyFactory } from "creeps/BodyFactory";
+import { LogisticsManager } from "operation/LogisticsManager";
 import { posix } from "path";
 import { profile } from "Profiler";
 import * as layoutManager from "rooms/layoutManager";
@@ -21,6 +23,7 @@ export class MiningMission extends Mission {
     public pickupOrder: number = 0;
     public active: boolean;
     public stableMission: boolean;
+    public logistics: LogisticsManager;
 
     public _minersNeeded?: number;
 
@@ -34,7 +37,7 @@ export class MiningMission extends Mission {
 
     public extentions?: Array<StructureExtension | StructureTower | StructureSpawn>;
 
-    constructor(operation: Operation, name: string, source: Source, active: boolean = true) {
+    constructor(operation: Operation, name: string, source: Source, logistics: LogisticsManager, active: boolean = true) {
         super(operation, name);
         this.source = source;
         this.active = this.getActive(active);
@@ -44,6 +47,7 @@ export class MiningMission extends Mission {
         this.isLink = false;
         this.storage = this.findStorage();
         this.wait = this.memory.wait || 0;
+        this.logistics = logistics;
         // this.pavedPath = this.memory.isPathPaved === undefined ? this.isPathPaved() : this.memory.isPathPaved;
         if (this.spawnRoom.room.storage && this.spawnRoom.room.storage.store.energy >= 900000) { this.active = false; }
     }
@@ -67,17 +71,18 @@ export class MiningMission extends Mission {
         // console.log(JSON.stringify(this.memory));
         // console.log(this.memory.fillcart)
     }
+
     public spawn(): void {
         if (this.remoteSpawning && Game.cpu.bucket < 100) { return; } // Oh geez, CPU emergency, disable remote mining
         this.miners = this.spawnRole(this.name, this.getMaxMiners, this.getOversizedMinerBody, { role: "miner" }, this.memory.dist || 10);
-
+        if (_.any(this.miners, x => x.memory.inPosition)) { this.logistics.registerSource(this.remoteSpawning); }
         // const cartBodyFunc = this.remoteSpawning ? this.getLongCartBody : this.getCartBody;
         const cartBodyFunc = () => {
             const P = this.getCartAnalyze().carry;
             if (!this.isPathPaved()) {
-                return this.workerBody(0, P * 2, P * 2);
+                return BodyFactory.workerBody(0, P * 2, P * 2);
             }
-            return this.workerBody(0, P * 2, P);
+            return BodyFactory.workerBody(0, P * 2, P);
         }
         // const hasworkpart = _.contains(cartBodyFunc(), WORK);
         this.carts = this.spawnRole(this.name + "cart", this.getMaxCarts, cartBodyFunc, { role: "hauler" }, 0);
@@ -139,20 +144,20 @@ export class MiningMission extends Mission {
     }
 
     public getMinerBody = () => {
-        if (this.remoteSpawning) { return this.workerBody(6, 2, 3); }
+        if (this.remoteSpawning) { return BodyFactory.workerBody(6, 2, 3); }
         const minersSupported = this.minersSupported();
         if (minersSupported === 1) {
             const work = Math.ceil((Math.max(this.source.energyCapacity,
                 SOURCE_ENERGY_CAPACITY) / ENERGY_REGEN_TIME) / HARVEST_POWER) + 1;
-            return this.workerBody(work, 2, Math.ceil(work / 2));
+            return BodyFactory.workerBody(work, 2, Math.ceil(work / 2));
         } else if (minersSupported === 2) {
-            return this.workerBody(3, 1, 2);
-        } else { return this.workerBody(2, 1, 1); }
+            return BodyFactory.workerBody(3, 1, 2);
+        } else { return BodyFactory.workerBody(2, 1, 1); }
     };
 
     public getOversizedMinerBody = () => {
         if (this.spawnRoom.energyCapacityAvailable >= 2000) {
-            return this.workerBody(12, 3, 12);
+            return BodyFactory.workerBody(12, 3, 12);
         }
         return this.getMinerBody();
     }

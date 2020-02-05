@@ -1,6 +1,7 @@
 import { Operation } from "../operations/Operation";
 import { Mission } from "./Mission";
 
+import { BodyFactory } from "creeps/BodyFactory";
 import * as creepActions from "creeps/creepActions";
 import { profile } from "Profiler";
 
@@ -22,7 +23,7 @@ export class ScoutRandomMission extends Mission {
     }
     public spawn(): void {
         const maxScout = () => this.active ? 1 : 0;
-        this.scouts = this.spawnRole("scoutWalk", maxScout, () => this.workerBody(0, 0, 1), 50);
+        this.scouts = this.spawnRole("scoutWalk", maxScout, () => BodyFactory.workerBody(0, 0, 1), 50);
     }
     public work(): void {
         for (const creep of this.scouts) {

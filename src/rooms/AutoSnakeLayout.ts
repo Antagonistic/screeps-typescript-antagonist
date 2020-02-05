@@ -34,6 +34,8 @@ export class AutoSnakeLayout extends AutoLayout {
         if (this.ext1) { this.ext1.forEach(i => this.visual.structure(i.x, i.y, STRUCTURE_EXTENSION)) };
         if (this.ext2) { this.ext2.forEach(i => this.visual.structure(i.x, i.y, STRUCTURE_EXTENSION)) };
         this.getContainers().forEach(i => this.visual.structure(i.x, i.y, STRUCTURE_CONTAINER));
+        const tower = this.getTower();
+        if (tower) { this.visual.structure(tower.x, tower.y, STRUCTURE_TOWER); }
     }
 
     public cacheResult() {
@@ -87,6 +89,36 @@ export class AutoSnakeLayout extends AutoLayout {
         return ret;
     }
 
+    public getTower() {
+        let candidates: RoomPosition[] = [];
+        if (this.road1 && this.road1.length > 0) {
+            let _candidates = AutoLayout.getOpenCardinalPosition(this.road1[0])
+            console.log(_candidates.length)
+            _candidates = _.filter(_candidates, (x: RoomPosition) => this.openPosition(x));
+            console.log(_candidates.length)
+            candidates = candidates.concat(_candidates);
+        }
+        if (this.road2 && this.road2.length > 0) {
+            const _candidates = _.filter(AutoLayout.getOpenCardinalPosition(this.road2[0]), (x: RoomPosition) => this.openPosition(x));
+            candidates = candidates.concat(_candidates);
+        }
+        if (candidates.length === 0) {
+            console.log('SNAKE: ' + this.roomName + ' has no space for tower?');
+            return undefined;
+        }
+        return new RoomPosition(25, 25, this.roomName).findClosestByRange(candidates) || undefined;
+    }
+
+    public openPosition(pos: RoomPosition) {
+        if (this.road1 && this.road1.length > 0) { if (_.any(this.road1, x => x.printPlain === pos.printPlain)) { return false; } }
+        if (this.road2 && this.road2.length > 0) { if (_.any(this.road2, x => x.printPlain === pos.printPlain)) { return false; } }
+        if (this.ext1 && this.ext1.length > 0) { if (_.any(this.ext1, x => x.printPlain === pos.printPlain)) { return false; } }
+        if (this.ext2 && this.ext2.length > 0) { if (_.any(this.ext2, x => x.printPlain === pos.printPlain)) { return false; } }
+        if (this.spawn) { if (this.spawn.printPlain === pos.printPlain) { return false; } }
+        if (this.storage) { if (this.storage.printPlain === pos.printPlain) { return false; } }
+        return true;
+    }
+
     public runSnakeLayout(visual: boolean = false) {
         const room = Game.rooms[this.roomName];
         if (room) {
@@ -110,14 +142,14 @@ export class AutoSnakeLayout extends AutoLayout {
                                 const path = this.PathFind(sourceSpot, this.storage, this.snakeMatrix!, 1);
                                 roadSpot = _.last(path);
                                 if (s === closestSource) {
-                                    const close = _.find(this.getOpenCardinalPosition(_.head(path)), x => x.inRangeTo(sourceSpot, 1));
+                                    const close = _.find(AutoLayout.getOpenCardinalPosition(_.head(path)), x => x.inRangeTo(sourceSpot, 1));
                                     if (close) { this.spawn = close; }
                                 }
                                 this.road1 = path;
                             } else {
                                 const path = this.PathFind(sourceSpot, roadSpot, this.snakeMatrix!, 0);
                                 if (s === closestSource) {
-                                    const close = _.find(this.getOpenCardinalPosition(_.head(path)), x => x.inRangeTo(sourceSpot, 1));
+                                    const close = _.find(AutoLayout.getOpenCardinalPosition(_.head(path)), x => x.inRangeTo(sourceSpot, 1));
                                     if (close) { this.spawn = close; }
                                 }
                                 this.road2 = path;
@@ -127,7 +159,7 @@ export class AutoSnakeLayout extends AutoLayout {
                     }
                 }
 
-                const _ext1 = _.unique(_.flatten(_.map(this.road1!, x => this.getOpenCardinalPosition(x, true))), false, x => x.printPlain);
+                const _ext1 = _.unique(_.flatten(_.map(this.road1!, x => AutoLayout.getOpenCardinalPosition(x, true))), false, x => x.printPlain);
                 this.ext1 = [];
                 let count1 = 1;
                 for (const ex of _ext1) {
@@ -138,7 +170,7 @@ export class AutoSnakeLayout extends AutoLayout {
                     count1++;
                     // if (count1 > 30) { break; }
                 }
-                const _ext2 = _.unique(_.flatten(_.map(this.road2!, x => this.getOpenCardinalPosition(x, true))), false, x => x.printPlain);
+                const _ext2 = _.unique(_.flatten(_.map(this.road2!, x => AutoLayout.getOpenCardinalPosition(x, true))), false, x => x.printPlain);
                 this.ext2 = [];
                 let count2 = 1;
                 for (const ex of _ext2) {

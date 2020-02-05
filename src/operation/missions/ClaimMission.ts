@@ -1,6 +1,7 @@
 import { Operation } from "../operations/Operation";
 import { Mission } from "./Mission";
 
+import { BodyFactory } from "creeps/BodyFactory";
 import * as creepActions from "creeps/creepActions";
 import { profile } from "Profiler";
 import { buildIfNotExist } from "rooms/roomHelper";
@@ -70,7 +71,7 @@ export class ClaimMission extends Mission {
         }
     }
 
-    public claimBody = (): BodyPartConstant[] => this.configBody({ claim: 1, move: 1 });
+    public claimBody = (): BodyPartConstant[] => BodyFactory.configBody({ claim: 1, move: 1 });
 
     public clearRoom(): void {
         if (this.room && this.room.controller && this.room.controller.my) {

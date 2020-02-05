@@ -770,7 +770,7 @@ export function actionFillBattery(creep: Creep, action: boolean): boolean {
 export function actionFillControllerBattery(creep: Creep, action: boolean): boolean {
   if (action === false) {
     if (creep.room.memory.controllerBattery) {
-      const chest: StructureContainer | StructureLink | null = Game.getObjectById(creep.room.memory.controllerBattery);
+      const chest: StructureContainer | StructureStorage | StructureLink | null = Game.getObjectById(creep.room.memory.controllerBattery);
       if (chest && (chest.store.getFreeCapacity() > 400)) {
         creep.memory.target = chest.id;
         moveToTransfer(creep, chest);
@@ -1098,3 +1098,19 @@ export function yieldRoad(creep: Creep, target: { pos: RoomPosition }, allowSwam
   }
   return creep.travelTo(target);
 };
+
+export function yieldRoad2(creep: Creep, allowSwamps = true) {
+  const candidates = creep.pos.openAdjacentSpots(false);
+  let swampPosition;
+  for (const position of candidates) {
+    if (position.lookFor(LOOK_TERRAIN)[0] === "swamp") {
+      swampPosition = position;
+      continue;
+    }
+    return creep.move(creep.pos.getDirectionTo(position));
+  }
+  if (swampPosition && allowSwamps) {
+    return creep.move(creep.pos.getDirectionTo(swampPosition));
+  }
+  return creep.rally();
+}

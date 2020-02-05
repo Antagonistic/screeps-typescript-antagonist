@@ -21,6 +21,8 @@ export class LogisticsManager {
     public storage: StructureStorage | undefined;
     public links: StructureLink[] = [];
     public haslinks: boolean;
+    public sources: number = 0;
+    public remoteSources: number = 0;
     constructor(spawnRoom: SpawnRoom) {
         this.spawnRoom = spawnRoom;
         this.room = spawnRoom.room;
@@ -130,6 +132,26 @@ export class LogisticsManager {
                 if (m instanceof BuilderMission) { this.reportBuilderMission(m); }
             }
         }
+    }
+
+    public getTerminalEnergyFloat() {
+        if (!this.room.storage || !this.room.terminal) { return 0; }
+        if (this.room.storage.store.energy <= 15000) { return 1000; }
+        if (this.room.storage.store.energy <= 100000) { return 10000; }
+        return 100000;
+    }
+
+    public registerSource(remote: boolean = false) {
+        if (remote) { this.remoteSources++; }
+        else { this.sources++; }
+    }
+
+    public getEstimatedUpgraderWork() {
+        const work = this.sources * 10 + this.remoteSources * 5;
+        if (Game.time % 10 === 0) {
+            console.log('LOGIC: ' + this.room + ' estimates ' + work + ' upgrade parts.');
+        }
+        return work;
     }
 
     public reportMiningMission(m: MiningMission): void {

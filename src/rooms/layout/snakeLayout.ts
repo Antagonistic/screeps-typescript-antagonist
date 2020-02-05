@@ -1,4 +1,5 @@
 import { AutoSnakeLayout } from "rooms/AutoSnakeLayout";
+import { layoutPushPosition, layoutPushPositions } from "rooms/roomHelper";
 
 export function snakeLayout(room: Room, flag: Flag): RCLRoomLayout {
     const ret: RCLRoomLayout = {
@@ -15,13 +16,17 @@ export function snakeLayout(room: Room, flag: Flag): RCLRoomLayout {
     autoLayout.run();
 
 
+    layoutPushPosition(ret, 0, STRUCTURE_SPAWN, autoLayout.spawn);
 
-    ret[0] = { build: { spawn: [autoLayout.spawn!.lightRoomPos] } }
-    ret[1] = { build: { road: _.map(autoLayout.road1!, x => x.lightRoomPos), extension: _.map(autoLayout.getExt(), x => x.lightRoomPos) } }
-    ret[2] = { build: { road: _.map(autoLayout.road2!, x => x.lightRoomPos) } }
-    ret[4] = { build: { storage: [autoLayout.storage!.lightRoomPos] } }
+    layoutPushPositions(ret, 1, STRUCTURE_ROAD, autoLayout.road1);
+    layoutPushPositions(ret, 1, STRUCTURE_EXTENSION, autoLayout.getExt());
 
-    // console.log(JSON.stringify(ret));
+    layoutPushPositions(ret, 2, STRUCTURE_ROAD, autoLayout.road2);
+
+    layoutPushPosition(ret, 3, STRUCTURE_TOWER, autoLayout.getTower());
+
+    layoutPushPosition(ret, 4, STRUCTURE_STORAGE, autoLayout.storage);
+
     return ret;
 }
 

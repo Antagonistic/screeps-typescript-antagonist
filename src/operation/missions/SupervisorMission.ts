@@ -2,6 +2,7 @@ import { LogisticsManager } from "operation/LogisticsManager";
 import { Operation } from "../operations/Operation";
 import { Mission } from "./mission";
 
+import { BodyFactory } from "creeps/BodyFactory";
 import * as creepActions from "creeps/creepActions";
 import { profile } from "Profiler";
 
@@ -22,7 +23,7 @@ export class SupervisorMission extends Mission {
         }
         const superBody = (): BodyPartConstant[] => {
             const carryparts = Math.min((this.logistics.C / 50) - 1, 18);
-            return this.workerBody(0, carryparts, 1);
+            return BodyFactory.workerBody(0, carryparts, 1);
         }
         this.supers = this.spawnRole("super", numSuper, superBody, { role: "super" }, 0);
     }
@@ -121,7 +122,7 @@ export class SupervisorMission extends Mission {
             }
         }*/
         if (terminal && storage) {
-            if (terminal.store.energy < 100000 && storage.store.energy > 500000) {
+            if (terminal.store.energy < this.logistics.getTerminalEnergyFloat() && storage.store.energy > 5000) {
                 sup.transfer(terminal, RESOURCE_ENERGY, creepE);
             }
         }

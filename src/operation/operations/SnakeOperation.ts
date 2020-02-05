@@ -37,7 +37,7 @@ export class SnakeOperation extends Operation {
             this.addMission(new GuardMission(this));
 
             for (let i = 0; i < this.sources.length; i++) {
-                this.addMission(new MiningMission(this, "mining" + i, this.sources[i]))
+                this.addMission(new MiningMission(this, "mining" + i, this.sources[i], this.logistics))
             }
 
             this.addMission(new BuilderMission(this, this.logistics, false));
