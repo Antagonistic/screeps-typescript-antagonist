@@ -42,7 +42,7 @@ export class SnakeOperation extends Operation {
 
             this.addMission(new BuilderMission(this, this.logistics, false));
 
-            this.addMission(new UpgradeMission(this));
+            this.addMission(new UpgradeMission(this, this.logistics));
         }
     }
     public finalizeOperation(): void {

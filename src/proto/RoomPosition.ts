@@ -55,7 +55,8 @@ RoomPosition.prototype.openAdjacentSpots = function (ignoreCreeps?: boolean): Ro
     const positions = [];
     for (let i = 1; i <= 8; i++) {
         const testPosition = this.getPositionAtDirection(i);
-
+        if (!testPosition) { continue; }
+        if (testPosition.isEdge) { continue; }
         if (testPosition.isPassible(ignoreCreeps)) {
             // passed all tests
             positions.push(testPosition);
@@ -64,7 +65,7 @@ RoomPosition.prototype.openAdjacentSpots = function (ignoreCreeps?: boolean): Ro
     return positions;
 };
 
-RoomPosition.prototype.getPositionAtDirection = function (direction: number, range?: number): RoomPosition {
+RoomPosition.prototype.getPositionAtDirection = function (direction: number, range?: number): RoomPosition | undefined {
     if (!range) {
         range = 1;
     }
@@ -100,6 +101,7 @@ RoomPosition.prototype.getPositionAtDirection = function (direction: number, ran
         x -= range;
         y -= range;
     }
+    if (x < 0 || x > 49 || y < 0 || y > 49) { return undefined; }
     return new RoomPosition(x, y, room);
 };
 

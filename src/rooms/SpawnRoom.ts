@@ -1,5 +1,6 @@
 import * as Config from "config/config";
 
+import { BodyFactory } from "creeps/BodyFactory";
 import { log } from "lib/logger/log";
 import { LogisticsManager } from "operation/LogisticsManager";
 
@@ -25,7 +26,7 @@ export class SpawnRoom implements SpawnRoom {
   }
 
   public spawn(build: BodyPartConstant[], name: string, memory?: any): boolean {
-    if (SpawnRoom.calculateBodyCost(build) > this.energyCapacityAvailable) { return false; }
+    if (BodyFactory.calculateBodyCost(build) > this.energyCapacityAvailable) { return false; }
     this.isAvailable = false;
     for (const spawn of this.spawns) {
       if (spawn.spawning == null) {
@@ -52,7 +53,7 @@ export class SpawnRoom implements SpawnRoom {
         }
         else if (status === ERR_NOT_ENOUGH_RESOURCES) {
           if (Game.time % 10 === 0) {
-            console.log("SPAWN:", this.room.print, "not enough energy for", name, "cost:", SpawnRoom.calculateBodyCost(build),
+            console.log("SPAWN:", this.room.print, "not enough energy for", name, "cost:", BodyFactory.calculateBodyCost(build),
               "current:", this.availableSpawnEnergy, "max", this.energyCapacityAvailable);
           }
           return false;
@@ -65,23 +66,6 @@ export class SpawnRoom implements SpawnRoom {
       }
     }
     return false;
-  }
-
-  public static calculateBodyCost(body: BodyPartConstant[]): number {
-    let sum = 0;
-    for (const part of body) {
-      sum += BODYPART_COST[part];
-    }
-    return sum;
-  }
-
-  public maxUnitsPerCost(unitCost: number, proportion: number = 1): number {
-    return Math.floor((this.energyCapacityAvailable * proportion) / unitCost);
-  }
-
-  public maxUnits(body: BodyPartConstant[], proportion?: number) {
-    const cost = SpawnRoom.calculateBodyCost(body);
-    return Math.min(this.maxUnitsPerCost(cost, proportion), Math.floor(50 / body.length));
   }
 
   public createCreep(bodyParts: BodyPartConstant[], role: string, memory?: any,

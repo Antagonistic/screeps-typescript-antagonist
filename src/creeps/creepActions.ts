@@ -1083,6 +1083,7 @@ export function yieldRoad(creep: Creep, target: { pos: RoomPosition }, allowSwam
     let relDirection = direction + i;
     relDirection = roomHelper.clampDirection(relDirection);
     const position = creep.pos.getPositionAtDirection(relDirection);
+    if (!position) { continue; }
     if (!position.inRangeTo(target, 3)) { continue; }
     if (position.lookFor(LOOK_STRUCTURES).length > 0) { continue; }
     if (!position.isPassible()) { continue; }

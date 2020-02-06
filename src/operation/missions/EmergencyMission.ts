@@ -1,3 +1,4 @@
+import { BodyFactory } from "creeps/BodyFactory";
 import * as creepActions from "creeps/creepActions";
 import { profile } from "Profiler";
 import { Operation } from "../operations/Operation";
@@ -24,7 +25,7 @@ export class EmergencyMission extends Mission {
     }
 
     public spawn(): void {
-        this.emergencyminers = this.spawnRole("harvester", this.getMaxHarvesters, () => this.workerBody(2, 1, 1), { role: "hauler" }, 0);
+        this.emergencyminers = this.spawnRole("harvester", this.getMaxHarvesters, () => BodyFactory.workerBody(2, 1, 1), { role: "hauler" }, 0);
     }
 
     public getMaxHarvesters = () => this.emergency ? 2 : 0;

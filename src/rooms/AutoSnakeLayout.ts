@@ -93,9 +93,7 @@ export class AutoSnakeLayout extends AutoLayout {
         let candidates: RoomPosition[] = [];
         if (this.road1 && this.road1.length > 0) {
             let _candidates = AutoLayout.getOpenCardinalPosition(this.road1[0])
-            console.log(_candidates.length)
             _candidates = _.filter(_candidates, (x: RoomPosition) => this.openPosition(x));
-            console.log(_candidates.length)
             candidates = candidates.concat(_candidates);
         }
         if (this.road2 && this.road2.length > 0) {

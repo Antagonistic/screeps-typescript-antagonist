@@ -160,7 +160,7 @@ export class AutoLayout {
         const positions = [];
         for (let i = 1; i <= 8; i++) {
             const testPosition = pos.getPositionAtDirection(i);
-
+            if (!testPosition) { continue; }
             if (!testPosition.isNearExit(0) && _.head(testPosition.lookFor(LOOK_TERRAIN)) !== "wall") {
                 // passed all tests
                 positions.push(testPosition);
@@ -236,6 +236,7 @@ export class AutoLayout {
         const positions = [];
         for (let i = 1; i <= 8; i += 2) {
             const testPosition = pos.getPositionAtDirection(i);
+            if (!testPosition) { continue; }
             if (!testPosition.isNearExit(0) && _.head(testPosition.lookFor(LOOK_TERRAIN)) !== "wall") {
                 // if (testPosition.isPassible(ignoreCreeps)) {
                 // passed all tests

@@ -227,7 +227,7 @@ interface RoomPosition {
   readonly isVisible: boolean;
   lookForStructure(structureType: StructureConstant): Structure | undefined;
   openAdjacentSpots(ignoreCreeps?: boolean): RoomPosition[];
-  getPositionAtDirection(direction: number, range?: number): RoomPosition;
+  getPositionAtDirection(direction: number, range?: number): RoomPosition | undefined;
   isPassible(ignoreCreeps?: boolean): boolean;
   isNearExit(range: number): boolean
   findStructureInRange(structureType: StructureConstant, range: number): Structure | undefined;

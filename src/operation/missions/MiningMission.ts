@@ -56,6 +56,8 @@ export class MiningMission extends Mission {
         if (!active) { return false; }
         if (!this.room) { return false; }
         if (this.remoteSpawning) {
+            if (this.room.reserved === "Invader") { return false; }
+            if (this.room.owner && this.room.controller && !this.room.controller.my) { return false; }
             if (this.room.dangerousHostiles.length > 0) { return false; }
             if (this.spawnRoom.rclLevel < 4) { return false; }
         } else {

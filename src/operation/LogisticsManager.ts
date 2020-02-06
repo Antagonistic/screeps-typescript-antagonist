@@ -117,23 +117,6 @@ export class LogisticsManager {
         }
     }
 
-    public report(): void {
-        const con = this.room.controller;
-        const levelPart = con ? (con.progress / con.progressTotal) * 100 : 0;
-        console.log("Logistics report for spawnRoom " + this.room.name + " Level " + this.spawnRoom.rclLevel + "." + levelPart);
-        console.log("E: " + this.E + "/" + this.C + "  S: " + this.S);
-        for (const op of this.operations) {
-            console.log(" - " + op.name);
-            for (const _m in op.missions) {
-                const m = op.missions[_m];
-                console.log("  * " + m.name);
-                if (m instanceof MiningMission) { this.reportMiningMission(m); }
-                if (m instanceof UpgradeMission) { this.reportUpgraderMission(m); }
-                if (m instanceof BuilderMission) { this.reportBuilderMission(m); }
-            }
-        }
-    }
-
     public getTerminalEnergyFloat() {
         if (!this.room.storage || !this.room.terminal) { return 0; }
         if (this.room.storage.store.energy <= 15000) { return 1000; }
@@ -147,11 +130,30 @@ export class LogisticsManager {
     }
 
     public getEstimatedUpgraderWork() {
+        if (this.spawnRoom.rclLevel === 8) { return 15; }
         const work = this.sources * 10 + this.remoteSources * 5;
         if (Game.time % 10 === 0) {
             console.log('LOGIC: ' + this.room + ' estimates ' + work + ' upgrade parts.');
         }
         return work;
+    }
+
+    public report(): void {
+        const con = this.room.controller;
+        const levelPart = con ? (con.progress / con.progressTotal) * 100 : 0;
+        console.log("Logistics report for spawnRoom " + this.room.name + " Level " + this.spawnRoom.rclLevel + "." + levelPart);
+        console.log("E: " + this.E + "/" + this.C + "  S: " + this.S);
+        for (const op of this.operations) {
+            console.log(" - " + op.name);
+            for (const _m in op.missions) {
+                const m = op.missions[_m];
+                console.log("  * " + m.name);
+                if (typeof m.report === "function") { m.report(); }
+                if (m instanceof MiningMission) { this.reportMiningMission(m); }
+                if (m instanceof UpgradeMission) { this.reportUpgraderMission(m); }
+                if (m instanceof BuilderMission) { this.reportBuilderMission(m); }
+            }
+        }
     }
 
     public reportMiningMission(m: MiningMission): void {

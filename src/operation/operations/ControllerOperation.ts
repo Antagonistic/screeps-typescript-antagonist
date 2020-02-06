@@ -62,7 +62,7 @@ export class ControllerOperation extends Operation {
 
             this.addMission(new BuilderMission(this, this.logistics));
 
-            this.addMission(new UpgradeMission(this));
+            this.addMission(new UpgradeMission(this, this.logistics));
 
             this.addMission(new ScoutRandomMission(this));
 
@@ -71,7 +71,9 @@ export class ControllerOperation extends Operation {
             }
 
             if (Game.time % 50 === 1) {
-                console.log(this.roomName + " Operation stable: " + this.stableOperation);
+                if (this.room) {
+                    console.log(this.room.print + " Operation stable: " + this.stableOperation);
+                }
                 if (this.stableOperation) {
                     // this.buildMineRoads();
                 }
@@ -88,7 +90,7 @@ export class ControllerOperation extends Operation {
 
 
     public finalizeOperation() {
-        this.memory.emergency = this.emergency = (this.spawnRoom.room.find(FIND_MY_CREEPS).length < 4 && this.spawnRoom.availableSpawnEnergy < 900);
+        this.memory.emergency = this.emergency = (this.spawnRoom.room.find(FIND_MY_CREEPS).length < 4 && this.spawnRoom.availableSpawnEnergy < 900) || this.spawnRoom.room.find(FIND_MY_CREEPS).length === 0;
         // this.memory.emergency = ;
     }
 

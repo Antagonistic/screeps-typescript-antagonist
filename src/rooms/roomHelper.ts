@@ -1,9 +1,7 @@
 // tslint:disable-next-line:ordered-imports
 import { AVOID_COST, PLAIN_COST, ROAD_COST, SWAMP_COST } from "config/config";
-import { RSA_PKCS1_PADDING } from "constants";
 import { BodyFactory } from "creeps/BodyFactory";
 import { Traveler } from "utils/Traveler";
-import { SpawnRoom } from "./SpawnRoom";
 
 export function hasStructure(pos: RoomPosition, struct: BuildableStructureConstant, clear: boolean = false): boolean {
     if (Game.map.getRoomTerrain(pos.roomName).get(pos.x, pos.y) === TERRAIN_MASK_WALL && struct !== STRUCTURE_EXTRACTOR) { return true; }
@@ -262,16 +260,17 @@ export function workAnalyze(workNeeded: number, spawnRoom: SpawnRoom, offRoad: b
     let unitCost;
     let potency;
     if (offRoad || maxEnergy <= 450) {
-        unitCost = SpawnRoom.calculateBodyCost(BodyFactory.workerBody(1, 1, 1))
+        unitCost = BodyFactory.calculateBodyCost(BodyFactory.workerBody(1, 1, 1))
         potency = 1;
     } else {
-        unitCost = SpawnRoom.calculateBodyCost(BodyFactory.workerBody(3, 1, 2))
+        unitCost = BodyFactory.calculateBodyCost(BodyFactory.workerBody(3, 1, 2))
         potency = 3;
     }
-    const maxParts = Math.max(Math.floor(maxEnergy / unitCost), 20);
+    const maxParts = Math.min(Math.floor(maxEnergy / unitCost), 20);
     const potencyNeeded = Math.ceil(workNeeded / potency)
     const workersNeeded = Math.max(Math.ceil(potencyNeeded / maxParts), 1);
     const workPerWorker = Math.min(Math.max(Math.ceil(potencyNeeded / workersNeeded), 1), maxParts) * potency;
+    // console.log('maxEnergy: ' + maxEnergy + ' unitCost: ' + unitCost + ' maxParts: ' + maxParts + ' potencyNeeded: ' + potencyNeeded + ' workersNeeded: ' + workersNeeded + ' workPerWorker: ' + workPerWorker);
     return { count: workersNeeded, work: workPerWorker };
 }
 

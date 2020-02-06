@@ -74,6 +74,23 @@ export class BodyFactory {
         }
     };
 
+    public static calculateBodyCost(body: BodyPartConstant[]): number {
+        let sum = 0;
+        for (const part of body) {
+            sum += BODYPART_COST[part];
+        }
+        return sum;
+    }
+
+    public maxUnitsPerCost(unitCost: number, proportion: number = 1): number {
+        return Math.floor((this.spawnRoom.energyCapacityAvailable * proportion) / unitCost);
+    }
+
+    public maxUnits(body: BodyPartConstant[], proportion?: number) {
+        const cost = BodyFactory.calculateBodyCost(body);
+        return Math.min(this.maxUnitsPerCost(cost, proportion), Math.floor(50 / body.length));
+    }
+
     public getLongCartBody = () => {
         if (this.spawnRoom.energyCapacityAvailable >= 1800) {
             return BodyFactory.workerBody(0, 20, 11);
@@ -96,25 +113,25 @@ export class BodyFactory {
 
     public getWarriorBody() {
         let bodyUnit = BodyFactory.configBody({ [TOUGH]: 1, [ATTACK]: 4, [MOVE]: 5 });
-        let maxUnits = Math.min(this.spawnRoom.maxUnits(bodyUnit), 4);
+        let maxUnits = Math.min(this.maxUnits(bodyUnit), 4);
         if (maxUnits >= 1) {
             return BodyFactory.configBody({ [TOUGH]: maxUnits, [ATTACK]: maxUnits * 5, [MOVE]: maxUnits * 6 });
         } else {
             bodyUnit = BodyFactory.configBody({ [ATTACK]: 2, [MOVE]: 2 });
-            maxUnits = Math.min(this.spawnRoom.maxUnits(bodyUnit), 4);
+            maxUnits = Math.min(this.maxUnits(bodyUnit), 4);
             return BodyFactory.configBody({ [TOUGH]: maxUnits, [ATTACK]: maxUnits * 5, [MOVE]: maxUnits * 6 });
         }
     }
 
     public getPriestBody() {
         const bodyUnit = BodyFactory.configBody({ [TOUGH]: 1, [HEAL]: 1, [MOVE]: 2 });
-        const maxUnits = Math.min(this.spawnRoom.maxUnits(bodyUnit), 4);
+        const maxUnits = Math.min(this.maxUnits(bodyUnit), 4);
         return BodyFactory.configBody({ [TOUGH]: maxUnits, [MOVE]: maxUnits * 2, [HEAL]: maxUnits * 1 });
     }
 
     public getMineralMinerBody() {
         const bodyUnit = BodyFactory.configBody({ [WORK]: 2, [MOVE]: 1 });
-        const maxUnits = Math.min(this.spawnRoom.maxUnits(bodyUnit), 8);
+        const maxUnits = Math.min(this.maxUnits(bodyUnit), 8);
         return BodyFactory.configBody({ [WORK]: maxUnits * 2, [MOVE]: maxUnits * 1 });
     }
 }

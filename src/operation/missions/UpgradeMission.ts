@@ -4,8 +4,10 @@ import { Mission } from "./Mission";
 import { TargetAction } from "config/config";
 import { BodyFactory } from "creeps/BodyFactory";
 import * as creepActions from "creeps/creepActions";
+import { LogisticsManager } from "operation/LogisticsManager";
 import { profile } from "Profiler";
 import { AutoLayout } from "rooms/AutoLayout";
+import * as roomHelper from "rooms/roomHelper";
 
 @profile
 export class UpgradeMission extends Mission {
@@ -18,11 +20,13 @@ export class UpgradeMission extends Mission {
     public storage?: StructureStorage;
     public controller?: StructureController;
     public _hasEnergy: boolean;
+    public logistics: LogisticsManager;
 
-    constructor(operation: Operation) {
+    constructor(operation: Operation, logistics: LogisticsManager) {
         super(operation, "upgrade")
         this.isLink = false;
         this.needCart = true;
+        this.logistics = logistics;
         if (this.room) {
             this.controller = this.room.controller;
             this.container = this.findContainer();
@@ -36,7 +40,7 @@ export class UpgradeMission extends Mission {
         }
     }
     public spawn(): void {
-        this.upgraders = this.spawnRole(this.name, this.getMaxUpgraders, this.getUpgraderBody, { role: "upgrader" });
+        this.upgraders = this.spawnRole(this.name, this.getMaxUpgraders, this.getScaledUpgraderBody, { role: "upgrader" });
 
         this.haulers = this.spawnRole(this.name + "cart", this.getMaxCarts, this.getCartBody, { role: "upgrader_cart" });
 
@@ -59,6 +63,7 @@ export class UpgradeMission extends Mission {
     public finalize(): void {
         if (Game.time % 1000 === 921) {
             this.memory.isSigned = undefined;
+            this.memory.analyze = undefined;
         }
     }
 
@@ -78,6 +83,23 @@ export class UpgradeMission extends Mission {
         } else {
             return BodyFactory.workerBody(2, 1, 1);
         }
+    }
+
+    public getScaledUpgraderBody = (): BodyPartConstant[] => {
+        const potency = this.getUpgradeAnalyze().work;
+        if (potency <= 3) {
+            const maxUnits = this.maxUnits(BodyFactory.workerBody(1, 1, 1));
+            return BodyFactory.workerBody(maxUnits, maxUnits, maxUnits);
+        }
+        const units = Math.ceil(potency / 3);
+        const body = BodyFactory.workerBody(3 * units, 1 * units, 2 * units);
+        if (BodyFactory.calculateBodyCost(body) > this.spawnRoom.energyCapacityAvailable) {
+            console.log('UPGRADE: Error with body size calculations!');
+            const oddUnits = Math.floor(this.spawnRoom.energyCapacityAvailable / 200);
+            return BodyFactory.workerBody(oddUnits, oddUnits, oddUnits);
+        }
+        return body;
+
     }
 
     public getMaxCarts = (): number => {
@@ -102,8 +124,9 @@ export class UpgradeMission extends Mission {
         if (this.room && this.room.controller && this.room.controller.level < 2) {
             return 1;
         }
+        return this.getUpgradeAnalyze().count;
         // tslint:disable-next-line:prefer-const
-        let numUpgraders = 2;
+        // let numUpgraders = 2;
         /*if (this.room && this.room.storage) {
             const energy: number | undefined = this.room.storage.store.energy;
             if (energy) {
@@ -120,7 +143,7 @@ export class UpgradeMission extends Mission {
                 }
             }
         }*/
-        return numUpgraders;
+        // return numUpgraders;
     }
 
     public haulPath = (): RoomPosition[] => {
@@ -148,6 +171,7 @@ export class UpgradeMission extends Mission {
         if (this.container.structureType === STRUCTURE_CONTAINER) {
             if (this.container.store.energy > 10) { return true; }
         }
+        if (this.container.structureType === STRUCTURE_STORAGE) { return true; }
         return false;
     }
 
@@ -258,4 +282,11 @@ export class UpgradeMission extends Mission {
         }
     }
 
+    public getUpgradeAnalyze(): workAnalyze {
+        if (!this.memory.analyze) {
+            this.memory.analyze = roomHelper.workAnalyze(this.logistics.getEstimatedUpgraderWork(), this.spawnRoom, false);
+        }
+        // console.log('UPGRADE: ' + this.spawnRoom.room.print + ' ' + this.logistics.getEstimatedUpgraderWork() + ' ' + JSON.stringify(this.memory.analyze));
+        return this.memory.analyze;
+    }
 }

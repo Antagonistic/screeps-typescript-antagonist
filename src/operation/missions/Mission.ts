@@ -31,6 +31,7 @@ export abstract class Mission extends BodyFactory {
     public abstract spawn(): void;
     public abstract work(): void;
     public abstract finalize(): void;
+    public report?(): void;
 
     public spawnRole(role: string, max: () => number, getBody: () => BodyPartConstant[], memory?: any, prespawn?: number): Creep[] {
         // console.log("headcount " + role)

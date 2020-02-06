@@ -116,6 +116,7 @@ export class MarketManager {
         for (const t of terms) {
             if (roomName && t.term.room.name !== roomName) { continue; }
             const myorders = this.getOrders(t.term);
+            const energy = t.storedEnergy;
             for (const rT in t.term.store) {
                 if (rT === RESOURCE_ENERGY) { continue; }
                 let choice = "none";
@@ -132,10 +133,18 @@ export class MarketManager {
                 let orderID = "";
                 if (resorders && resorders.length > 0) {
                     const _rO = _.max(resorders, x => x.price);
-                    if (_rO.price > price * 0.8) { choice = "deal"; orderID = _rO.id } else { choice = "order"; }
+                    if (_rO.price > price * 0.8 && t.storedEnergy > 1000) {
+                        const cost = Game.market.calcTransactionCost(mineralAmount, t.term.room.name, _rO.roomName!);
+                        if (cost > t.storedEnergy) {
+                            const overhead = (mineralAmount / (mineralAmount + cost));
+                            mineralAmount = Math.max(t.storedEnergy * overhead - 1000, 10);
+                        }
+                        choice = "deal";
+                        orderID = _rO.id;
+                    } else { choice = "order"; }
                     // console.log(rT + " " + _rO.id + " " + _rO.price);
                 }
-                let response = (rT.padEnd(6) + " " + (mineralAmount + "").padStart(8) + "   " + (price.toFixed(3) + "").padStart(4) + "  " + choice.padEnd(7));
+                let response = (t.term.room.print + ' ' + rT.padEnd(6) + " " + (mineralAmount + "").padStart(8) + "   " + (price.toFixed(3) + "").padStart(4) + "  " + choice.padEnd(7));
                 if (realRun && mineralAmount > 0 && choice !== "none") {
                     let ret: ScreepsReturnCode = 0;
                     if (choice === "deal") {

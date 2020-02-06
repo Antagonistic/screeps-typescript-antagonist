@@ -100,6 +100,7 @@ export class BuilderMission extends Mission {
             if (this.roadsites.length <= 1) {
                 if (!this.memory.nextBuildRoad || this.memory.nextBuildRoad <= Game.time) {
                     this.getRoadConstruct()
+                    this.getRoadRepList();
                     if (layoutManager.makeNextBuildSite(this.room, true)) {
                         this.memory.nextBuildRoad = Game.time + wait;
                     } else {
@@ -245,10 +246,13 @@ export class BuilderMission extends Mission {
 
     public maxPavers = (): number => {
         if (!this.active) { return 0; }
-        if (this.room && this.spawnRoom.rclLevel >= 4) {
+        if (this.room && this.spawnRoom.rclLevel >= 4 && !this.room.memory.noRemote) {
             return 1;
         }
         if (this.room && this.roadsites.length !== 0) {
+            return 1;
+        }
+        if (this.getRoadRepList().length > 0) {
             return 1;
         }
         return 0;
@@ -420,7 +424,7 @@ export class BuilderMission extends Mission {
                     b.setTarget(this.sites[0], TargetAction.BUILD);
                 }
                 if (!b.action) {
-                    const rep = this.RepTarget();
+                    const rep = this.RepTarget(false, true);
                     if (rep) {
                         b.setTarget(rep, TargetAction.REPAIR);
                     }

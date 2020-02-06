@@ -2,6 +2,7 @@ import { Operation } from "../operations/Operation";
 import { Mission } from "./Mission";
 
 import { TargetAction } from "config/config";
+import { BodyFactory } from "creeps/BodyFactory";
 import * as creepActions from "creeps/creepActions";
 import { task } from "creeps/tasks";
 import { profile } from "Profiler";
@@ -50,13 +51,13 @@ export class GuardMission extends Mission {
 
     protected defenderBody = (): BodyPartConstant[] => {
         if (this.spawnRoom.energyCapacityAvailable >= 2710) {
-            const bodyUnit = this.configBody({ [TOUGH]: 1, [ATTACK]: 5, [MOVE]: 6 });
-            const maxUnits = Math.min(this.spawnRoom.maxUnits(bodyUnit), 4);
-            return this.configBody({ [TOUGH]: maxUnits, [ATTACK]: maxUnits * 5, [MOVE]: maxUnits * 6 });
+            const bodyUnit = BodyFactory.configBody({ [TOUGH]: 1, [ATTACK]: 5, [MOVE]: 6 });
+            const maxUnits = Math.min(this.maxUnits(bodyUnit), 4);
+            return BodyFactory.configBody({ [TOUGH]: maxUnits, [ATTACK]: maxUnits * 5, [MOVE]: maxUnits * 6 });
         } else {
-            const bodyUnit = this.configBody({ [ATTACK]: 1, [MOVE]: 1 });
-            const maxUnits = Math.min(this.spawnRoom.maxUnits(bodyUnit), 8);
-            return this.configBody({ [ATTACK]: maxUnits, [MOVE]: maxUnits });
+            const bodyUnit = BodyFactory.configBody({ [ATTACK]: 1, [MOVE]: 1 });
+            const maxUnits = Math.min(this.maxUnits(bodyUnit), 8);
+            return BodyFactory.configBody({ [ATTACK]: maxUnits, [MOVE]: maxUnits });
         }
     }
 
