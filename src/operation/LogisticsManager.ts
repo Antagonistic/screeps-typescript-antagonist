@@ -131,10 +131,12 @@ export class LogisticsManager {
 
     public getEstimatedUpgraderWork() {
         if (this.spawnRoom.rclLevel === 8) { return 15; }
-        const work = this.sources * 10 + this.remoteSources * 5;
-        if (Game.time % 10 === 0) {
-            console.log('LOGIC: ' + this.room + ' estimates ' + work + ' upgrade parts.');
-        }
+        let work = this.sources * 10 + this.remoteSources * 5;
+        if (this.storage && this.storage.store.energy < 20000) { work = work / 2; }
+        if (this.storage && this.storage.store.energy < 5000) { work = work / 2; }
+        // if (Game.time % 10 === 0) {
+        // console.log('LOGIC: ' + this.room + ' estimates ' + work + ' upgrade parts.');
+        // }
         return work;
     }
 
