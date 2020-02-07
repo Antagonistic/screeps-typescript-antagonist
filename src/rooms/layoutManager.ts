@@ -156,12 +156,69 @@ export function makeNextBuildSite(room: Room, road: boolean = false): boolean {
                             }
                         }
                     }
+                    if (_l.memory) {
+                        if (_l.memory.supervisor) {
+                            room.memory.supervisor = [];
+                            for (const sup of _l.memory.supervisor) {
+                                const _x = sup.x - pos.x;
+                                const _y = sup.y - pos.y;
+                                room.memory.supervisor.push({ x: _x, y: _y });
+                            }
+                        } else {
+                            _.assign(_l.memory, room.memory);
+                        }
+                    }
                 }
 
             }
         }
     }
     return false;
+}
+
+function mapLayouts(room: Room) {
+    room.memory.buildStructs = {};
+    if (room.controller && room.controller.my) {
+        const level = room.controller.level;
+        if (level > 1) {
+            const layouts = getLayouts(room);
+            for (const l of layouts) {
+                const layout = l.layout;
+                const pos = l.pos;
+                for (let i = 1; i <= level; i++) {
+                    const _l = layout[i];
+                    if (_l) {
+                        for (const key in _l.build) {
+                            const _key = key as BuildableStructureConstant;
+                            const build = _l.build[key];
+                            for (const p of build) {
+                                if (!p) {
+                                    console.log('LAYOUT: ' + p + ' erronous expected ' + key + ' room ' + room.print);
+                                }
+                                const _x = p.x - pos.x;
+                                const _y = p.y - pos.y;
+                                const _pos = new RoomPosition(_x, _y, room.name);
+
+                            }
+                        }
+                    }
+                    if (_l.memory) {
+                        if (_l.memory.supervisor) {
+                            room.memory.supervisor = [];
+                            for (const sup of _l.memory.supervisor) {
+                                const _x = sup.x - pos.x;
+                                const _y = sup.y - pos.y;
+                                room.memory.supervisor.push({ x: _x, y: _y });
+                            }
+                        } else {
+                            _.assign(_l.memory, room.memory);
+                        }
+                    }
+                }
+
+            }
+        }
+    }
 }
 
 function runConstruct(room: Room, layout: RoomLayout, pos: LightRoomPos): ScreepsReturnCode {

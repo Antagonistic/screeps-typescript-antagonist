@@ -2,14 +2,16 @@ import { SpawnRoom } from "rooms/SpawnRoom";
 import { ControllerOperation } from "./operations/ControllerOperation";
 import { Operation } from "./operations/Operation";
 
+import { BuilderMission } from "./missions/BuilderMission";
 import { MineralMission } from "./missions/MineralMission";
 import { MiningMission } from "./missions/MiningMission";
 import { UpgradeMission } from "./missions/UpgradeMission";
 
-import * as creepActions from "creeps/creepActions";
+import { Empire } from "Empire";
+import { TerminalNetwork } from "market/TerminalNetwork";
 import * as layoutManager from "rooms/layoutManager";
 import * as roadHelper from "rooms/roadHelper";
-import { BuilderMission } from "./missions/BuilderMission";
+import * as roomHelper from "rooms/roomHelper";
 
 export class LogisticsManager {
     public spawnRoom: SpawnRoom;
@@ -19,6 +21,8 @@ export class LogisticsManager {
     public C: number;
     public S: number;
     public storage: StructureStorage | undefined;
+    public terminal: StructureTerminal | undefined;
+    public terminalNetwork: TerminalNetwork;
     public links: StructureLink[] = [];
     public haslinks: boolean;
     public sources: number = 0;
@@ -29,12 +33,14 @@ export class LogisticsManager {
         this.E = this.spawnRoom.availableSpawnEnergy;
         this.C = this.spawnRoom.energyCapacityAvailable;
         this.storage = this.room.storage;
+        this.terminal = this.room.terminal;
         this.S = (this.storage) ? this.storage.store.energy : 0;
         this.links = this.room.find<StructureLink>(FIND_MY_STRUCTURES, { filter: x => x.structureType === STRUCTURE_LINK });
         this.haslinks = this.links.length > 0;
         if (Game.time % 5008 === 0) {
             this.room.memory.dest = undefined;
         }
+        this.terminalNetwork = (global.emp as Empire).termNetwork;
     }
 
     public needRefill() {
@@ -50,7 +56,7 @@ export class LogisticsManager {
 
     public getDestinations(): RoomPosition[] {
         if (this.room.memory.dest && this.room.memory.dest.length > 0) {
-            return this.room.memory.dest;
+            return roomHelper.deserializeRoomPositions(this.room.memory.dest);
         }
         const dest: RoomPosition[] = [];
         for (const op of this.operations) {
@@ -137,7 +143,7 @@ export class LogisticsManager {
         // if (Game.time % 10 === 0) {
         // console.log('LOGIC: ' + this.room + ' estimates ' + work + ' upgrade parts.');
         // }
-        return work;
+        return Math.min(Math.max(work, 1), 21);
     }
 
     public report(): void {

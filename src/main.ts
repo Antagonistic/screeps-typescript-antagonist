@@ -16,6 +16,7 @@ import './proto/Creep';
 import './proto/Misc';
 import './proto/Room';
 import './proto/RoomPosition';
+import './proto/RoomVisual';
 
 import { Empire } from "./Empire";
 
@@ -27,6 +28,7 @@ import { commandConsole } from "./commandConsole";
 
 import { AutoLayout } from "rooms/AutoLayout";
 import { AutoSnakeLayout } from "rooms/AutoSnakeLayout";
+import { HUD } from "rooms/HUD";
 import { LayoutVisualizer } from "rooms/layoutVisualizer";
 import { Traveler } from "utils/Traveler"
 
@@ -90,6 +92,7 @@ export const loop = ErrorMapper.wrapLoop(() => {
   // empire.init();
   // Profiler.start("init");
   global.emp = new Empire();
+  global.emp.init();
   const operations = OperationManager.init()
   // Profiler.end("init");
 
@@ -131,5 +134,6 @@ export const loop = ErrorMapper.wrapLoop(() => {
       delete Memory.creeps[name];
     }
   }
+  new HUD().run();
   // try { Profiler.finalize(); } catch (e) { console.log("error checking Profiler:\n", e.stack); }
 });

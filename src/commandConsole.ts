@@ -133,7 +133,7 @@ export const commandConsole = {
     // const room = flag!.room;
     // if (!room) { return "no room visibility"; }
     const roomName = flag.pos.roomName;
-    if (!Memory.rooms[roomName]) { Memory.rooms[roomName] = {} }
+    if (!Memory.rooms[roomName]) { Memory.rooms[roomName] = { buildStructs: {} } }
     const mem = Memory.rooms[roomName];
     if (mem.layout) {
       if (_.any(mem.layout, x => x.flagName === flagName && x.name === layout)) { return "already added"; }

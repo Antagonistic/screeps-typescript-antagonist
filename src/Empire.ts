@@ -1,3 +1,4 @@
+import { TerminalNetwork } from "market/TerminalNetwork";
 import { profile } from "Profiler";
 import { SpawnRoom } from "./rooms/SpawnRoom";
 import { WorldMap } from "./rooms/WorldMap";
@@ -7,22 +8,25 @@ import { WorldMap } from "./rooms/WorldMap";
 @profile
 export class Empire implements Empire {
   public defaultSpawn: SpawnRoom;
-  public spawnRooms: { [roomName: string]: SpawnRoom };
+  public spawnRooms: { [roomName: string]: SpawnRoom } = {};
   public map: WorldMap;
+  public termNetwork: TerminalNetwork;
   // public operations: { [operationName: string]: Operation };
 
   constructor() {
     if (!Memory.empire) { Memory.empire = {}; }
     if (!Memory.sign) { Memory.sign = "FooBar"; }
     // this.operations = {};
-    this.map = new WorldMap();
-    this.spawnRooms = this.init();
+    this.termNetwork = new TerminalNetwork();
+    this.map = new WorldMap(this.termNetwork);
+    // this.spawnRooms = this.init();
     this.defaultSpawn = _.sortByOrder(_.toArray(this.spawnRooms), (x: SpawnRoom) => x.rclLevel)[0];
   }
 
-  protected init(): { [roomName: string]: SpawnRoom } {
+  public init(): { [roomName: string]: SpawnRoom } {
     // this.map = new WorldMap();
-    return this.map.init();
+    this.spawnRooms = this.map.init();
+    return this.spawnRooms;
   }
 
   public getSpawnRoom(roomName: string, minRCL?: number): SpawnRoom {

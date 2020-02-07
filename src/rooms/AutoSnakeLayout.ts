@@ -1,4 +1,5 @@
 import { profile } from "Profiler/Profiler";
+import * as roomHelper from "rooms/roomHelper";
 import { AutoLayout } from "./AutoLayout";
 
 @profile
@@ -49,12 +50,12 @@ export class AutoSnakeLayout extends AutoLayout {
     }
 
     public readCache() {
-        this.road1 = Memory.rooms[this.roomName].snakeRoad1;
-        this.road2 = Memory.rooms[this.roomName].snakeRoad2;
-        this.ext1 = Memory.rooms[this.roomName].snakeExt1;
-        this.ext2 = Memory.rooms[this.roomName].snakeExt2;
-        this.storage = Memory.rooms[this.roomName].snakeStorage;
-        this.spawn = Memory.rooms[this.roomName].snakeSpawn;
+        this.road1 = roomHelper.deserializeRoomPositions(Memory.rooms[this.roomName].snakeRoad1);
+        this.road2 = roomHelper.deserializeRoomPositions(Memory.rooms[this.roomName].snakeRoad2);
+        this.ext1 = roomHelper.deserializeRoomPositions(Memory.rooms[this.roomName].snakeExt1);
+        this.ext2 = roomHelper.deserializeRoomPositions(Memory.rooms[this.roomName].snakeExt2);
+        this.storage = roomHelper.deserializeRoomPosition(Memory.rooms[this.roomName].snakeStorage);
+        this.spawn = roomHelper.deserializeRoomPosition(Memory.rooms[this.roomName].snakeSpawn);
     }
 
     public clearCache() {
@@ -93,12 +94,17 @@ export class AutoSnakeLayout extends AutoLayout {
         let candidates: RoomPosition[] = [];
         if (this.road1 && this.road1.length > 0) {
             let _candidates = AutoLayout.getOpenCardinalPosition(this.road1[0])
-            _candidates = _.filter(_candidates, (x: RoomPosition) => this.openPosition(x));
-            candidates = candidates.concat(_candidates);
+            if (_candidates.length > 0) {
+                _candidates = _.filter(_candidates, (x: RoomPosition) => this.openPosition(x));
+                if (_candidates.length > 0) { candidates = candidates.concat(_candidates); }
+            }
         }
         if (this.road2 && this.road2.length > 0) {
-            const _candidates = _.filter(AutoLayout.getOpenCardinalPosition(this.road2[0]), (x: RoomPosition) => this.openPosition(x));
-            candidates = candidates.concat(_candidates);
+            let _candidates = AutoLayout.getOpenCardinalPosition(this.road2[0])
+            if (_candidates.length > 0) {
+                _candidates = _.filter(_candidates, (x: RoomPosition) => this.openPosition(x));
+                if (_candidates.length > 0) { candidates = candidates.concat(_candidates); }
+            }
         }
         if (candidates.length === 0) {
             console.log('SNAKE: ' + this.roomName + ' has no space for tower?');

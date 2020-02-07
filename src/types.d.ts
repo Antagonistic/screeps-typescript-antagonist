@@ -20,6 +20,12 @@ interface RawMemory {
   _parsed: any;
 }
 
+interface UnserializedRoomPosition {
+  x: number;
+  y: number;
+  roomName: string;
+}
+
 interface Game {
   operations: { [opName: string]: any }
 }
@@ -96,7 +102,7 @@ interface RoomMemory {
   lastSeen?: Number;
   nextScan?: Number;
   visual?: boolean;
-  dest?: RoomPosition[];
+  dest?: UnserializedRoomPosition[];
   hostile?: boolean;
   type?: string;
   fort?: number;
@@ -111,7 +117,7 @@ interface RoomMemory {
   spawnlinks?: string[] | undefined;
   controllerlinks?: string[] | undefined;
   availBoost?: { [name: string]: string; };
-  rally?: RoomPosition;
+  rally?: UnserializedRoomPosition;
   battery?: string;
   buildState?: number;
   supervisor?: LightRoomPos[];
@@ -121,13 +127,17 @@ interface RoomMemory {
 
   // snake layout variables
   snakeInit?: boolean;
-  snakeRoad1?: RoomPosition[];
-  snakeRoad2?: RoomPosition[];
-  snakeExt1?: RoomPosition[];
-  snakeExt2?: RoomPosition[];
-  snakeStorage?: RoomPosition;
-  snakeSpawn?: RoomPosition;
+  snakeRoad1?: UnserializedRoomPosition[];
+  snakeRoad2?: UnserializedRoomPosition[];
+  snakeExt1?: UnserializedRoomPosition[];
+  snakeExt2?: UnserializedRoomPosition[];
+  snakeStorage?: UnserializedRoomPosition;
+  snakeSpawn?: UnserializedRoomPosition;
+
+  buildStructs: RoomStructurePositions;
 }
+
+type RoomStructurePositions = { [key in StructureConstant]?: UnserializedRoomPosition[] };
 
 interface LayoutMemory {
   name: string;
@@ -172,6 +182,7 @@ interface SpawnRoom {
 interface Empire {
   spawnRooms: { [roomName: string]: SpawnRoom };
   map: WorldMap;
+  init(): { [roomName: string]: SpawnRoom };
   // operations: { [operationName: string]: IOperation };
   // init(): void;
   getSpawnRoom(roomName: string): any;
@@ -260,6 +271,7 @@ interface Source {
 }
 
 interface RoomVisual {
+  multitext(textLines: string[], x: number, y: number, opts?: any): RoomVisual;
   structure(x: number, y: number, type: string, opts?: { opacity?: number }): RoomVisual;
   connectRoads(opts?: { opacity?: number }): RoomVisual | void;
   box(x: number, y: number, w: number, h: number, style?: LineStyle): RoomVisual;

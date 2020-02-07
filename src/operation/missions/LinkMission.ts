@@ -92,6 +92,7 @@ export class LinkMission extends Mission {
     public finalize(): void {
         if (Game.time % 1000 === 892) {
             this.memory.init = undefined;
+            console.log('LINK: clearing link caching ' + this.room!.print);
         }
     }
 

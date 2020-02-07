@@ -334,7 +334,8 @@ export class BuilderMission extends Mission {
                 }
             }
             if (includeWall) {
-                const walls = structures.filter(x => (x.structureType === STRUCTURE_WALL || x.structureType === STRUCTURE_RAMPART) && x.hits < roomHelper.getRoomWallLevel(this.room!));;
+                const repWallLevel = roomHelper.getRoomWallLevel(this.room!);
+                const walls = structures.filter(x => (x.structureType === STRUCTURE_WALL || x.structureType === STRUCTURE_RAMPART) && x.hits < repWallLevel);;
                 if (walls.length > 0) {
                     return _.min(walls, x => x.hits);
                 }

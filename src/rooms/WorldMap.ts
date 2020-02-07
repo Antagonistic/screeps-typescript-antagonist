@@ -1,3 +1,4 @@
+import { TerminalNetwork } from "market/TerminalNetwork";
 import { profile } from "Profiler";
 import * as roomHelper from "rooms/roomHelper";
 import { Traveler } from "utils/Traveler";
@@ -5,9 +6,13 @@ import { SpawnRoom } from "./SpawnRoom";
 
 @profile
 export class WorldMap implements WorldMap {
+  constructor(termNetwork: TerminalNetwork) {
+    this.termNetwork = termNetwork;
+  }
   public spawnGroups: { [roomName: string]: SpawnRoom } = {};
   public controlledRooms: { [roomName: string]: Room } = {};
   public sphere: string[] = [];
+  public termNetwork: TerminalNetwork;
 
   // public foesMap: {[roomName: string]: RoomMemory } = {};
   // public foesRooms: Room[] = [];
@@ -27,6 +32,9 @@ export class WorldMap implements WorldMap {
           if (room.find(FIND_MY_SPAWNS).length > 0) {
             this.spawnGroups[roomName] = new SpawnRoom(room);
             if (room.memory.remoteRoom) { this.sphere = this.sphere.concat(room.memory.remoteRoom); }
+          }
+          if (room.terminal) {
+            this.termNetwork.registerTerminal(room.terminal);
           }
         }
       }
@@ -60,7 +68,7 @@ export class WorldMap implements WorldMap {
     const remoteList = [];
     for (const r of rooms) {
       // remoteList.push(r);
-      if (!Memory.rooms[r]) { Memory.rooms[r] = {}; }
+      if (!Memory.rooms[r]) { Memory.rooms[r] = { buildStructs: {} } }
       if (Game.rooms[r]) { Memory.rooms[r].lastSeen = Game.time; }
       // if (!Memory.rooms[r].spawns) { Memory.rooms[r].spawns = []; };
       if (Memory.rooms[r].home) {

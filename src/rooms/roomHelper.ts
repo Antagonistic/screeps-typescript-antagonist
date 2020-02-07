@@ -293,6 +293,20 @@ export function getRoomCoordinates(roomName: string): RoomCoord {
     };
 }
 
+export function deserializeRoomPosition(roomPosition?: UnserializedRoomPosition | RoomPosition): RoomPosition | undefined {
+    if (!roomPosition) { return undefined; }
+    return new RoomPosition(roomPosition.x, roomPosition.y, roomPosition.roomName);
+}
+
+export function deserializeRoomPositions(roomPositions?: Array<UnserializedRoomPosition | RoomPosition>): RoomPosition[] {
+    const ret: RoomPosition[] = [];
+    if (!roomPositions) { return ret; }
+    for (const p of roomPositions) {
+        ret.push(new RoomPosition(p.x, p.y, p.roomName));
+    }
+    return ret;
+}
+
 export function layoutPushPosition(layout: RCLRoomLayout, rcl: number, struct: BuildableStructureConstant, pos?: RoomPosition) {
     if (pos) {
         if (!layout[rcl]) { layout[rcl] = { build: {} } };
