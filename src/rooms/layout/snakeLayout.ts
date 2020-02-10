@@ -1,5 +1,5 @@
 import { AutoSnakeLayout } from "rooms/AutoSnakeLayout";
-import { layoutPushPosition, layoutPushPositions } from "rooms/roomHelper";
+import { roomHelper } from "rooms/roomHelper";
 
 export function snakeLayout(room: Room, flag: Flag): RCLRoomLayout {
     const ret: RCLRoomLayout = {
@@ -19,16 +19,16 @@ export function snakeLayout(room: Room, flag: Flag): RCLRoomLayout {
     autoLayout.run();
 
 
-    layoutPushPosition(ret, 0, STRUCTURE_SPAWN, autoLayout.spawn);
+    roomHelper.layoutPushPosition(ret, 0, STRUCTURE_SPAWN, autoLayout.spawn);
 
-    layoutPushPositions(ret, 1, STRUCTURE_ROAD, autoLayout.road1);
-    layoutPushPositions(ret, 1, STRUCTURE_EXTENSION, autoLayout.getExt());
+    roomHelper.layoutPushPositions(ret, 1, STRUCTURE_ROAD, autoLayout.road1);
+    roomHelper.layoutPushPositions(ret, 1, STRUCTURE_EXTENSION, autoLayout.getExt());
 
-    layoutPushPositions(ret, 2, STRUCTURE_ROAD, autoLayout.road2);
+    roomHelper.layoutPushPositions(ret, 2, STRUCTURE_ROAD, autoLayout.road2);
 
-    layoutPushPosition(ret, 3, STRUCTURE_TOWER, autoLayout.getTower());
+    roomHelper.layoutPushPosition(ret, 3, STRUCTURE_TOWER, autoLayout.getTower());
 
-    layoutPushPosition(ret, 4, STRUCTURE_STORAGE, autoLayout.storage);
+    roomHelper.layoutPushPosition(ret, 4, STRUCTURE_STORAGE, autoLayout.storage);
 
     return ret;
 }

@@ -5,6 +5,7 @@ import * as creepActions from "creeps/creepActions";
 
 import { posix } from "path";
 import { profile } from "Profiler";
+import { buildHelper } from "rooms/buildHelper";
 import * as roomHelper from "rooms/roomHelper"
 import { Traveler } from "utils/Traveler"
 
@@ -33,7 +34,7 @@ export class MineralMission extends Mission {
             this.storage = this.spawnRoom.room.terminal;
             if (!this.extractor) {
                 if (this.mineral) {
-                    roomHelper.buildIfNotExist(this.mineral.pos, STRUCTURE_EXTRACTOR);
+                    buildHelper.buildIfNotExist(this.mineral.pos, STRUCTURE_EXTRACTOR);
                 }
             } else {
                 if (this.mineral.mineralAmount > 0 && this.storage && this.storage.store.getFreeCapacity() > this.storage.store.getCapacity() * 0.8) {
@@ -87,14 +88,14 @@ export class MineralMission extends Mission {
                     }
                     else {
                         creep.memory.inPosition = true;
-                        roomHelper.buildIfNotExist(creep.pos, STRUCTURE_CONTAINER);
+                        buildHelper.buildIfNotExist(creep.pos, STRUCTURE_CONTAINER);
                     }
                 } else {
                     creepActions.moveTo(creep, this.extractor.pos, false);
                 }
             } else {
                 if (!this.container) {
-                    roomHelper.buildIfNotExist(creep.pos, STRUCTURE_CONTAINER);
+                    buildHelper.buildIfNotExist(creep.pos, STRUCTURE_CONTAINER);
                 }
                 if (Game.time % 6 === 0 && mineralAmount > 0) {
                     const ret: number = creep.harvest(this.mineral);

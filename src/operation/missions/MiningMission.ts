@@ -7,9 +7,8 @@ import { BodyFactory } from "creeps/BodyFactory";
 import { LogisticsManager } from "operation/LogisticsManager";
 import { posix } from "path";
 import { profile } from "Profiler";
-import * as layoutManager from "rooms/layoutManager";
-import * as roadHelper from "rooms/roadHelper"
-import * as roomHelper from "rooms/roomHelper"
+import { roadHelper } from "rooms/roadHelper"
+import { roomHelper } from "rooms/roomHelper"
 import { Traveler } from "utils/Traveler"
 
 

@@ -1,7 +1,5 @@
 import { profile } from "Profiler";
-import * as layoutManager from "rooms/layoutManager";
-import { SingleLayout } from "rooms/layoutManager";
-import { hasStructure } from "./roomHelper";
+import { layoutManager, SingleLayout } from "rooms/layoutManager";
 
 @profile
 export class LayoutVisualizer {

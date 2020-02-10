@@ -7,7 +7,7 @@ import * as creepActions from "creeps/creepActions";
 import { LogisticsManager } from "operation/LogisticsManager";
 import { profile } from "Profiler";
 import { AutoLayout } from "rooms/AutoLayout";
-import * as roomHelper from "rooms/roomHelper";
+import { roomHelper } from "rooms/roomHelper";
 
 @profile
 export class UpgradeMission extends Mission {
@@ -64,6 +64,7 @@ export class UpgradeMission extends Mission {
         if (Game.time % 1000 === 921) {
             this.memory.isSigned = undefined;
             this.memory.analyze = undefined;
+            this.spawnRoom.room.memory.controllerBattery = undefined;
         }
     }
 
@@ -195,7 +196,6 @@ export class UpgradeMission extends Mission {
                         u.setTarget(this.controller, TargetAction.SIGN);
                     }
                     u.setTarget(this.controller, TargetAction.PRAISE);
-
                 } else {
                     if (this._hasEnergy) {
                         if (u.pos.isNearTo(this.container!.pos) && u.pos.inRangeTo(this.controller.pos, 3)) {

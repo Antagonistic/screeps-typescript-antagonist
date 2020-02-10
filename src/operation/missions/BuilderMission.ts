@@ -5,11 +5,12 @@ import 'config/config'
 
 import { TargetAction } from "config/config";
 import * as creepActions from "creeps/creepActions";
+import { task } from "creeps/tasks";
 import { LogisticsManager } from "operation/LogisticsManager";
 import { profile } from "Profiler";
-import * as layoutManager from "rooms/layoutManager";
-import * as roadHelper from "rooms/roadHelper";
-import * as roomHelper from "rooms/roomHelper";
+import { buildHelper } from "rooms/buildHelper";
+import { roadHelper } from "rooms/roadHelper";
+import { roomHelper } from "rooms/roomHelper";
 
 export const PRIORITY_BUILD: string[] = [
     STRUCTURE_SPAWN,
@@ -101,7 +102,7 @@ export class BuilderMission extends Mission {
                 if (!this.memory.nextBuildRoad || this.memory.nextBuildRoad <= Game.time) {
                     this.getRoadConstruct()
                     this.getRoadRepList();
-                    if (layoutManager.makeNextBuildSite(this.room, true)) {
+                    if (buildHelper.runBuildStructure(this.room, true, true, false)) {
                         this.memory.nextBuildRoad = Game.time + wait;
                     } else {
                         this.memory.nextBuildRoad = Game.time + wait * 5;
@@ -110,7 +111,7 @@ export class BuilderMission extends Mission {
             }
             if (this.sites.length <= 1) {
                 if (!this.memory.nextBuildSite || this.memory.nextBuildSite <= Game.time) {
-                    if (layoutManager.makeNextBuildSite(this.room, false)) {
+                    if (buildHelper.runBuildStructure(this.room, true, false, true)) {
                         this.memory.nextBuildSite = Game.time + wait;
                     } else {
                         this.memory.nextBuildSite = Game.time + wait * 5;
@@ -334,7 +335,7 @@ export class BuilderMission extends Mission {
                 }
             }
             if (includeWall) {
-                const repWallLevel = roomHelper.getRoomWallLevel(this.room!);
+                const repWallLevel = roomHelper.getRoomWallLevel(this.room);
                 const walls = structures.filter(x => (x.structureType === STRUCTURE_WALL || x.structureType === STRUCTURE_RAMPART) && x.hits < repWallLevel);;
                 if (walls.length > 0) {
                     return _.min(walls, x => x.hits);
@@ -359,17 +360,14 @@ export class BuilderMission extends Mission {
                     b.actionTarget();
                     if (b.action) { continue; }
                     if (this.needEmergencyRefill()) {
-                        b.action = creepActions.actionFillEnergy(b, b.action, this.spawnRoom.room);
-                        if (b.action) { continue; }
+                        task.refill(b);
                     }
                     const container = this.prioritySites.find(x => x.structureType === STRUCTURE_CONTAINER)
                     if (container) {
-                        // Build existing roads first
                         b.setTarget(container, TargetAction.BUILD);
                         continue;
                     }
                     if (this.roadsites.length > 0) {
-                        // Build existing roads first
                         b.setTarget(this.roadsites[0], TargetAction.BUILD);
                         continue;
                     }
@@ -411,17 +409,17 @@ export class BuilderMission extends Mission {
         for (const b of this.builders) {
             if (b.working) {
                 b.actionTarget();
-                b.action = this.actionPriorityWall(b, b.action);
+
+                task.priorityWall(b);
                 if (this.needEmergencyRefill()) {
-                    b.action = creepActions.actionFillEnergy(b, b.action, this.spawnRoom.room);
+                    task.refill(b);
                 }
-                if (!b.action && b.room.controller && b.room.controller.ticksToDowngrade < 2000) {
-                    b.action = creepActions.actionUpgrade(b, b.action);
-                }
-                if (!b.action && this.prioritySites.length > 0) {
+                task.praiseEmergency(b);
+
+                if (this.prioritySites.length > 0) {
                     b.setTarget(this.prioritySites[0], TargetAction.BUILD);
                 }
-                if (!b.action && this.sites.length > 0) {
+                if (this.sites.length > 0) {
                     b.setTarget(this.sites[0], TargetAction.BUILD);
                 }
                 if (!b.action) {
@@ -430,15 +428,10 @@ export class BuilderMission extends Mission {
                         b.setTarget(rep, TargetAction.REPAIR);
                     }
                 }
-                if (!b.action && this.room && this.room.controller && this.room.controller.my) {
-                    b.action = creepActions.actionUpgrade(b, b.action);
-                }
-                // action = creepActions.actionUpgrade(b, action);
-                // action = creepActions.actionRally(b, action);
+                task.praise(b);
             } else {
 
                 b.action = this.operation.creepGetEnergy(b, b.action, true, true);
-                // b.say("" + action);
             }
             if (!b.action) { b.rally() };
         }

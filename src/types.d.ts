@@ -134,7 +134,9 @@ interface RoomMemory {
   snakeStorage?: UnserializedRoomPosition;
   snakeSpawn?: UnserializedRoomPosition;
 
-  buildStructs: RoomStructurePositions;
+  structures: RoomStructurePositions;
+  layoutTime?: number;
+  lastSpawned?: string;
 }
 
 type RoomStructurePositions = { [key in StructureConstant]?: UnserializedRoomPosition[] };

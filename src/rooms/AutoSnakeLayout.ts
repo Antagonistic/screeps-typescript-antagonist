@@ -1,5 +1,5 @@
 import { profile } from "Profiler/Profiler";
-import * as roomHelper from "rooms/roomHelper";
+import { roomHelper } from "rooms/roomHelper";
 import { AutoLayout } from "./AutoLayout";
 
 @profile

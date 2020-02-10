@@ -43,6 +43,31 @@ export const task = {
         }
     },
 
+    praise(creep: Creep, ) {
+        if (!creep.action) {
+            if (creep.room.controller && creep.room.controller.my && creep.room.controller.level < 8) {
+                creep.setTarget(creep.room.controller, TargetAction.PRAISE);
+            }
+        }
+    },
+
+    praiseEmergency(creep: Creep, ) {
+        if (!creep.action) {
+            if (creep.room.controller && creep.room.controller.my && creep.room.controller.ticksToDowngrade < 2000) {
+                creep.setTarget(creep.room.controller, TargetAction.PRAISE);
+            }
+        }
+    },
+
+    priorityWall(creep: Creep) {
+        if (!creep.action) {
+            const walls = creep.room.find(FIND_STRUCTURES, { filter: x => (x.structureType === STRUCTURE_WALL || x.structureType === STRUCTURE_RAMPART) && x.hits < 100 });
+            if (walls && walls.length > 0) {
+                creep.setTarget(walls[0], TargetAction.REPAIR);
+            }
+        }
+    },
+
     getEnergyStorage(creep: Creep, minEnergy: number = 10000) {
         if (!creep.action) {
             if (creep.room.storage) {

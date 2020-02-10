@@ -4,7 +4,8 @@ import { Mission } from "./Mission";
 import { BodyFactory } from "creeps/BodyFactory";
 import * as creepActions from "creeps/creepActions";
 import { profile } from "Profiler";
-import { buildIfNotExist } from "rooms/roomHelper";
+import { buildHelper } from "rooms/buildHelper";
+import { roomHelper } from "rooms/roomHelper";
 
 @profile
 export class ClaimMission extends Mission {
@@ -52,7 +53,7 @@ export class ClaimMission extends Mission {
                                 creepActions.moveTo(creep, this.controller);
                             }
                         } else {
-                            const ret = buildIfNotExist(this.operation.flag.pos, STRUCTURE_SPAWN);
+                            const ret = buildHelper.buildIfNotExist(this.operation.flag.pos, STRUCTURE_SPAWN);
                             if (ret === OK) {
                                 creep.suicide();
                             }
@@ -66,7 +67,7 @@ export class ClaimMission extends Mission {
     public finalize(): void {
         if (this.room && Game.time % 100 === 32) {
             if (this.room.find(FIND_MY_SPAWNS).length === 0) {
-                const ret = buildIfNotExist(this.operation.flag.pos, STRUCTURE_SPAWN);
+                const ret = buildHelper.buildIfNotExist(this.operation.flag.pos, STRUCTURE_SPAWN);
             }
         }
     }

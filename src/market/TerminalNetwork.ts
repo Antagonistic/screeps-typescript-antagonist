@@ -16,7 +16,7 @@ export class TerminalNetwork {
         if (term.store.energy - TerminalNetwork.ENERGY_FLOAT > 1000) {
             ;
         }
-        else if (TerminalNetwork.ENERGY_FLOAT - term.store.energy) {
+        else if (TerminalNetwork.ENERGY_FLOAT - term.store.energy > 1000) {
             ;
         }
     }

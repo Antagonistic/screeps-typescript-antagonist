@@ -18,6 +18,8 @@ import './proto/Room';
 import './proto/RoomPosition';
 import './proto/RoomVisual';
 
+import 'utils/viking'
+
 import { Empire } from "./Empire";
 
 import { ErrorMapper } from "utils/ErrorMapper";

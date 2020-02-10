@@ -58,6 +58,7 @@ export abstract class Mission extends BodyFactory {
         }
 
         if (this.spawnRoom.isAvailable && count < max()) {
+            this.spawnRoom.room.memory.lastSpawned = role;
             // console.log("spawning new " + role);
             const newcreepName = `${this.operation.name}_${role}_${Memory.uuid % 100}`;
             const outcome = this.spawnRoom.spawn(getBody(), newcreepName, memory);

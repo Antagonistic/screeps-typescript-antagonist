@@ -1,7 +1,7 @@
 // import * as CreepManager from "./components/creeps/creepManager";
 // import * as soldier from "./components/creeps/roles/soldier";
 
-import * as roomHelper from "./rooms/roomHelper"
+import { roomHelper } from "./rooms/roomHelper"
 
 import { log } from "./lib/logger/log";
 
@@ -12,7 +12,10 @@ import { SpawnRoom } from "./rooms/SpawnRoom";
 
 import { MarketManager } from "market/MarketManager";
 import { LogisticsManager } from "operation/LogisticsManager";
-import * as layoutManager from "rooms/layoutManager";
+import { buildHelper } from "rooms/buildHelper";
+import { layoutManager } from "rooms/layoutManager";
+
+import * as viking from 'utils/viking';
 
 function getRoom(roomName: string) {
   return Game.rooms[roomName];
@@ -55,18 +58,11 @@ export const commandConsole = {
       global.emp.spawnRooms[_sR].logistics.report();
     }
   },
-  runBuild(roomName: string = defaultRoom, rcl: number = -1): void {
+  runBuild(roomName: string = defaultRoom, runOnce: boolean = true): void {
     const room = getRoom(roomName);
     if (room) {
-      layoutManager.run(room, rcl, true);
+      buildHelper.runBuildStructure(room, runOnce, true, true);
     }
-  },
-  runBuild2(roomName: string = defaultRoom, road: boolean = false) {
-    const room = getRoom(roomName);
-    if (room) {
-      return layoutManager.makeNextBuildSite(room, road);
-    }
-    return false;
   },
   runBuildRoad(roomName: string = defaultRoom) {
     if (global.emp.spawnRooms[roomName]) {
@@ -133,7 +129,7 @@ export const commandConsole = {
     // const room = flag!.room;
     // if (!room) { return "no room visibility"; }
     const roomName = flag.pos.roomName;
-    if (!Memory.rooms[roomName]) { Memory.rooms[roomName] = { buildStructs: {} } }
+    if (!Memory.rooms[roomName]) { Memory.rooms[roomName] = { structures: {} } }
     const mem = Memory.rooms[roomName];
     if (mem.layout) {
       if (_.any(mem.layout, x => x.flagName === flagName && x.name === layout)) { return "already added"; }
@@ -207,5 +203,8 @@ export const commandConsole = {
       const mem = Memory.creeps[c];
       mem.debug = undefined;
     }
+  },
+  myResources(hide: boolean = false) {
+    return viking.myResources(hide);
   }
 };

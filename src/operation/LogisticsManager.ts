@@ -9,9 +9,10 @@ import { UpgradeMission } from "./missions/UpgradeMission";
 
 import { Empire } from "Empire";
 import { TerminalNetwork } from "market/TerminalNetwork";
-import * as layoutManager from "rooms/layoutManager";
-import * as roadHelper from "rooms/roadHelper";
-import * as roomHelper from "rooms/roomHelper";
+import { HUD } from "rooms/HUD";
+import { layoutManager } from "rooms/layoutManager";
+import { roadHelper } from "rooms/roadHelper";
+import { roomHelper } from "rooms/roomHelper";
 
 export class LogisticsManager {
     public spawnRoom: SpawnRoom;
@@ -193,6 +194,9 @@ export class LogisticsManager {
             // No operations for this spawngroup? Fix it!
             console.log("No operations for this spawngroup? Fix it!");
             ControllerOperation.initNewControllerOperation(this.room, this.spawnRoom.spawns[0].pos);
+        }
+        if (Game.cpu.bucket > 3000) {
+            new HUD().runControlledRoom(this.room);
         }
     }
 

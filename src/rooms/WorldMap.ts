@@ -1,6 +1,6 @@
 import { TerminalNetwork } from "market/TerminalNetwork";
 import { profile } from "Profiler";
-import * as roomHelper from "rooms/roomHelper";
+import { roomHelper } from "rooms/roomHelper";
 import { Traveler } from "utils/Traveler";
 import { SpawnRoom } from "./SpawnRoom";
 
@@ -68,7 +68,7 @@ export class WorldMap implements WorldMap {
     const remoteList = [];
     for (const r of rooms) {
       // remoteList.push(r);
-      if (!Memory.rooms[r]) { Memory.rooms[r] = { buildStructs: {} } }
+      if (!Memory.rooms[r]) { Memory.rooms[r] = { structures: {} } }
       if (Game.rooms[r]) { Memory.rooms[r].lastSeen = Game.time; }
       // if (!Memory.rooms[r].spawns) { Memory.rooms[r].spawns = []; };
       if (Memory.rooms[r].home) {

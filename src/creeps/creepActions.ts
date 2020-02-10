@@ -1,8 +1,7 @@
 import * as Config from "config/config";
 import { TargetAction } from "config/config";
 import { profile } from "Profiler";
-import { getRally } from "rooms/roomHelper";
-import * as roomHelper from "rooms/roomHelper"
+import { roomHelper } from "rooms/roomHelper";
 import { Traveler } from "utils/Traveler";
 
 // import { log } from "../../lib/logger/log";

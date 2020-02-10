@@ -3,6 +3,7 @@ import { Mission } from "../missions/Mission";
 
 import { TargetAction } from "config/config";
 import * as creepActions from "creeps/creepActions";
+import { ErrorMapper } from "utils/ErrorMapper";
 import { Traveler } from "utils/Traveler";
 
 export enum OperationPriority { Emergency, OwnedRoom, VeryHigh, High, Medium, Low, VeryLow }
@@ -72,10 +73,9 @@ export abstract class Operation {
     try {
       this.initOperation();
     } catch (e) {
-      console.log("ERROR: Operation error: init: " + this.name)
-      console.log(e.stack)
+      console.log(`ERROR: Operation error: init: ${this.name}`);
+      console.log(ErrorMapper.sourceMappedStackTrace(e));
     }
-
 
     for (const missionName in this.missions) {
       try {
@@ -83,8 +83,9 @@ export abstract class Operation {
         this.missions[missionName].initMission();
       }
       catch (e) {
-        console.log("error caught in initMission phase, operation:", this.name, "mission:", missionName);
-        console.log(e.stack);
+        console.log(`error caught in initMission phase, operation: ${this.name} mission: ${missionName}`);
+        console.log(ErrorMapper.sourceMappedStackTrace(e));
+
       }
 
     }
@@ -95,8 +96,8 @@ export abstract class Operation {
       try {
         this.missions[missionName].spawn();
       } catch (e) {
-        console.log("error caught in spawn phase, operation:", this.name, "mission:", missionName);
-        console.log(e.stack);
+        console.log(`error caught in spawn phase, operation: ${this.name} mission: ${missionName}`);
+        console.log(ErrorMapper.sourceMappedStackTrace(e));
       }
     }
   }
@@ -106,8 +107,8 @@ export abstract class Operation {
       try {
         this.missions[missionName].work();
       } catch (e) {
-        console.log("error caught in work phase, operation:", this.name, "mission:", missionName);
-        console.log(e.stack);
+        console.log(`error caught in work phase, operation: ${this.name} mission: ${missionName}`);
+        console.log(ErrorMapper.sourceMappedStackTrace(e));
       }
     }
   }
@@ -134,8 +135,8 @@ export abstract class Operation {
           this.memory.range = undefined;
         }
       } catch (e) {
-        console.log("error caught in finalize phase, operation:", this.name, "mission:", missionName);
-        console.log(e.stack);
+        console.log(`error caught in finalize phase, operation: ${this.name} mission: ${missionName}`);
+        console.log(ErrorMapper.sourceMappedStackTrace(e));
       }
     }
 
@@ -143,8 +144,8 @@ export abstract class Operation {
       this.finalizeOperation();
       // this.flag.memory = this.memory;
     } catch (e) {
-      console.log("error caught in finalize phase, operation:", this.name);
-      console.log(e.stack);
+      console.log(`error caught in finalize phase, operation: ${this.name}`);
+      console.log(ErrorMapper.sourceMappedStackTrace(e));
     }
   }
 

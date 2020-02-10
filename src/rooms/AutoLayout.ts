@@ -1,4 +1,4 @@
-import * as roomHelper from "rooms/roomHelper";
+import { roomHelper } from "rooms/roomHelper";
 
 export class AutoLayout {
     public roomName: string;
