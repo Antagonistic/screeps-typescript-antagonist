@@ -22,6 +22,9 @@ export function sealedLayout(room: Room, flag: Flag): RCLRoomLayout {
         1: {
             build: {
                 spawn: [{ "x": 24, "y": 21 }]
+            },
+            memory: {
+                bunkerDefence: true
             }
         },
         2: {
@@ -75,14 +78,14 @@ export function sealedLayout(room: Room, flag: Flag): RCLRoomLayout {
             }
         }
     }
-    const rampartSpots: LightRoomPos[] = [];
+    /*const rampartSpots: LightRoomPos[] = [];
     for (const rcl in ret) {
         for (const b in ret[rcl].build) {
             for (const p of ret[rcl].build[b]) {
                 rampartSpots.push(p);
             }
         }
-    }
-    ret[6].build[STRUCTURE_RAMPART] = rampartSpots;
+    }*/
+    // ret[6].build[STRUCTURE_RAMPART] = rampartSpots;
     return ret;
 };

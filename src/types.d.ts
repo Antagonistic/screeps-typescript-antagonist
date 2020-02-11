@@ -137,6 +137,7 @@ interface RoomMemory {
   structures: RoomStructurePositions;
   layoutTime?: number;
   lastSpawned?: string;
+  bunkerDefence?: boolean;
 }
 
 type RoomStructurePositions = { [key in StructureConstant]?: UnserializedRoomPosition[] };

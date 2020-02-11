@@ -9,6 +9,7 @@ import { task } from "creeps/tasks";
 import { LogisticsManager } from "operation/LogisticsManager";
 import { profile } from "Profiler";
 import { buildHelper } from "rooms/buildHelper";
+import { defenceHelper } from "rooms/defenceHelper";
 import { roadHelper } from "rooms/roadHelper";
 import { roomHelper } from "rooms/roomHelper";
 
@@ -97,7 +98,7 @@ export class BuilderMission extends Mission {
     public finalize(): void {
         // Create new sites
         if (!this.remoteSpawning && this.room && this.operation.stableOperation) {
-            const wait = Game.cpu.bucket <= 10000 ? 300 : 50;
+            const wait = Game.cpu.bucket <= 99000 ? 300 : 50;
             if (this.roadsites.length <= 1) {
                 if (!this.memory.nextBuildRoad || this.memory.nextBuildRoad <= Game.time) {
                     this.getRoadConstruct()
@@ -114,6 +115,21 @@ export class BuilderMission extends Mission {
                     if (buildHelper.runBuildStructure(this.room, true, false, true)) {
                         this.memory.nextBuildSite = Game.time + wait;
                     } else {
+                        if (this.spawnRoom.rclLevel >= 6 && this.room.memory.bunkerDefence) {
+                            const roomSpots = _.flatten(Object.values(this.spawnRoom.room.memory.structures)) as UnserializedRoomPosition[];
+                            const ret = defenceHelper.assaultRampartSim(this.spawnRoom.room, roomSpots);
+                            if (ret === false || ret === true) {
+                                ;
+                            } else {
+                                for (const r of ret) {
+                                    const pos = roomHelper.deserializeRoomPosition(r);
+                                    if (pos) {
+                                        pos.createConstructionSite(STRUCTURE_RAMPART);
+                                    }
+                                }
+                            }
+
+                        }
                         this.memory.nextBuildSite = Game.time + wait * 5;
                     }
                 }

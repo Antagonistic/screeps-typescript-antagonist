@@ -10,12 +10,13 @@ import { log } from "./lib/logger/log";
 import { Empire } from "Empire";
 import { SpawnRoom } from "./rooms/SpawnRoom";
 
+import * as viking from 'utils/viking';
+
 import { MarketManager } from "market/MarketManager";
 import { LogisticsManager } from "operation/LogisticsManager";
 import { buildHelper } from "rooms/buildHelper";
+import { defenceHelper } from "rooms/defenceHelper";
 import { layoutManager } from "rooms/layoutManager";
-
-import * as viking from 'utils/viking';
 
 function getRoom(roomName: string) {
   return Game.rooms[roomName];
@@ -29,7 +30,7 @@ function getFlag(flagName: string) {
   return Game.flags[flagName];
 }
 
-const defaultRoom = "W19N52";
+const defaultRoom = "W16S29";
 
 export const commandConsole = {
   ping(): void {
@@ -50,6 +51,44 @@ export const commandConsole = {
       if (_f.indexOf('deposit') > 0) { Game.flags[_f].remove(); }
       if (_f.indexOf('power') > 0) { Game.flags[_f].remove(); }
       if (_f.indexOf('mining') > 0) { Game.flags[_f].remove(); }
+    }
+  },
+  defenceTest(roomName: string = defaultRoom) {
+    const room = getRoom(roomName);
+    const layoutObjects = _.flatten(Object.values(room.memory.structures)) as UnserializedRoomPosition[];
+    const simResult = defenceHelper.assaultRampartSim(room, layoutObjects);
+    if (simResult === true) {
+      return true;
+    }
+    if (simResult === false) {
+      return true;
+    }
+    for (const p of simResult) {
+      const pos = roomHelper.deserializeRoomPosition(p);
+      if (pos) {
+        // pos.createConstructionSite(STRUCTURE_RAMPART);
+        room.visual.circle(p.x, p.y);
+      }
+    }
+    return `success ${simResult.length} created`
+  },
+  defenceClear(roomName: string = defaultRoom, all: boolean = false) {
+    const room = getRoom(roomName);
+    for (const r of room.find(FIND_STRUCTURES, { filter: x => x.structureType === STRUCTURE_RAMPART || x.structureType === STRUCTURE_WALL })) {
+      if (!all) {
+        if (room.controller) { if (r.pos.inRangeTo(room.controller, 3)) { continue; } }
+        for (const s of room.find(FIND_SOURCES)) {
+          if (r.pos.inRangeTo(s, 3)) { continue; }
+        }
+        if (r.pos.lookForStructure(STRUCTURE_STORAGE)) { continue; }
+        if (r.pos.lookForStructure(STRUCTURE_TERMINAL)) { continue; }
+        if (r.pos.lookForStructure(STRUCTURE_SPAWN)) { continue; }
+        if (r.pos.lookForStructure(STRUCTURE_POWER_SPAWN)) { continue; }
+        if (r.pos.lookForStructure(STRUCTURE_LAB)) { continue; }
+        if (r.pos.lookForStructure(STRUCTURE_CONTAINER)) { continue; }
+        if (r.pos.lookForStructure(STRUCTURE_LINK)) { continue; }
+      }
+      r.destroy();
     }
   },
   report(roomName?: string): void {

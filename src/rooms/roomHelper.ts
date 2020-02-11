@@ -271,6 +271,22 @@ export const roomHelper = {
         return ret;
     },
 
+    intersection<T extends UnserializedRoomPosition>(posList1: T[], posList2: T[]): T[] {
+        const posList2Numbers = posList2.map((el) => (el.x + 1) * 50 + el.y);
+
+        // Create a set and add all numbers from poslist2
+        const posSet = new Set();
+        posList2Numbers.forEach((num) => posSet.add(num));
+
+        // Filter posList1 by member-testing the Set.
+        const intersection = posList1.filter((el) => posSet.has((el.x + 1) * 50 + el.y));
+        return intersection;
+    },
+
+    unique<T extends UnserializedRoomPosition>(posList1: T[]) {
+        return _.unique(posList1, false, (el) => (el.x + 1) * 50 + el.y);
+    },
+
     layoutPushPosition(layout: RCLRoomLayout, rcl: number, struct: BuildableStructureConstant, pos?: RoomPosition) {
         if (pos) {
             if (!layout[rcl]) { layout[rcl] = { build: {} } };
