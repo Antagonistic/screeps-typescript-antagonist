@@ -33,7 +33,7 @@ export function init(): Profiler {
     },
 
     stop() {
-      if (!isEnabled()) { return; }
+      if (!isEnabled()) { return ""; }
       const timeRunning = Game.time - Memory.profiler.start!;
       Memory.profiler.total += timeRunning;
       delete Memory.profiler.start;

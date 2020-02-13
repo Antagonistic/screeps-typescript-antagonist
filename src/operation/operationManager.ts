@@ -4,7 +4,7 @@ import { Operation } from "./operations/Operation";
 
 import { Empire } from "../Empire";
 
-import { log } from "../lib/logger/log";
+// import { log } from "../lib/logger/log";
 import { GuardOperation } from "./operations/GuardOperation";
 import { InvaderOperation } from "./operations/InvaderOperation";
 import { LootOperation } from "./operations/LootOperation";
@@ -37,7 +37,7 @@ export function init(): Operation[] {
         const name = flagName.substring(flagName.indexOf("_") + 1);
 
         if (operationList.hasOwnProperty(name)) {
-          log.info(`operation with name ${name} already exists (type: ${operationList[name].type})`);
+          console.log(`operation with name ${name} already exists (type: ${operationList[name].type})`);
           continue;
         }
 

@@ -1,7 +1,7 @@
 import * as Config from "config/config";
 
 import { BodyFactory } from "creeps/BodyFactory";
-import { log } from "lib/logger/log";
+// import { log } from "lib/logger/log";
 import { LogisticsManager } from "operation/LogisticsManager";
 
 export class SpawnRoom implements SpawnRoom {
@@ -93,16 +93,16 @@ export class SpawnRoom implements SpawnRoom {
           };
           if (memory) { _.assign(properties, memory); }
 
-          log.info("Started creating new creep: " + creepName);
+          console.log("Started creating new creep: " + creepName);
           if (Config.ENABLE_DEBUG_MODE) {
-            log.info("Body: " + bodyParts);
+            console.log("Body: " + bodyParts);
           }
 
           status = spawn.createCreep(bodyParts, creepName, properties);
         }
         if (typeof status !== "string" && status !== OK && status !== ERR_NOT_ENOUGH_ENERGY) {
           if (Config.ENABLE_DEBUG_MODE) {
-            log.info("Failed creating new creep: " + status);
+            console.log("Failed creating new creep: " + status);
           }
           return false;
         } else if (status === OK) {

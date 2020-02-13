@@ -26,14 +26,17 @@ const myController = mockInstanceOf<StructureController>({ my: true });
 const someoneElsesController = mockInstanceOf<StructureController>({ my: false });
 const tower1 = mockStructure(STRUCTURE_TOWER);
 const tower2 = mockStructure(STRUCTURE_TOWER);
+// @ts-ignore
 const myRoomWithTowers = mockInstanceOf<Room>({
     controller: myController,
     find: () => [tower1, tower2]
 });
+// @ts-ignore
 const myRoomWithoutTowers = mockInstanceOf<Room>({
     controller: myController,
     find: () => []
 });
+// @ts-ignore
 const someoneElsesRoom = mockInstanceOf<Room>({ controller: someoneElsesController });
 const noOnesRoom = mockInstanceOf<Room>({ controller: undefined });
 

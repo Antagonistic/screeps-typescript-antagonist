@@ -1,6 +1,6 @@
 import { Operation, OperationPriority } from "./Operation";
 
-import { log } from "lib/logger/log";
+// import { log } from "lib/logger/log";
 import { BuilderMission } from "../missions/BuilderMission";
 import { EmergencyMission } from "../missions/EmergencyMission";
 import { GuardMission } from "../missions/GuardMission";
@@ -15,7 +15,7 @@ import { ScoutMission } from "operation/missions/ScoutMission";
 import { ScoutRandomMission } from "operation/missions/ScoutRandomMission";
 import { SupervisorMission } from "operation/missions/SupervisorMission";
 import * as layoutManager from "rooms/layoutManager";
-import * as StructureManager from "rooms/structureManager";
+// import * as StructureManager from "rooms/structureManager";
 import { RefillMission } from "../missions/RefillMission";
 
 export class ControllerOperation extends Operation {
@@ -110,7 +110,7 @@ export class ControllerOperation extends Operation {
             }
             const name = room.createFlag(pos.x, pos.y, "controller_" + room.name, 1, 2)
             if (name === ERR_NAME_EXISTS || name === ERR_INVALID_ARGS) {
-                log.error("Error initializing new controller operation!")
+                console.log("Error initializing new controller operation!")
             }
         }
     }

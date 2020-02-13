@@ -46,7 +46,7 @@ RoomPosition.prototype.lookForStructure = function (structureType: StructureCons
 };
 
 RoomPosition.prototype.findStructureInRange = function (structureType: StructureConstant, range: number = 1): Structure | undefined {
-    const ret = _.find(this.findInRange(FIND_STRUCTURES, range, { filter: x => x.structureType === structureType }));
+    const ret = _.find(this.findInRange(FIND_STRUCTURES, range, { filter: x => x.structureType === structureType })) as Structure | undefined;
     if (!ret) { return undefined; }
     return ret;
 }

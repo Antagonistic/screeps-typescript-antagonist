@@ -4,10 +4,10 @@ import * as Config from "./config/config";
 
 // import * as FlagManager from "./components/flags/flagManager";
 import * as OperationManager from "operation/operationManager";
-import * as StructureManager from "rooms/structureManager";
+// import * as StructureManager from "rooms/structureManager";
 // import * as WarManager from "./components/war/warManager";
 
-import { log } from "lib/logger/log";
+// import { log } from "lib/logger/log";
 // import * as Profiler from "screeps-profiler";
 // import { Profiler } from "./Profiler";
 import * as Profiler from "./Profiler";
@@ -138,6 +138,6 @@ export function unwrappedLoop() {
   }
   new HUD().run();
   // try { Profiler.finalize(); } catch (e) { console.log("error checking Profiler:\n", e.stack); }
-});
+};
 
 export const loop = ErrorMapper.wrapLoop(unwrappedLoop);
