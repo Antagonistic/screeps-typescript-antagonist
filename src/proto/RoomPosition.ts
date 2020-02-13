@@ -1,3 +1,8 @@
+{
+    const g = global as any;
+    if (!g.RoomPosition) { g.RoomPosition = g.RoomPosition ?? { prototype: {} }; }
+}
+
 Object.defineProperty(RoomPosition.prototype, 'print', {
     get() {
         return '<a href="#!/room/' + Game.shard.name + '/' + this.roomName + '">[' + this.roomName + ', ' + this.x +

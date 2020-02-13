@@ -1,3 +1,8 @@
+{
+    const g = global as any;
+    if (!g.Room) { g.Room = g.Room ?? { prototype: {} }; }
+}
+
 import { roomHelper } from "rooms/roomHelper";
 
 Object.defineProperty(Room.prototype, 'print', {

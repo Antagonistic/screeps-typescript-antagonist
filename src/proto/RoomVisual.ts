@@ -1,3 +1,8 @@
+{
+    const g = global as any;
+    if (!g.RoomVisual) { g.RoomVisual = g.RoomVisual ?? { prototype: {} }; }
+}
+
 // Shamelessly stolen from Overmind
 
 /* tslint:disable:object-literal-sort-keys*/

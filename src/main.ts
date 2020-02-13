@@ -1,5 +1,11 @@
 // __PROFILER_ENABLED__ = true;
 
+import './proto/Creep';
+import './proto/Misc';
+import './proto/Room';
+import './proto/RoomPosition';
+import './proto/RoomVisual';
+
 import * as Config from "./config/config";
 
 // import * as FlagManager from "./components/flags/flagManager";
@@ -11,12 +17,6 @@ import * as OperationManager from "operation/operationManager";
 // import * as Profiler from "screeps-profiler";
 // import { Profiler } from "./Profiler";
 import * as Profiler from "./Profiler";
-
-import './proto/Creep';
-import './proto/Misc';
-import './proto/Room';
-import './proto/RoomPosition';
-import './proto/RoomVisual';
 
 import 'utils/viking'
 

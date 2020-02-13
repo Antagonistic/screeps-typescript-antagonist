@@ -1,3 +1,8 @@
+{
+  const g = global as any;
+  if (!g.__PROFILER_ENABLED__) { g.__PROFILER_ENABLED__ = false; }
+}
+
 /* tslint:disable:ban-types */
 export function init(): Profiler {
   const defaults = {
