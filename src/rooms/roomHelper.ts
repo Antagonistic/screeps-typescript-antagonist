@@ -238,25 +238,6 @@ export const roomHelper = {
         return { count: workersNeeded, work: workPerWorker };
     },
 
-    getRoomCoordinates(roomName: string): RoomCoord {
-
-        const coordinateRegex = /(E|W)(\d+)(N|S)(\d+)/g;
-        const match = coordinateRegex.exec(roomName);
-        if (!match) { return { x: 0, y: 0, xDir: "", yDir: "" }; }
-
-        const xDir = match[1];
-        const x = match[2];
-        const yDir = match[3];
-        const y = match[4];
-
-        return {
-            x: Number(x),
-            xDir,
-            y: Number(y),
-            yDir,
-        };
-    },
-
     deserializeRoomPosition(roomPosition?: UnserializedRoomPosition | RoomPosition): RoomPosition | undefined {
         if (!roomPosition) { return undefined; }
         return new RoomPosition(roomPosition.x, roomPosition.y, roomPosition.roomName);
@@ -301,22 +282,6 @@ export const roomHelper = {
         }
     },
 
-    /**
-     * Get the type of the room
-     */
-    roomType(roomName: string): 'SK' | 'CORE' | 'CTRL' | 'ALLEY' {
-        const coords = roomHelper.getRoomCoordinates(roomName);
-        if (coords.x % 10 === 0 || coords.y % 10 === 0) {
-            return 'ALLEY';
-        } else if (coords.x % 10 !== 0 && coords.x % 5 === 0 && coords.y % 10 !== 0 && coords.y % 5 === 0) {
-            return 'CORE';
-        } else if (coords.x % 10 <= 6 && coords.x % 10 >= 4 && coords.y % 10 <= 6 && coords.y % 10 >= 4) {
-            return 'SK';
-        } else {
-            return 'CTRL';
-        }
-    },
-
     getRoomWallLevel(room: Room, forceCheck: boolean = false) {
         if (!room.memory.fort) {
             room.memory.fort = 10000;
@@ -338,5 +303,37 @@ export const roomHelper = {
             }
         }
         return room.memory.fort || 0;
-    }
+    },
+    getRoomCoord(roomName: string): RoomCoord {
+        const worldSize = 256;
+        const room = /^([WE])([0-9]+)([NS])([0-9]+)$/.exec(roomName);
+        if (!room) {
+            throw new Error('Invalid room name');
+        }
+        const rx = worldSize / 2 + (room[1] === 'W' ? -Number(room[2]) : Number(room[2]) + 1);
+        const ry = worldSize / 2 + (room[3] === 'N' ? -Number(room[4]) : Number(room[4]) + 1);
+        if (!(rx >= 0 && rx <= worldSize && ry >= 0 && ry <= worldSize)) {
+            throw new Error('Invalid room name');
+        }
+        return { xx: rx, yy: ry };
+    },
+    getRoomUUID(roomName: string): number {
+        const worldSize = 256;
+        const coord = this.getRoomCoord(roomName);
+        return 256 * coord.xx + coord.yy;
+    },
+    roomType(roomName: string): 'SK' | 'CORE' | 'CTRL' | 'ALLEY' {
+        const coords = roomHelper.getRoomCoord(roomName);
+        const _x = coords.xx > 0 ? coords.xx - 1 : coords.xx;
+        const _y = coords.yy > 0 ? coords.yy - 1 : coords.yy;
+        if (_x % 10 === 0 || _y % 10 === 0) {
+            return 'ALLEY';
+        } else if (_x % 10 !== 0 && _x % 5 === 0 && _y % 10 !== 0 && _y % 5 === 0) {
+            return 'CORE';
+        } else if (_x % 10 <= 6 && _x % 10 >= 4 && _y % 10 <= 6 && _y % 10 >= 4) {
+            return 'SK';
+        } else {
+            return 'CTRL';
+        }
+    },
 };

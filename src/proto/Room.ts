@@ -1,3 +1,5 @@
+import { roomHelper } from "rooms/roomHelper";
+
 Object.defineProperty(Room.prototype, 'print', {
     get() {
         return '<a href="#!/room/' + Game.shard.name + '/' + this.name + '">[' + this.name + ']</a>';
@@ -8,6 +10,16 @@ Object.defineProperty(Room.prototype, 'print', {
 Object.defineProperty(Room.prototype, 'printPlain', {
     get() {
         return `[${this.name}]`;
+    },
+    configurable: true,
+});
+
+Object.defineProperty(Room.prototype, 'UUID', {
+    get() {
+        if (!this.memory.UUID) {
+            this.memory.UUID = roomHelper.getRoomUUID(this.name);
+        }
+        return this.memory.UUID;
     },
     configurable: true,
 });

@@ -44,12 +44,26 @@ export class BuilderMission extends Mission {
     public logistics: LogisticsManager;
 
     public destination?: RoomPosition;
-    public destI: number;
+    // public destI: number;
     public roadSite?: ConstructionSite | StructureRoad | StructureContainer;
-    public roadI: number;
+    // public roadI: number;
+
+    // public roadI: number;
+    public memory!: {
+        destI: number;
+        roadI: number;
+        roadRepTime: number;
+        destination?: UnserializedRoomPosition;
+        nextBuildRoad: number;
+        nextBuildSite: number;
+        needMasonTimer?: number;
+        needMason?: boolean;
+        roadRepIds?: Array<Id<StructureRoad | StructureContainer>>;
+        roadConstruct?: Id<ConstructionSite> | null;
+    };
 
     // public roadRepIds: Id<StructureRoad | StructureContainer>;
-    public roadRepTime: number;
+    // public roadRepTime: number;
     public roadConstruct?: ConstructionSite | null;
 
     public buildDestRoads: boolean;
@@ -60,25 +74,27 @@ export class BuilderMission extends Mission {
         super(operation, "builder")
         this.buildDestRoads = buildDestRoads;
         this.logistics = logistics;
-        if (!this.memory.destI) { this.memory.destI = 0; }
-        this.destI = this.memory.destI;
-        if (!this.memory.roadI) { this.memory.roadI = 0; }
-        this.roadI = this.memory.roadI;
         this.active = this.hasEnergy();
-        // this.roadRepIds = this.getRoadRepList();
-        if (!this.memory.roadRepTime) {
-            this.memory.roadRepTime = Game.time + 2000;
-        }
-        this.roadRepTime = this.memory.roadRepTime;
     }
+
     public initMission(): void {
         if (this.room) {
+            if (!this.memory.destI) { this.memory.destI = 0; }
+            // this.destI = this.memory.destI;
+            if (!this.memory.roadI) { this.memory.roadI = 0; }
+            // this.roadI = this.memory.roadI;
+
+            // this.roadRepIds = this.getRoadRepList();
+            if (!this.memory.roadRepTime) {
+                this.memory.roadRepTime = Game.time + 2000;
+            }
+            // this.roadRepTime = this.memory.roadRepTime;
             this.sites = this.room.find(FIND_CONSTRUCTION_SITES,
                 { filter: (x: ConstructionSite) => x.structureType !== STRUCTURE_ROAD });
             this.roadsites = this.room.find(FIND_CONSTRUCTION_SITES,
                 { filter: (x: ConstructionSite) => x.structureType === STRUCTURE_ROAD });
             this.prioritySites = _.filter(this.sites, s => PRIORITY_BUILD.indexOf(s.structureType) > -1);
-            this.destination = this.memory.destination;
+            this.destination = roomHelper.deserializeRoomPosition(this.memory.destination);
             // console.log(this.sites.length);
         }
     }
@@ -112,24 +128,9 @@ export class BuilderMission extends Mission {
             }
             if (this.sites.length <= 1) {
                 if (!this.memory.nextBuildSite || this.memory.nextBuildSite <= Game.time) {
-                    if (buildHelper.runBuildStructure(this.room, true, false, true)) {
+                    if (buildHelper.runIterativeBuild(this.room, this.spawnRoom)) {
                         this.memory.nextBuildSite = Game.time + wait;
                     } else {
-                        if (this.spawnRoom.rclLevel >= 6 && this.room.memory.bunkerDefence) {
-                            const roomSpots = _.flatten(Object.values(this.spawnRoom.room.memory.structures)) as UnserializedRoomPosition[];
-                            const ret = defenceHelper.assaultRampartSim(this.spawnRoom.room, roomSpots);
-                            if (ret === false || ret === true) {
-                                ;
-                            } else {
-                                for (const r of ret) {
-                                    const pos = roomHelper.deserializeRoomPosition(r);
-                                    if (pos) {
-                                        pos.createConstructionSite(STRUCTURE_RAMPART);
-                                    }
-                                }
-                            }
-
-                        }
                         this.memory.nextBuildSite = Game.time + wait * 5;
                     }
                 }
@@ -150,6 +151,7 @@ export class BuilderMission extends Mission {
             this.memory.needMason = false;
         }
         this.memory.needMasonTimer = Game.time + 500;
+        return this.memory.needMason || false;
     }
 
     public hasEnergy(): boolean {
@@ -167,9 +169,8 @@ export class BuilderMission extends Mission {
 
     public getNextDestination() {
         const destinations = this.logistics.getDestinations();
-        this.destI = this.destI + 1;
-        if (this.destI > destinations.length) { this.destI = 0; }
-        this.memory.destI = this.destI;
+        this.memory.destI = this.memory.destI + 1;
+        if (this.memory.destI > destinations.length) { this.memory.destI = 0; }
         this.destination = this.memory.destination = undefined;
         this.memory.roadRepIds = undefined;
         this.memory.roadConstruct = undefined;
@@ -179,11 +180,11 @@ export class BuilderMission extends Mission {
     public getDestination() {
         if (this.destination) { return this.destination; }
         if (this.memory.destination) {
-            this.destination = this.memory.destination;
+            this.destination = roomHelper.deserializeRoomPosition(this.memory.destination);
         }
         const destinations = this.logistics.getDestinations();
-        if (this.destI >= destinations.length) { this.memory.destI = this.destI = 0; }
-        this.memory.destination = this.destination = destinations[this.destI];
+        if (this.memory.destI >= destinations.length) { this.memory.destI = 0; }
+        this.memory.destination = this.destination = destinations[this.memory.destI];
         // console.log(JSON.stringify(destinations[0]) + ' ' + this.destI);
         return this.destination;
     }
@@ -197,15 +198,15 @@ export class BuilderMission extends Mission {
             }
         }
 
-        return this.memory.roadRepIds;
+        return this.memory.roadRepIds || [];
     }
 
-    public getNextRoadRep(): StructureRoad | null {
+    public getNextRoadRep(): StructureRoad | StructureContainer | null {
         if (!this.memory.roadRepIds) {
             this.memory.roadRepIds = this.getRoadRepList();
         }
         if (this.memory.roadRepIds.length === 0) { return null; }
-        const roadId = _.first(this.memory.roadRepIds) as Id<StructureRoad>;
+        const roadId = _.first(this.memory.roadRepIds) as Id<StructureRoad | StructureContainer>;
         const r = Game.getObjectById(roadId);
         if (r === null || r.hits >= r.hitsMax) {
             this.memory.roadRepIds = _.tail(this.memory.roadRepIds);

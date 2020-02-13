@@ -78,7 +78,7 @@ function tryInitSameMemory() {
 
 // When compiling TS to JS and bundling with rollup, the line numbers and file names in error messages change
 // This utility uses source maps to get the line numbers and file names of the original, TS source code
-export const loop = ErrorMapper.wrapLoop(() => {
+export function unwrappedLoop() {
   tryInitSameMemory();
 
   if (Game.time % 10 === 0) {
@@ -139,3 +139,5 @@ export const loop = ErrorMapper.wrapLoop(() => {
   new HUD().run();
   // try { Profiler.finalize(); } catch (e) { console.log("error checking Profiler:\n", e.stack); }
 });
+
+export const loop = ErrorMapper.wrapLoop(unwrappedLoop);

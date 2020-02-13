@@ -25,6 +25,9 @@ function getRoom(roomName: string) {
 function getLogistics(roomName: string) {
   return (global.emp.spawnRooms[roomName].logistics as LogisticsManager);
 }
+function getSpawnRoom(roomName: string) {
+  return global.emp.spawnRooms[roomName];
+}
 
 function getFlag(flagName: string) {
   return Game.flags[flagName];
@@ -87,6 +90,7 @@ export const commandConsole = {
         if (r.pos.lookForStructure(STRUCTURE_LAB)) { continue; }
         if (r.pos.lookForStructure(STRUCTURE_CONTAINER)) { continue; }
         if (r.pos.lookForStructure(STRUCTURE_LINK)) { continue; }
+        if (r.pos.lookForStructure(STRUCTURE_TOWER)) { continue; }
       }
       r.destroy();
     }
@@ -100,7 +104,12 @@ export const commandConsole = {
   runBuild(roomName: string = defaultRoom, runOnce: boolean = true): void {
     const room = getRoom(roomName);
     if (room) {
-      buildHelper.runBuildStructure(room, runOnce, true, true);
+      if (runOnce) {
+        buildHelper.runIterativeBuild(room, getSpawnRoom(roomName));
+      }
+      else {
+        buildHelper.runBuildStructure(room, runOnce, true, true);
+      }
     }
   },
   runBuildRoad(roomName: string = defaultRoom) {

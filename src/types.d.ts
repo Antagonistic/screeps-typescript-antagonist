@@ -138,6 +138,7 @@ interface RoomMemory {
   layoutTime?: number;
   lastSpawned?: string;
   bunkerDefence?: boolean;
+  UUID?: number;
 }
 
 type RoomStructurePositions = { [key in StructureConstant]?: UnserializedRoomPosition[] };
@@ -164,14 +165,6 @@ interface WorldMap {
   expandInfluence(spawn: SpawnRoom): string[];
 }
 
-
-interface RoomCoord {
-  x: number;
-  y: number;
-  xDir: string;
-  yDir: string;
-}
-
 interface SpawnRoom {
   spawns: StructureSpawn[];
   room: Room;
@@ -179,6 +172,7 @@ interface SpawnRoom {
   availableSpawnEnergy: number;
   energyCapacityAvailable: number;
   logistics: any;
+  rclLevel: number;
   createCreep(bodyParts: string[] | null, role: string, memory?: any, room?: Room, creepName?: string): boolean;
 }
 
@@ -247,10 +241,17 @@ interface RoomPosition {
   findStructureInRange(structureType: StructureConstant, range: number): Structure | undefined;
 }
 
+interface RoomCoord {
+  xx: number;
+  yy: number;
+}
+
 interface Room {
   _storage?: StructureStorage;
   owner: string | undefined;
   reserved: string | undefined;
+  readonly coord: RoomCoord;
+  readonly UUID: number;
   readonly print: string;
   readonly printPlain: string;
   readonly rally: RoomPosition;

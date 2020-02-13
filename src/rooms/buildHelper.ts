@@ -1,3 +1,4 @@
+import { defenceHelper } from "./defenceHelper";
 import { layoutManager } from "./layoutManager";
 import { roomHelper } from "./roomHelper";
 
@@ -76,5 +77,31 @@ export const buildHelper = {
             return true;
         }
         return false;
+    },
+
+    runIterativeBuild(room: Room, spawnRoom: SpawnRoom) {
+        if (buildHelper.runBuildStructure(room, true, false, true)) {
+            return true;
+        } else {
+            if (spawnRoom.rclLevel >= 6 && room.memory.bunkerDefence) {
+                const roomSpots = _.flatten(Object.values(spawnRoom.room.memory.structures)) as UnserializedRoomPosition[];
+                const ret = defenceHelper.assaultRampartSim(spawnRoom.room, roomSpots);
+                if (ret === false || ret === true) {
+                    return false;
+                } else {
+                    for (const r of ret) {
+                        const pos = roomHelper.deserializeRoomPosition(r);
+                        if (pos) {
+                            console.log('BUILD: Making new ' + STRUCTURE_RAMPART + ' at ' + pos.print);
+                            pos.createConstructionSite(STRUCTURE_RAMPART);
+                        }
+                    }
+                    return true;
+                }
+            }
+        }
+        return false;
     }
+
+
 }
