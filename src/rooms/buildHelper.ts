@@ -1,5 +1,6 @@
 import { defenceHelper } from "./defenceHelper";
 import { layoutManager } from "./layoutManager";
+import { roadHelper } from "./roadHelper";
 import { roomHelper } from "./roomHelper";
 
 
@@ -48,12 +49,18 @@ export const buildHelper = {
         for (const key in room.memory.structures) {
             const _key = key as BuildableStructureConstant;
             if (!road && _key === STRUCTURE_ROAD) { continue; }
+            if (road && _key !== STRUCTURE_ROAD) { continue; }
             if (!wall && (_key === STRUCTURE_WALL || _key === STRUCTURE_RAMPART)) { continue; }
             const structs = room.memory.structures[_key];
             if (structs) {
                 for (const s of structs) {
                     const pos = roomHelper.deserializeRoomPosition(s);
                     if (pos) {
+                        if (_key !== STRUCTURE_EXTRACTOR) {
+                            if (_.head(pos.lookFor(LOOK_TERRAIN)) !== "wall") {
+                                continue;
+                            }
+                        }
                         if (!buildHelper.hasStructure(pos, _key, false)) {
                             const ret = buildHelper.buildIfNotExist(pos, _key);
                             if (ret === OK) {
@@ -79,7 +86,7 @@ export const buildHelper = {
         return false;
     },
 
-    runIterativeBuild(room: Room, spawnRoom: SpawnRoom) {
+    runIterativeBuild(room: Room, spawnRoom: SpawnRoom): boolean {
         if (buildHelper.runBuildStructure(room, true, false, true)) {
             return true;
         } else {
@@ -101,7 +108,89 @@ export const buildHelper = {
             }
         }
         return false;
-    }
+    },
 
+    runWalkRoad(room: Room, pos: UnserializedRoomPosition[]) {
+        let built: boolean = false;
+        for (const p of pos) {
+            if (p.x === 0 || p.y === 0 || p.x === 49 || p.y === 49) { continue; }
+            if (!Game.rooms[p.roomName]) { continue; }
+            const _p = roomHelper.deserializeRoomPosition(p);
+            if (_p) {
+                const road = _p.lookForStructure(STRUCTURE_ROAD);
+                if (road) {
+                    if (road.hits < road.hitsMax / 2) { room.memory.roadRep!.push(road.id); }
+                }
+                const container = _p.lookForStructure(STRUCTURE_CONTAINER);
+                if (container) {
+                    if (container.hits < container.hitsMax / 2) { room.memory.roadRep!.push(container.id); }
+                }
+                if (road || container) { continue; }
+                const site = _.head(_p.lookFor(LOOK_CONSTRUCTION_SITES));
+                if (site) {
+                    room.memory.roadCon!.push(site.id);
+                    continue;
+                }
+                if (!built) {
+                    const ret = _p.createConstructionSite(STRUCTURE_ROAD);
+                    if (ret === OK) { built = true; }
+                }
+            }
+        }
+        return built;
+    },
+
+    runIterativeBuildRoad(room: Room, spawnRoom: SpawnRoom, buildSeconary: boolean = true): boolean {
+        room.memory.roadCon = [];
+        room.memory.roadRep = [];
+        if (buildSeconary && room.memory.secondaryRoads && room.memory.secondaryRoads.length > 0) {
+            if (this.runWalkRoad(room, room.memory.secondaryRoads)) {
+                return true;
+            }
+        }
+        if (room.memory.structures.road && room.memory.structures.road.length > 0) {
+            if (this.runWalkRoad(room, room.memory.structures.road)) {
+                return true;
+            }
+        }
+        return false;
+    },
+
+    getRoadRep(room: Room): Structure | undefined {
+        if (room.memory.roadRep && room.memory.roadRep.length > 0) {
+            const ret = Game.getObjectById(_.head(room.memory.roadRep));
+            if (ret && ret.hits < ret.hitsMax - 10) {
+                return ret;
+            } else {
+                room.memory.roadRep = _.tail(room.memory.roadRep);
+                return this.getRoadRep(room);
+            }
+        }
+        return undefined;
+    },
+
+    getRoadCon(room: Room): ConstructionSite | undefined {
+        if (room.memory.roadCon && room.memory.roadCon.length > 0) {
+            const ret = Game.getObjectById(_.head(room.memory.roadCon));
+            if (ret) {
+                return ret;
+            } else {
+                room.memory.roadCon = _.tail(room.memory.roadCon);
+                return this.getRoadCon(room);
+            }
+        }
+        return undefined
+    },
+
+    dismantleCandidates(room: Room) {
+        const structures = room.find(FIND_STRUCTURES);
+        for (const s of structures) {
+            if (s.structureType === STRUCTURE_CONTROLLER) { continue; }
+            const structList = room.memory.structures[s.structureType];
+            if ((!structList || !_.any(structList, o => o.x === s.pos.x && o.y === s.pos.y && o.roomName === s.pos.roomName)) {
+                ;
+            }
+        }
+    }
 
 }

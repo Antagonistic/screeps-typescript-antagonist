@@ -64,6 +64,7 @@
   "dependencies": {
     "@types/screeps-profiler": "^1.2.2",
     "lodash-math": "0.0.7",
+    "screeps-multimeter": "^1.8.2",
     "screeps-profiler": "^2.0.1",
     "source-map": "~0.6.1"
   }

@@ -53,6 +53,15 @@ export const roadHelper = {
         return ret;
     },
 
+    getNextUnbuiltRoadPos(pos: RoomPosition[]): RoomPosition | undefined {
+        for (const r of pos) {
+            if (r.room && !r.lookForStructure(STRUCTURE_ROAD)) {
+                return r;
+            }
+        }
+        return undefined;
+    },
+
     pavePath(start: RoomPosition, finish: RoomPosition, rangeAllowance: number = 1): RoomPosition[] {
         const path = roomHelper.findPath(start, finish, rangeAllowance);
         const ret = [];

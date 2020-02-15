@@ -210,3 +210,14 @@ Object.defineProperty(Room.prototype, 'tombstones', {
     },
     configurable: true,
 });
+
+Object.defineProperty(Room.prototype, 'sortedSources', {
+    get() {
+        if (!this._sortedSources) {
+            const center = this.controller?.pos || new RoomPosition(25, 25, this.name);
+            this._sortedSources = _.sortBy(this.find(FIND_SOURCES), [(x: Source) => x.pos.getRangeTo(center)]);
+        }
+        return this._sortedSources;
+    },
+    configurable: true,
+});

@@ -1086,7 +1086,7 @@ export function yieldRoad(creep: Creep, target: { pos: RoomPosition }, allowSwam
     if (!position.inRangeTo(target, 3)) { continue; }
     if (position.lookFor(LOOK_STRUCTURES).length > 0) { continue; }
     if (!position.isPassible()) { continue; }
-    if (roomHelper.isNearExit(position, 0)) { continue; }
+    if (position.isNearExit(0)) { continue; }
     if (position.lookFor(LOOK_TERRAIN)[0] === "swamp") {
       swampPosition = position;
       continue;

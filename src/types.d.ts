@@ -135,10 +135,15 @@ interface RoomMemory {
   snakeSpawn?: UnserializedRoomPosition;
 
   structures: RoomStructurePositions;
+  secondaryRoads?: UnserializedRoomPosition[];
   layoutTime?: number;
   lastSpawned?: string;
   bunkerDefence?: boolean;
+  noLinkMine?: boolean;
   UUID?: number;
+  roadCon?: Id<ConstructionSite>[];
+  roadRep?: Id<Structure>[];
+
 }
 
 type RoomStructurePositions = { [key in StructureConstant]?: UnserializedRoomPosition[] };
@@ -234,9 +239,9 @@ interface RoomPosition {
   readonly isEdge: boolean;
   readonly isVisible: boolean;
   lookForStructure(structureType: StructureConstant): Structure | undefined;
-  openAdjacentSpots(ignoreCreeps?: boolean): RoomPosition[];
+  openAdjacentSpots(ignoreCreeps?: boolean, ignoreStructures?: boolean): RoomPosition[];
   getPositionAtDirection(direction: number, range?: number): RoomPosition | undefined;
-  isPassible(ignoreCreeps?: boolean): boolean;
+  isPassible(ignoreCreeps?: boolean, ignoreStructures?: boolean): boolean;
   isNearExit(range: number): boolean
   findStructureInRange(structureType: StructureConstant, range: number): Structure | undefined;
 }
@@ -268,6 +273,7 @@ interface Room {
   readonly droppedPower: Resource[];
   readonly ruins: Ruin[];
   readonly tombstones: Tombstone[];
+  readonly sortedSources: Source[];
 }
 
 interface Source {

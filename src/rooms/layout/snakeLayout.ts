@@ -10,7 +10,8 @@ export function snakeLayout(room: Room, flag: Flag): RCLRoomLayout {
                 spawn: [{ x: 0, y: 0 }]
             },
             memory: {
-                noRemote: true
+                noLinkMine: true,
+                noRemote: true,
             }
         }
     }

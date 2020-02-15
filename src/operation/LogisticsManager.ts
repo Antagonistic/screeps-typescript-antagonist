@@ -28,6 +28,7 @@ export class LogisticsManager {
     public haslinks: boolean;
     public sources: number = 0;
     public remoteSources: number = 0;
+    public bootStrap: boolean;
     constructor(spawnRoom: SpawnRoom) {
         this.spawnRoom = spawnRoom;
         this.room = spawnRoom.room;
@@ -41,6 +42,7 @@ export class LogisticsManager {
         if (Game.time % 5008 === 0) {
             this.room.memory.dest = undefined;
         }
+        this.bootStrap = (this.room.find(FIND_MY_CREEPS).length < 4 && this.E < 900) || this.room.find(FIND_MY_CREEPS).length === 0;
         this.terminalNetwork = (global.emp as Empire).termNetwork;
     }
 

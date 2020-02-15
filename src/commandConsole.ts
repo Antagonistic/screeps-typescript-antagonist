@@ -3,7 +3,7 @@
 
 import { roomHelper } from "./rooms/roomHelper"
 
-import { log } from "./lib/logger/log";
+// import { log } from "./lib/logger/log";
 
 // import { empire } from "./Empire";
 
@@ -237,6 +237,8 @@ export const commandConsole = {
       return "no room";
     }
     Memory.rooms[roomName].visual = true;
+    const room = getRoom(roomName);
+    if (room) { layoutManager.applyLayouts(room); }
     // room.memory.visual = true;
     return "success";
   },

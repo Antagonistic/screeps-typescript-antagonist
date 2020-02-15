@@ -50,10 +50,6 @@ export class BuilderMission extends Mission {
 
     // public roadI: number;
     public memory!: {
-        destI: number;
-        roadI: number;
-        roadRepTime: number;
-        destination?: UnserializedRoomPosition;
         nextBuildRoad: number;
         nextBuildSite: number;
         needMasonTimer?: number;
@@ -66,35 +62,25 @@ export class BuilderMission extends Mission {
     // public roadRepTime: number;
     public roadConstruct?: ConstructionSite | null;
 
-    public buildDestRoads: boolean;
+    public buildSecondaryRoads: boolean;
 
     public active: boolean;
 
-    constructor(operation: Operation, logistics: LogisticsManager, buildDestRoads: boolean = true) {
+    constructor(operation: Operation, logistics: LogisticsManager, buildSecondaryRoads: boolean = true) {
         super(operation, "builder")
-        this.buildDestRoads = buildDestRoads;
+        this.buildSecondaryRoads = buildSecondaryRoads;
         this.logistics = logistics;
         this.active = this.hasEnergy();
     }
 
     public initMission(): void {
         if (this.room) {
-            if (!this.memory.destI) { this.memory.destI = 0; }
-            // this.destI = this.memory.destI;
-            if (!this.memory.roadI) { this.memory.roadI = 0; }
-            // this.roadI = this.memory.roadI;
-
-            // this.roadRepIds = this.getRoadRepList();
-            if (!this.memory.roadRepTime) {
-                this.memory.roadRepTime = Game.time + 2000;
-            }
             // this.roadRepTime = this.memory.roadRepTime;
             this.sites = this.room.find(FIND_CONSTRUCTION_SITES,
                 { filter: (x: ConstructionSite) => x.structureType !== STRUCTURE_ROAD });
             this.roadsites = this.room.find(FIND_CONSTRUCTION_SITES,
                 { filter: (x: ConstructionSite) => x.structureType === STRUCTURE_ROAD });
             this.prioritySites = _.filter(this.sites, s => PRIORITY_BUILD.indexOf(s.structureType) > -1);
-            this.destination = roomHelper.deserializeRoomPosition(this.memory.destination);
             // console.log(this.sites.length);
         }
     }
@@ -103,10 +89,6 @@ export class BuilderMission extends Mission {
         this.pavers = this.spawnRole(this.name + "paver", this.maxPavers, this.builderBody, { role: "builder" });
     }
     public work(): void {
-        // for (const b of this.builders) {
-        //     if (b.carry.energy > 10) { b.memory.working = true; }
-        //     builder.run(b);
-        // }
         this.runBuilders();
         this.runPavers2();
         this.runTowers();
@@ -116,10 +98,17 @@ export class BuilderMission extends Mission {
         if (!this.remoteSpawning && this.room && this.operation.stableOperation) {
             const wait = Game.cpu.bucket <= 99000 ? 300 : 50;
             if (this.roadsites.length <= 1) {
-                if (!this.memory.nextBuildRoad || this.memory.nextBuildRoad <= Game.time) {
+                /*if (!this.memory.nextBuildRoad || this.memory.nextBuildRoad <= Game.time) {
                     this.getRoadConstruct()
                     this.getRoadRepList();
                     if (buildHelper.runBuildStructure(this.room, true, true, false)) {
+                        this.memory.nextBuildRoad = Game.time + wait;
+                    } else {
+                        this.memory.nextBuildRoad = Game.time + wait * 5;
+                    }
+                }*/
+                if (!this.memory.nextBuildRoad || this.memory.nextBuildRoad <= Game.time) {
+                    if (buildHelper.runIterativeBuildRoad(this.room, this.spawnRoom, this.buildSecondaryRoads)) {
                         this.memory.nextBuildRoad = Game.time + wait;
                     } else {
                         this.memory.nextBuildRoad = Game.time + wait * 5;
@@ -167,93 +156,6 @@ export class BuilderMission extends Mission {
         return false;
     }
 
-    public getNextDestination() {
-        const destinations = this.logistics.getDestinations();
-        this.memory.destI = this.memory.destI + 1;
-        if (this.memory.destI > destinations.length) { this.memory.destI = 0; }
-        this.destination = this.memory.destination = undefined;
-        this.memory.roadRepIds = undefined;
-        this.memory.roadConstruct = undefined;
-        return this.getDestination();
-    }
-
-    public getDestination() {
-        if (this.destination) { return this.destination; }
-        if (this.memory.destination) {
-            this.destination = roomHelper.deserializeRoomPosition(this.memory.destination);
-        }
-        const destinations = this.logistics.getDestinations();
-        if (this.memory.destI >= destinations.length) { this.memory.destI = 0; }
-        this.memory.destination = this.destination = destinations[this.memory.destI];
-        // console.log(JSON.stringify(destinations[0]) + ' ' + this.destI);
-        return this.destination;
-    }
-
-    public getRoadRepList() {
-        if (!this.memory.roadRepIds) {
-            if (!this.buildDestRoads) {
-                if (this.room) { this.memory.roadRepIds = roadHelper.repRoadsListIdsRoom(this.room) };
-            } else {
-                this.memory.roadRepIds = roadHelper.repRoadsListIds(this.operation.flag.pos, this.getDestination());
-            }
-        }
-
-        return this.memory.roadRepIds || [];
-    }
-
-    public getNextRoadRep(): StructureRoad | StructureContainer | null {
-        if (!this.memory.roadRepIds) {
-            this.memory.roadRepIds = this.getRoadRepList();
-        }
-        if (this.memory.roadRepIds.length === 0) { return null; }
-        const roadId = _.first(this.memory.roadRepIds) as Id<StructureRoad | StructureContainer>;
-        const r = Game.getObjectById(roadId);
-        if (r === null || r.hits >= r.hitsMax) {
-            this.memory.roadRepIds = _.tail(this.memory.roadRepIds);
-            return this.getNextRoadRep();
-        }
-        return r;
-    }
-
-    public getRoadConstruct(): ConstructionSite | undefined | null {
-        if (this.roadConstruct) { return this.roadConstruct; }
-        if (!this.buildDestRoads) { return null; }
-        if (this.memory.roadConstruct) {
-            const r = Game.getObjectById(this.memory.roadConstruct);
-            if (r === null) {
-                this.memory.roadConstruct = undefined;
-            }
-            this.roadConstruct = r as ConstructionSite;
-            return this.roadConstruct;
-        }
-        if (this.memory.roadConstruct === null) {
-            this.roadConstruct = null;
-        }
-        if (this.memory.roadConstruct === undefined) {
-            const r = roadHelper.getNextUnbuiltRoad(this.operation.flag.pos, this.getDestination());
-            // console.log('ret: ' + JSON.stringify(r));
-            if (r === null) {
-                this.memory.roadConstruct = null;
-                this.roadConstruct = null;
-                return null;
-            }
-            if (r instanceof RoomPosition) {
-                if (Object.keys(Game.constructionSites).length < 50) {
-                    r.createConstructionSite(STRUCTURE_ROAD);
-                } else {
-                    this.memory.roadConstruct = null;
-                    this.roadConstruct = null;
-                    return null;
-                }
-            }
-            if (r instanceof ConstructionSite) {
-                this.memory.roadConstruct = r.id;
-                this.roadConstruct = r;
-            }
-        }
-        return this.roadConstruct;
-    }
-
     public maxBuilders = (): number => {
         if (!this.active) { return 0; }
         if (this.spawnRoom.rclLevel <= 2) { return 2; }
@@ -270,7 +172,10 @@ export class BuilderMission extends Mission {
         if (this.room && this.roadsites.length !== 0) {
             return 1;
         }
-        if (this.getRoadRepList().length > 0) {
+        if (this.room && buildHelper.getRoadCon(this.room)) {
+            return 1;
+        }
+        if (this.room && buildHelper.getRoadRep(this.room)) {
             return 1;
         }
         return 0;
@@ -364,14 +269,6 @@ export class BuilderMission extends Mission {
 
     public runPavers2() {
         for (const b of this.pavers) {
-            if (b.memory.debug && !b.action) {
-                console.log('debugging ' + b.name);
-                console.log('target ' + b.target);
-                console.log('this.memory.roadRepIds ' + JSON.stringify(this.memory.roadRepIds || 'none'));
-                console.log('this.memory.roadConstruct ' + this.memory.roadConstruct);
-                console.log('this.memory.destination ' + JSON.stringify(this.memory.destination));
-                console.log('this.roadsites.length ' + JSON.stringify(this.roadsites.length));
-            }
             if (!b.action) {
                 if (b.working) {
                     b.actionTarget();
@@ -388,27 +285,9 @@ export class BuilderMission extends Mission {
                         b.setTarget(this.roadsites[0], TargetAction.BUILD);
                         continue;
                     }
-                    const site = this.getRoadConstruct();
-                    if (b.memory.debug) {
-                        console.log('site ' + site + ' ');
-                        console.log('this.roadConstruct ' + this.roadConstruct);
-                    }
-                    if (!site) {
-                        // no more sites this path
-                        const repSite = this.getNextRoadRep();
-                        if (b.memory.debug) { console.log('repsite ' + repSite); }
-                        if (repSite) {
-                            b.setTarget(repSite, TargetAction.REPAIR);
-                            continue;
-                        }
-                        if (repSite === null) {
-                            this.getNextDestination();
-                            creepActions.yieldRoad2(b);
-                            b.wait(2);
-                        }
-                    } else {
-                        b.setTarget(site, TargetAction.BUILD);
-                    }
+                    task.roadConstruct(b, this.room);
+                    task.roadRepair(b, this.room);
+
                     if (!b.action && this.remoteSpawning && this.room && this.room.controller && this.room.controller.my) {
                         b.action = creepActions.actionUpgrade(b, b.action);
                     }

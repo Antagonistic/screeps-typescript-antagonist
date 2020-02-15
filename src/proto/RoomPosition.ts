@@ -56,13 +56,13 @@ RoomPosition.prototype.findStructureInRange = function (structureType: Structure
     return ret;
 }
 
-RoomPosition.prototype.openAdjacentSpots = function (ignoreCreeps?: boolean): RoomPosition[] {
+RoomPosition.prototype.openAdjacentSpots = function (ignoreCreeps?: boolean, ignoreStructures?: boolean): RoomPosition[] {
     const positions = [];
     for (let i = 1; i <= 8; i++) {
         const testPosition = this.getPositionAtDirection(i);
         if (!testPosition) { continue; }
         if (testPosition.isEdge) { continue; }
-        if (testPosition.isPassible(ignoreCreeps)) {
+        if (testPosition.isPassible(ignoreCreeps, ignoreStructures)) {
             // passed all tests
             positions.push(testPosition);
         }
@@ -110,7 +110,7 @@ RoomPosition.prototype.getPositionAtDirection = function (direction: number, ran
     return new RoomPosition(x, y, room);
 };
 
-RoomPosition.prototype.isPassible = function (ignoreCreeps?: boolean): boolean {
+RoomPosition.prototype.isPassible = function (ignoreCreeps?: boolean, ignoreStructures?: boolean): boolean {
     if (this.isNearExit(0)) { return false; }
 
     // look for walls
@@ -120,7 +120,7 @@ RoomPosition.prototype.isPassible = function (ignoreCreeps?: boolean): boolean {
         if (ignoreCreeps || this.lookFor(LOOK_CREEPS).length === 0) {
 
             // look for impassible structions
-            if (_.filter(this.lookFor(LOOK_STRUCTURES), (struct: Structure) => {
+            if (ignoreStructures || _.filter(this.lookFor(LOOK_STRUCTURES), (struct: Structure) => {
                 return struct.structureType !== STRUCTURE_ROAD
                     && struct.structureType !== STRUCTURE_CONTAINER
                     && struct.structureType !== STRUCTURE_RAMPART;

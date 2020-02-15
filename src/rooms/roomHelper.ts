@@ -2,12 +2,9 @@
 import { AVOID_COST, PLAIN_COST, ROAD_COST, SWAMP_COST } from "config/config";
 import { BodyFactory } from "creeps/BodyFactory";
 import { Traveler } from "utils/Traveler";
+import { layoutManager } from "./layoutManager";
 
 export const roomHelper = {
-    isNearExit(pos: RoomPosition, range: number): boolean {
-        return pos.x - range <= 0 || pos.x + range >= 49 || pos.y - range <= 0 || pos.y + range >= 49;
-    },
-
     getRally(roomName: string): RoomPosition {
         const rallyFlag = Game.rooms[roomName].find(FIND_FLAGS, { filter: x => x.name.startsWith("rally") });
         if (rallyFlag && rallyFlag.length > 0) {
@@ -154,7 +151,7 @@ export const roomHelper = {
         return;
     },
 
-    findShortestPath(start: RoomPosition, goals: Array<{ pos: RoomPosition, id: string }>) {
+    findShortestPath(start: RoomPosition, goals: Array<{ pos: RoomPosition, id: Id<Structure> }>) {
         let shortest = 9999;
         let ret = null;
         for (const goal of goals) {
@@ -277,6 +274,7 @@ export const roomHelper = {
 
     layoutPushPositions(layout: RCLRoomLayout, rcl: number, struct: BuildableStructureConstant, pos?: RoomPosition[]) {
         if (pos && pos.length > 0) {
+            pos = _.unique(pos);
             if (!layout[rcl]) { layout[rcl] = { build: {} } };
             layout[rcl].build[struct] = _.map(pos, x => x.lightRoomPos);
         }
@@ -335,5 +333,97 @@ export const roomHelper = {
         } else {
             return 'CTRL';
         }
+    },
+
+    getSpotCandidate1(pos: RoomPosition, center?: RoomPosition) {
+        const spots = pos.openAdjacentSpots(true, true);
+        if (spots.length === 0) { return undefined; }
+        const spotArr = [];
+        let maxOpen = 0;
+        let maxS;
+        for (const s1 of spots) {
+            const _s = s1.openAdjacentSpots(true, true);
+            if (_s.length > maxOpen) {
+                maxOpen = _s.length;
+                maxS = s1;
+            }
+            if (center && maxS && (_s.length === maxOpen || _s.length >= 5) && s1.getRangeTo(center) < maxS.getRangeTo(center)) {
+                maxOpen = _s.length;
+                maxS = s1;
+            }
+        }
+        return maxS;
+    },
+
+    getSpotCandidate2(pos: RoomPosition, center?: RoomPosition) {
+        const spots = pos.openAdjacentSpots(true, true);
+        if (spots.length === 0) { return undefined; }
+        const spotArr = [];
+        let maxOpen = 0;
+        let maxS;
+        for (const s1 of spots) {
+            const _s = s1.openAdjacentSpots(true, true);
+            for (const s2 of _s) {
+                if ((s2.x + s2.y) % 2 === 0) { continue; }
+                const _s2 = s2.openAdjacentSpots(true, true);
+                if (_s2.length > maxOpen) {
+                    maxOpen = _s2.length;
+                    maxS = s2;
+                }
+                if (center && maxS && (_s2.length === maxOpen || _s2.length >= 5) && s2.getRangeTo(center) < maxS.getRangeTo(center)) {
+                    maxOpen = _s2.length;
+                    maxS = s2;
+                }
+            }
+        }
+        return maxS;
+    },
+
+    getSpotCandidate3(pos: RoomPosition, center?: RoomPosition) {
+        const spots = pos.openAdjacentSpots(true, true);
+        if (spots.length === 0) { return undefined; }
+        const spotArr = [];
+        let maxOpen = 0;
+        let maxS;
+        for (const s1 of spots) {
+            const _s = s1.openAdjacentSpots(true, true);
+            for (const s2 of _s) {
+                if ((s2.x + s2.y) % 2 === 0) { continue; }
+                const _s2 = s2.openAdjacentSpots(true, true);
+                for (const s3 of _s2) {
+                    if ((s3.x + s3.y) % 2 === 0) { continue; }
+                    const _s3 = s3.openAdjacentSpots(true, true);
+                    if (_s3.length > maxOpen) {
+                        maxOpen = _s3.length;
+                        maxS = s3;
+                    }
+                    if (center && maxS && _s3.length === maxOpen && s3.getRangeTo(center) < maxS.getRangeTo(center)) {
+                        maxOpen = _s3.length;
+                        maxS = s3;
+                    }
+                }
+            }
+        }
+        return maxS;
+    },
+
+    getContainerPosition(point: RoomPosition) {
+        const center = point.room?.controller?.pos || new RoomPosition(25, 25, point.roomName);
+        return this.getSpotCandidate1(point, center) || _.head(point.openAdjacentSpots(true, true));
+    },
+
+    getLinkPosition(point: RoomPosition) {
+        const center = point.room?.controller?.pos || new RoomPosition(25, 25, point.roomName);
+        return this.getSpotCandidate1(this.getContainerPosition(point), center) || _.head(point.openAdjacentSpots(true, true));;
+    },
+
+    getControllerContainerPosition(point: RoomPosition) {
+        const center = new RoomPosition(25, 25, point.roomName);
+        return this.getSpotCandidate2(point, center) || _.head(point.openAdjacentSpots(true, true));;
+    },
+
+    getControllerLinkPosition(point: RoomPosition) {
+        const center = new RoomPosition(25, 25, point.roomName);
+        return this.getSpotCandidate3(point, center) || _.head(point.openAdjacentSpots(true, true));;
     },
 };

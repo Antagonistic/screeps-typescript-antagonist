@@ -2,6 +2,7 @@ import { TerminalNetwork } from "market/TerminalNetwork";
 import { profile } from "Profiler";
 import { roomHelper } from "rooms/roomHelper";
 import { Traveler } from "utils/Traveler";
+import { layoutManager } from "./layoutManager";
 import { SpawnRoom } from "./SpawnRoom";
 
 @profile
@@ -98,10 +99,31 @@ export class WorldMap implements WorldMap {
     return remoteList;
   }
 
+  public processRoomCache(room: Room) {
+    const mem = room.memory;
+    if (room.UUID + Game.time % 1000 === 0) {
+      if (room.controller && room.controller.my) {
+        // Owned room
+        layoutManager.applyLayouts(room);
+        if (room.memory.dest && room.memory.dest.length > 0) {
+          const center = room.storage || _.head(room.find(FIND_MY_SPAWNS));
+          if (center) {
+            layoutManager.applySecondaryRoads(room, roomHelper.deserializeRoomPositions(room.memory.dest), center.pos);
+          }
+        }
+        room.memory.dest = undefined;
+        room.memory.controllerBattery = undefined;
+      } else {
+        // Other
+      }
+    }
+  }
+
   public processSeenRoom(room: Room) {
     if (!room) { return; }
     const roomName = room.name;
     Traveler.updateRoomStatus(room);
+    this.processRoomCache(room);
     room.memory.lastSeen = Game.time;
     if (room.controller) {
       if (room.controller.my) {

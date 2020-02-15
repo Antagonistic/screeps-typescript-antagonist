@@ -7,7 +7,7 @@ import { headLayout } from "./layout/headLayout";
 import { noLayout } from "./layout/noLayout";
 import { sealedLayout } from "./layout/sealedLayout"
 import { snakeLayout } from "./layout/snakeLayout";
-import { roomHelper } from "./roomHelper"
+import { roadHelper } from "./roadHelper";
 
 export interface SingleLayout {
     pos: LightRoomPos;
@@ -47,17 +47,19 @@ export const layoutManager = {
             const pos = { x: 0, y: 0 };
             ret.push({ pos, layout: dynaControllerLayout(room) })
         }
-        const sources = room.find(FIND_SOURCES);
+        const sources = room.sortedSources;
         if (sources && sources.length > 0) {
+            let closest = true;
             for (const s of sources) {
                 const pos = { x: 0, y: 0 };
-                ret.push({ pos, layout: dynaSourceLayout(room, s) })
+                ret.push({ pos, layout: dynaSourceLayout(room, s, closest) })
+                closest = false;
             }
         }
         const mineral = room.find(FIND_MINERALS);
         if (mineral && mineral.length > 0) {
             const pos = { x: 0, y: 0 };
-            ret.push({ pos, layout: dynaSourceLayout(room, mineral[0]) })
+            ret.push({ pos, layout: dynaSourceLayout(room, mineral[0], false) })
         }
         {
             const pos = { x: 0, y: 0 };
@@ -85,12 +87,12 @@ export const layoutManager = {
         const ret: RoomStructurePositions = {};
         if (room.controller && room.controller.my) {
             const level = room.controller.level;
-            if (level > 1) {
+            if (level > 0) {
                 const layouts = layoutManager.getLayouts(room);
                 for (const l of layouts) {
                     const layout = l.layout;
                     const pos = l.pos;
-                    for (let i = 1; i <= level; i++) {
+                    for (let i = 0; i <= level; i++) {
                         const _l = layout[i];
                         if (_l) {
                             for (const key in _l.build) {
@@ -103,9 +105,10 @@ export const layoutManager = {
                                     const _x = p.x - pos.x;
                                     const _y = p.y - pos.y;
                                     const _pos = new RoomPosition(_x, _y, room.name);
-
-                                    if (!ret[_key]) { ret[_key] = []; }
-                                    ret[_key]!.push(_pos);
+                                    if (_pos.isPassible(true, true) || _key === STRUCTURE_EXTRACTOR) {
+                                        if (!ret[_key]) { ret[_key] = []; }
+                                        ret[_key]!.push(_pos);
+                                    }
                                 }
                             }
                             if (_l.memory) {
@@ -129,6 +132,17 @@ export const layoutManager = {
             room.memory.structures = ret;
             room.memory.layoutTime = Game.time + 1000;
         }
+    },
+
+    applySecondaryRoads(room: Room, destinations: RoomPosition[], center: RoomPosition) {
+        const ret: UnserializedRoomPosition[] = [];
+        for (const d of destinations) {
+            for (const r of roadHelper.pavePath(center, d)) {
+                if (r.isEdge) { continue; }
+                ret.push(d);
+            }
+        }
+        room.memory.secondaryRoads = ret;
     },
 
     getRoads(room: Room): RoomPosition[] {

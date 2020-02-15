@@ -1,5 +1,6 @@
 import { TargetAction } from "config/config";
 import * as creepActions from "creeps/creepActions";
+import { buildHelper } from "rooms/buildHelper";
 
 export const task = {
     attackHostile(creep: Creep, target?: Creep | Structure | undefined) {
@@ -91,9 +92,22 @@ export const task = {
         }
     },
 
+    roadRepair(creep: Creep, room?: Room) {
+        if (!creep.action && room) {
+            const res = buildHelper.getRoadRep(room);
+            if (res) {
+                creep.setTarget(res, TargetAction.REPAIR);
+            }
+        }
+    },
 
-    recycle(creep: Creep) {
-        ;
+    roadConstruct(creep: Creep, room?: Room) {
+        if (!creep.action && room) {
+            const res = buildHelper.getRoadCon(room);
+            if (res) {
+                creep.setTarget(res, TargetAction.BUILD);
+            }
+        }
     }
 
 }

@@ -22,7 +22,7 @@ export class SnakeOperation extends Operation {
         this.logistics = this.spawnRoom.logistics;
         this.logistics.registerOperation(this);
         this.priority = OperationPriority.OwnedRoom;
-        this.emergency = false;
+        this.emergency = this.memory.emergency;
         this.stableOperation = true;
     }
 
@@ -46,6 +46,6 @@ export class SnakeOperation extends Operation {
         }
     }
     public finalizeOperation(): void {
-        ;
+        this.memory.emergency = this.emergency = (this.spawnRoom.room.find(FIND_MY_CREEPS).length < 4 && this.spawnRoom.availableSpawnEnergy < 900) || this.spawnRoom.room.find(FIND_MY_CREEPS).length === 0;
     }
 }

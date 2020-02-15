@@ -1,4 +1,4 @@
-import * as roomHelper from "rooms/roomHelper"
+import { roomHelper } from "rooms/roomHelper"
 
 export function dynaDefenceLayout(room: Room): RCLRoomLayout {
     const ret: RCLRoomLayout = {
@@ -6,7 +6,7 @@ export function dynaDefenceLayout(room: Room): RCLRoomLayout {
         road: []
     }
 
-    const spots: LightRoomPos[] = [];
+    const spots: RoomPosition[] = [];
     const spawns = room.find(FIND_MY_SPAWNS);
     if (spawns && spawns.length > 0) {
         for (const s of spawns) {
@@ -24,7 +24,7 @@ export function dynaDefenceLayout(room: Room): RCLRoomLayout {
         spots.push(room.storage.pos);
     }
 
-    ret[3] = { build: { rampart: spots } };
+    roomHelper.layoutPushPositions(ret, 3, STRUCTURE_RAMPART, spots);
 
     return ret;
 }
