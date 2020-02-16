@@ -84,6 +84,7 @@ export const layoutManager = {
     },
 
     applyLayouts(room: Room) {
+        console.log('LAYOUT: Applying layout in room ' + room.print);
         const ret: RoomStructurePositions = {};
         if (room.controller && room.controller.my) {
             const level = room.controller.level;
@@ -106,12 +107,13 @@ export const layoutManager = {
                                     const _y = p.y - pos.y;
                                     const _pos = new RoomPosition(_x, _y, room.name);
                                     if (_pos.isPassible(true, true) || _key === STRUCTURE_EXTRACTOR) {
-                                        if (!ret[_key]) { ret[_key] = []; }
+                                        if (!(_key in ret)) { ret[_key] = []; }
                                         ret[_key]!.push(_pos);
                                     }
                                 }
                             }
                             if (_l.memory) {
+                                console.log('LAYOUT: Applying memory ' + JSON.stringify(_l.memory));
                                 if (_l.memory.supervisor) {
                                     room.memory.supervisor = [];
                                     for (const sup of _l.memory.supervisor) {
@@ -128,9 +130,13 @@ export const layoutManager = {
                 }
             }
         }
-        if (Object.keys(ret).length > 0) {
+        const keys = Object.keys(ret);
+        if (keys.length > 0) {
+            console.log('LAYOUT: Applied ' + keys.length + ' structure types');
             room.memory.structures = ret;
             room.memory.layoutTime = Game.time + 1000;
+        } else {
+            console.log('LAYOUT: Applying no keys');
         }
     },
 

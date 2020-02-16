@@ -25,6 +25,7 @@ export class MiningOperation extends Operation {
     public getActive() {
         if (this.memory.active === false) { return false; }
         if (!this.spawnRoom || this.spawnRoom.rclLevel < 4) { return false; }
+        if (this.spawnRoom.room.storage && this.spawnRoom.room.storage.store.energy < 5000) { return false; }
         if (this.spawnRoom.room.memory.noRemote) { return false; }
         if (this.getToHomeRange() > 2) { return false; }
         if (this.room && this.room.controller && this.room.controller.reservation && this.room.controller.reservation.username === "Invader") { return false; }

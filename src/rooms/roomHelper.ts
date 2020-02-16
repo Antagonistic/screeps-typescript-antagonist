@@ -336,23 +336,15 @@ export const roomHelper = {
     },
 
     getSpotCandidate1(pos: RoomPosition, center?: RoomPosition) {
-        const spots = pos.openAdjacentSpots(true, true);
+        let spots = pos.openAdjacentSpots(true, true);
         if (spots.length === 0) { return undefined; }
-        const spotArr = [];
-        let maxOpen = 0;
-        let maxS;
-        for (const s1 of spots) {
-            const _s = s1.openAdjacentSpots(true, true);
-            if (_s.length > maxOpen) {
-                maxOpen = _s.length;
-                maxS = s1;
-            }
-            if (center && maxS && (_s.length === maxOpen || _s.length >= 5) && s1.getRangeTo(center) < maxS.getRangeTo(center)) {
-                maxOpen = _s.length;
-                maxS = s1;
-            }
+        if (!center) {
+            return _.max(spots, (x: RoomPosition) => x.openAdjacentSpots(true, true).length);
+        } else {
+            spots = spots.filter(x => x.openAdjacentSpots(true, true).length >= 5);
+            if (spots.length === 0) { return _.max(pos.openAdjacentSpots(true, true), (x: RoomPosition) => x.openAdjacentSpots().length); }
+            return center.findClosestByPath(spots);
         }
-        return maxS;
     },
 
     getSpotCandidate2(pos: RoomPosition, center?: RoomPosition) {
@@ -366,11 +358,10 @@ export const roomHelper = {
             for (const s2 of _s) {
                 if ((s2.x + s2.y) % 2 === 0) { continue; }
                 const _s2 = s2.openAdjacentSpots(true, true);
-                if (_s2.length > maxOpen) {
+                if (center && maxS && (_s2.length >= maxOpen || _s2.length >= 4) && s2.getRangeTo(center) < maxS.getRangeTo(center)) {
                     maxOpen = _s2.length;
                     maxS = s2;
-                }
-                if (center && maxS && (_s2.length === maxOpen || _s2.length >= 5) && s2.getRangeTo(center) < maxS.getRangeTo(center)) {
+                } else if (_s2.length > maxOpen) {
                     maxOpen = _s2.length;
                     maxS = s2;
                 }
@@ -409,12 +400,13 @@ export const roomHelper = {
 
     getContainerPosition(point: RoomPosition) {
         const center = point.room?.controller?.pos || new RoomPosition(25, 25, point.roomName);
-        return this.getSpotCandidate1(point, center) || _.head(point.openAdjacentSpots(true, true));
+        const spot = this.getSpotCandidate1(point, center);
+        return spot || _.head(point.openAdjacentSpots(true, true));
     },
 
-    getLinkPosition(point: RoomPosition) {
+    getLinkPosition(point: RoomPosition, container: RoomPosition) {
         const center = point.room?.controller?.pos || new RoomPosition(25, 25, point.roomName);
-        return this.getSpotCandidate1(this.getContainerPosition(point), center) || _.head(point.openAdjacentSpots(true, true));;
+        return this.getSpotCandidate1(container, center) || _.head(point.openAdjacentSpots(true, true));;
     },
 
     getControllerContainerPosition(point: RoomPosition) {

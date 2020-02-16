@@ -108,6 +108,6 @@ export const task = {
                 creep.setTarget(res, TargetAction.BUILD);
             }
         }
-    }
+    },
 
 }

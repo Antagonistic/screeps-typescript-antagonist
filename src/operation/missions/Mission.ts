@@ -71,6 +71,10 @@ export abstract class Mission extends BodyFactory {
         return ret;
     }
 
+    protected getSalt(): number {
+        return Game.time + this.spawnRoom.room.UUID;
+    }
+
     private findOrphans(roleName: string) {
         const creepNames = [];
         for (const creepName in Game.creeps) {

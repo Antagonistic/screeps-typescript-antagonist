@@ -26,8 +26,7 @@ export class MiningMission extends Mission {
         extentions?: Array<Id<StructureExtension | StructureTower | StructureSpawn>>;
         cartAnalyze?: cartAnalyze;
         isPathPaved?: boolean;
-        roadRepIds?: Array<Id<StructureRoad | StructureContainer>>;
-        roadConstruct?: Id<ConstructionSite> | null;
+        minerSpot?: UnserializedRoomPosition;
     };
 
     public source: Source;
@@ -123,32 +122,36 @@ export class MiningMission extends Mission {
         this.runMiners(this.miners);
         this.runHaulers2(this.carts);
     }
+
     public finalize(): void {
-        if (Game.time % 1000 === 567) {
-            this.memory.positionCount = undefined;
-            this._minersNeeded = undefined;
-            this.memory.storageId = undefined;
-            this.memory.container = undefined;
-            this.memory.dist = undefined;
+        if (this.getSalt() % 1000 === 67) {
+            delete this.memory.positionCount;
+            delete this.memory.storageId;
+            delete this.memory.container;
+            delete this.memory.link;
+            delete this.memory.minerStorage;
+            delete this.memory.dist;
 
             this.refreshMissionMemory();
         }
-        if (Game.time % 1000 === 633) {
-            this.memory.isPathPaved = undefined;
-            this.memory.cartAnalyze = undefined;
+        if (this.getSalt() === 633) {
+            delete this.memory.isPathPaved;
+            delete this.memory.cartAnalyze;
         }
-        if (Game.time % 1000 === 786) {
-            this.memory.extentions = undefined;
+        if (this.getSalt() === 786) {
+            delete this.memory.extentions;
         }
     }
 
     public refreshMissionMemory() {
         this.container = this.source.pos.findStructureInRange(STRUCTURE_CONTAINER, 1) as StructureContainer | undefined;
         this.memory.container = this.container?.id || undefined;
-        this.link = this.source.pos.findStructureInRange(STRUCTURE_CONTAINER, 2) as StructureLink | undefined;
+        this.link = this.source.pos.findStructureInRange(STRUCTURE_LINK, 2) as StructureLink | undefined;
         this.memory.link = this.link?.id || undefined;
         this.minerStorage = this.source.pos.findStructureInRange(STRUCTURE_STORAGE, 2) as StructureStorage | undefined;
         this.memory.minerStorage = this.minerStorage?.id || undefined;
+
+        this.memory.minerSpot = roomHelper.getContainerPosition(this.source.pos);
 
         if (!this.container && this.remoteSpawning && Game.cpu.bucket > 1000) {
             this.placeContainer();
@@ -567,7 +570,8 @@ export class MiningMission extends Mission {
         }
         if (this.link) { this.isLink = true; }
 
-        return this.minerStorage || this.link || this.container;
+        this.drop = this.minerStorage || this.link || this.container;
+        return this.drop;
     }
 
     public getCartAnalyze(): cartAnalyze {

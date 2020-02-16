@@ -24,12 +24,13 @@ export function dynaSourceLayout(room: Room, source: Source | Mineral, closest: 
     }
 
     if (source instanceof Source) {
+        const container = roomHelper.getContainerPosition(source.pos);
         roomHelper.layoutPushPosition(ret, 0, STRUCTURE_CONTAINER, roomHelper.getContainerPosition(source.pos));
         if (!room.memory.noLinkMine) {
             if (closest) {
-                roomHelper.layoutPushPosition(ret, 7, STRUCTURE_LINK, roomHelper.getLinkPosition(source.pos));
+                roomHelper.layoutPushPosition(ret, 7, STRUCTURE_LINK, roomHelper.getLinkPosition(source.pos, container));
             } else {
-                roomHelper.layoutPushPosition(ret, 6, STRUCTURE_LINK, roomHelper.getLinkPosition(source.pos));
+                roomHelper.layoutPushPosition(ret, 6, STRUCTURE_LINK, roomHelper.getLinkPosition(source.pos, container));
             }
         }
     }

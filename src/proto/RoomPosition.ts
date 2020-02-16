@@ -1,6 +1,6 @@
 {
     const g = global as any;
-    if (!g.RoomPosition) { g.RoomPosition = g.RoomPosition ?? { prototype: {} }; }
+    if (!g.RoomPosition) { g.RoomPosition = g.RoomPosition || { prototype: {} }; }
 }
 
 Object.defineProperty(RoomPosition.prototype, 'print', {

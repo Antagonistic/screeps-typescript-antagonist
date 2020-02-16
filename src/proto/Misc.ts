@@ -1,6 +1,6 @@
 {
     const g = global as any;
-    if (!g.Source) { g.Source = g.Source ?? { prototype: {} }; }
+    if (!g.Source) { g.Source = g.Source || { prototype: {} }; }
 }
 
 /* tslint:disable:object-literal-sort-keys*/

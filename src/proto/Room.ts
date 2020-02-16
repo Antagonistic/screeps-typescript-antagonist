@@ -1,6 +1,6 @@
 {
     const g = global as any;
-    if (!g.Room) { g.Room = g.Room ?? { prototype: {} }; }
+    if (!g.Room) { g.Room = g.Room || { prototype: {} }; }
 }
 
 import { roomHelper } from "rooms/roomHelper";

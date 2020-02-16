@@ -49,19 +49,22 @@ export const buildHelper = {
         for (const key in room.memory.structures) {
             const _key = key as BuildableStructureConstant;
             if (!road && _key === STRUCTURE_ROAD) { continue; }
-            if (road && _key !== STRUCTURE_ROAD) { continue; }
+            // if (road && _key !== STRUCTURE_ROAD) { continue; }
             if (!wall && (_key === STRUCTURE_WALL || _key === STRUCTURE_RAMPART)) { continue; }
+            // console.log('BUILD: Making ' + _key);
             const structs = room.memory.structures[_key];
             if (structs) {
                 for (const s of structs) {
                     const pos = roomHelper.deserializeRoomPosition(s);
                     if (pos) {
                         if (_key !== STRUCTURE_EXTRACTOR) {
-                            if (_.head(pos.lookFor(LOOK_TERRAIN)) !== "wall") {
+                            if (_.head(pos.lookFor(LOOK_TERRAIN)) === "wall") {
                                 continue;
                             }
                         }
+                        // console.log('BUILD: making ' + _key + ' at ' + pos.print);
                         if (!buildHelper.hasStructure(pos, _key, false)) {
+                            // console.log('BUILD: Need to build ' + _key + ' at ' + pos.print);
                             const ret = buildHelper.buildIfNotExist(pos, _key);
                             if (ret === OK) {
                                 if (buildOne) {
@@ -70,8 +73,7 @@ export const buildHelper = {
                                 } else {
                                     count++;
                                 }
-                            }
-                            if (ret === ERR_RCL_NOT_ENOUGH) { // No more of this type allowed, skip to next key
+                            } else if (ret === ERR_RCL_NOT_ENOUGH) { // No more of this type allowed, skip to next key
                                 break;
                             }
                         }
@@ -187,7 +189,7 @@ export const buildHelper = {
         for (const s of structures) {
             if (s.structureType === STRUCTURE_CONTROLLER) { continue; }
             const structList = room.memory.structures[s.structureType];
-            if ((!structList || !_.any(structList, o => o.x === s.pos.x && o.y === s.pos.y && o.roomName === s.pos.roomName)) {
+            if ((!structList || !_.any(structList, o => o.x === s.pos.x && o.y === s.pos.y && o.roomName === s.pos.roomName))) {
                 ;
             }
         }

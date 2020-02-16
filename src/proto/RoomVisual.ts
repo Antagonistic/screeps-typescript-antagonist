@@ -1,6 +1,6 @@
 {
     const g = global as any;
-    if (!g.RoomVisual) { g.RoomVisual = g.RoomVisual ?? { prototype: {} }; }
+    if (!g.RoomVisual) { g.RoomVisual = g.RoomVisual || { prototype: {} }; }
 }
 
 // Shamelessly stolen from Overmind

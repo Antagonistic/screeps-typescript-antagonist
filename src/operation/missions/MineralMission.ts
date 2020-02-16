@@ -38,7 +38,9 @@ export class MineralMission extends Mission {
                 }
             } else {
                 if (this.mineral.mineralAmount > 0 && this.storage && this.storage.store.getFreeCapacity() > this.storage.store.getCapacity() * 0.8) {
-                    this.active = true;
+                    if (this.spawnRoom.room.storage && this.spawnRoom.room.storage.store.energy > 8000) {
+                        this.active = true;
+                    }
                 }
             }
         }

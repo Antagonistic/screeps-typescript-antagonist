@@ -1,6 +1,6 @@
 {
     const g = global as any;
-    if (!g.Creep) { g.Creep = g.Creep ?? { prototype: {} }; }
+    if (!g.Creep) { g.Creep = g.Creep || { prototype: {} }; }
 }
 
 import * as creepActions from "creeps/creepActions";

@@ -41,7 +41,7 @@ export function sealedLayout(room: Room, flag: Flag): RCLRoomLayout {
         },
         4: {
             build: {
-                container: [{ "x": 22, "y": 22 }],
+                //            container: [{ "x": 22, "y": 22 }],
                 extension: [{ "x": 17, "y": 21 }, { "x": 17, "y": 22 }, { "x": 17, "y": 23 }, { "x": 18, "y": 23 }, { "x": 18, "y": 24 }, { "x": 19, "y": 24 }, { "x": 19, "y": 25 }, { "x": 20, "y": 25 }, { "x": 20, "y": 26 }, { "x": 21, "y": 26 }],
                 storage: [{ "x": 24, "y": 20 }]
             },
@@ -58,7 +58,7 @@ export function sealedLayout(room: Room, flag: Flag): RCLRoomLayout {
         },
         6: {
             build: {
-                container: [{ "x": 22, "y": 20 }],
+                //        container: [{ "x": 22, "y": 20 }],
                 extension: [{ "x": 19, "y": 20 }, { "x": 18, "y": 20 }, { "x": 17, "y": 20 }, { "x": 19, "y": 19 }, { "x": 20, "y": 19 }, { "x": 21, "y": 19 }, { "x": 20, "y": 18 }, { "x": 17, "y": 19 }, { "x": 17, "y": 18 }, { "x": 18, "y": 18 }],
                 lab: [{ "x": 26, "y": 22 }, { "x": 27, "y": 21 }, { "x": 27, "y": 23 }],
                 terminal: [{ "x": 24, "y": 22 }]
