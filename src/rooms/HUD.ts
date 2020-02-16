@@ -21,6 +21,7 @@ export class HUD {
         const text: string[] = [];
         text.push(`LastSpawned : ${room.memory.lastSpawned}`);
         text.push(`Fort        : ${room.memory.fort}`);
+        text.push(`Energy      : ${room.memory.lastEnergy}`);
         room.visual.multitext(text, 1, 4, {});
     }
 

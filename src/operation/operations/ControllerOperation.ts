@@ -56,9 +56,9 @@ export class ControllerOperation extends Operation {
 
             this.addMission(new SupervisorMission(this, this.logistics));
 
-            if (Game.time % 5 === 3) {
-                this.addMission(new LinkMission(this));
-            }
+            // if (Game.time % 5 === 3) {
+            this.addMission(new LinkMission(this));
+            // }
 
             this.addMission(new BuilderMission(this, this.logistics));
 

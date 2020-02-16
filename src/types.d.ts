@@ -143,6 +143,7 @@ interface RoomMemory {
   UUID?: number;
   roadCon?: Id<ConstructionSite>[];
   roadRep?: Id<Structure>[];
+  lastEnergy?: number;
 
 }
 

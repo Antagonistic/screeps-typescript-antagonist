@@ -41,7 +41,7 @@ export const buildHelper = {
         return ret;
     },
 
-    runBuildStructure(room: Room, buildOne: boolean = true, road: boolean = false, wall: boolean = false) {
+    runBuildStructure(room: Room, buildOne: boolean = true, road: boolean = false, wall: boolean = false, lowPower: boolean = false) {
         let count = 0;
         if (!room.memory.layoutTime || room.memory.layoutTime < Game.time) {
             layoutManager.applyLayouts(room);
@@ -52,6 +52,7 @@ export const buildHelper = {
             // if (road && _key !== STRUCTURE_ROAD) { continue; }
             if (!wall && (_key === STRUCTURE_WALL || _key === STRUCTURE_RAMPART)) { continue; }
             // console.log('BUILD: Making ' + _key);
+            if (lowPower && _key === STRUCTURE_RAMPART) { continue; }
             const structs = room.memory.structures[_key];
             if (structs) {
                 for (const s of structs) {
@@ -88,11 +89,11 @@ export const buildHelper = {
         return false;
     },
 
-    runIterativeBuild(room: Room, spawnRoom: SpawnRoom): boolean {
+    runIterativeBuild(room: Room, spawnRoom: SpawnRoom, lowPower: boolean = false): boolean {
         if (buildHelper.runBuildStructure(room, true, false, true)) {
             return true;
         } else {
-            if (spawnRoom.rclLevel >= 6 && room.memory.bunkerDefence) {
+            if (spawnRoom.rclLevel >= 6 && !lowPower && room.memory.bunkerDefence) {
                 const roomSpots = _.flatten(Object.values(spawnRoom.room.memory.structures)) as UnserializedRoomPosition[];
                 const ret = defenceHelper.assaultRampartSim(spawnRoom.room, roomSpots);
                 if (ret === false || ret === true) {

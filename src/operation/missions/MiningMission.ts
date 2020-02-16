@@ -196,7 +196,7 @@ export class MiningMission extends Mission {
     };
 
     public getOversizedMinerBody = () => {
-        if (!this.logistics.bootStrap && this.spawnRoom.energyCapacityAvailable >= 2000) {
+        if (!this.logistics.bootStrap && !this.logistics.isLowEnergy() && this.spawnRoom.energyCapacityAvailable >= 2000) {
             if (this.spawnRoom.availableSpawnEnergy >= BodyFactory.calculateBodyCost(BodyFactory.workerBody(12, 3, 12))) {
                 return BodyFactory.workerBody(12, 3, 12);
             }

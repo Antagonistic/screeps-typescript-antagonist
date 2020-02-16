@@ -30,7 +30,7 @@ export const PRIORITY_REPAIR: string[] = [
     STRUCTURE_EXTENSION,
     STRUCTURE_LAB,
     STRUCTURE_LINK,
-    STRUCTURE_STORAGE
+    STRUCTURE_STORAGE,
 ];
 
 @profile
@@ -118,7 +118,7 @@ export class BuilderMission extends Mission {
             }
             if (this.sites.length <= 1) {
                 if (!this.memory.nextBuildSite || this.memory.nextBuildSite <= Game.time) {
-                    if (buildHelper.runIterativeBuild(this.room, this.spawnRoom)) {
+                    if (buildHelper.runIterativeBuild(this.room, this.spawnRoom, this.logistics.isLowEnergy())) {
                         this.memory.nextBuildSite = Game.time + wait;
                     } else {
                         this.memory.nextBuildSite = Game.time + wait * 5;
@@ -252,7 +252,7 @@ export class BuilderMission extends Mission {
                 return priority[0];
             }
             if (includeRoad) {
-                const roads = structures.filter(x => (x.structureType === STRUCTURE_ROAD || x.structureType === STRUCTURE_CONTAINER) && x.hits < x.hitsMax / 2);
+                const roads = structures.filter(x => (x.structureType === STRUCTURE_ROAD || x.structureType === STRUCTURE_CONTAINER) && x.hits * 3 < x.hitsMax / 4);
                 if (roads.length > 0) {
                     return _.min(roads, x => x.hits / x.hitsMax);
                 }
@@ -320,7 +320,7 @@ export class BuilderMission extends Mission {
                     b.setTarget(this.sites[0], TargetAction.BUILD);
                 }
                 if (!b.action) {
-                    const rep = this.RepTarget(false, true);
+                    const rep = this.RepTarget(true, true);
                     if (rep) {
                         b.setTarget(rep, TargetAction.REPAIR);
                     }

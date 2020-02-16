@@ -138,10 +138,20 @@ export class LogisticsManager {
         else { this.sources++; }
     }
 
+    public energy() {
+        const energy = this.E + (this.storage?.store.energy || 0) + (this.terminal?.store.energy || 0);
+        this.room.memory.layoutTime = energy;
+        return energy;
+    }
+
+    public isLowEnergy() {
+        return this.energy() < 15000;
+    }
+
     public getEstimatedUpgraderWork() {
         if (this.spawnRoom.rclLevel === 8) { return 15; }
         let work = this.sources * 10 + this.remoteSources * 5;
-        if (this.storage && this.storage.store.energy < 20000) { work = work / 2; }
+        if (this.storage && this.isLowEnergy()) { work = work / 2; }
         if (this.storage && this.storage.store.energy < 5000) { work = work / 2; }
         // if (Game.time % 10 === 0) {
         // console.log('LOGIC: ' + this.room + ' estimates ' + work + ' upgrade parts.');

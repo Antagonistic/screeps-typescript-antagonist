@@ -61,7 +61,7 @@ export class LinkMission extends Mission {
         ;
     }
     public work(): void {
-        if (this.active) {
+        if (this.active && Game.time % 5 === 0) {
             // console.log('LINK: ' + this.room!.print + ' has ' + this.links.length + ' links');
             let transController = false;
             for (const l of this.links) {
@@ -90,8 +90,11 @@ export class LinkMission extends Mission {
     }
 
     public finalize(): void {
-        if (Game.time % 1000 === 892) {
-            this.memory.init = undefined;
+        if (this.getSalt() % 1000 === 896) {
+            delete this.memory.init;
+            delete this.memory.sLink;
+            delete this.memory.cLink;
+            delete this.memory.links;
             console.log('LINK: clearing link caching ' + this.room!.print);
         }
     }
