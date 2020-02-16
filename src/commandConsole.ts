@@ -112,9 +112,16 @@ export const commandConsole = {
       }
     }
   },
-  runBuildRoad(roomName: string = defaultRoom) {
-    if (global.emp.spawnRooms[roomName]) {
-      return getLogistics(roomName).buildRoads();
+  runBuildRoad(roomName: string = defaultRoom, secondary: boolean = true) {
+    const room = getRoom(roomName);
+    const spawnRoom = getSpawnRoom(roomName);
+    if (room && global.emp.spawnRooms[roomName]) {
+      // return getLogistics(roomName).buildRoads();
+      if (secondary) {
+        layoutManager.applySecondaryRoads(room, spawnRoom.logistics.getDestinations(), room.storage?.pos || _.head(room.find(FIND_MY_SPAWNS)).pos);
+        console.log('BUILD: Secondaries: ' + room.memory.secondaryRoads?.length || 0);
+      }
+      return buildHelper.runIterativeBuildRoad(room, getSpawnRoom(roomName), secondary);
     } else {
       console.log('Could not find logistics for ' + roomName);
       console.log('Valid options: ' + Object.keys(global.emp.spawnRooms));

@@ -558,7 +558,7 @@ export class MiningMission extends Mission {
     public findDrops(): StructureContainer | StructureLink | StructureStorage | undefined {
         if (this.memory.container) {
             this.container = Game.getObjectById(this.memory.container) || undefined;
-            if (!this.container) { this.memory.container = undefined; }
+            if (!this.container) { this.memory.container = undefined; console.log('MINING: container dissapeard for source ' + this.source.pos.print); }
         }
         if (this.memory.link) {
             this.link = Game.getObjectById(this.memory.link) || undefined;

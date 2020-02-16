@@ -143,11 +143,15 @@ export const layoutManager = {
     applySecondaryRoads(room: Room, destinations: RoomPosition[], center: RoomPosition) {
         const ret: UnserializedRoomPosition[] = [];
         for (const d of destinations) {
-            for (const r of roadHelper.pavePath(center, d)) {
-                if (r.isEdge) { continue; }
-                ret.push(d);
+            const path = roadHelper.pavePath(center, d);
+            console.log('LAYOUT: Path to ' + d.print + ' has road length of ' + path.length);
+            for (const r of path) {
+                if (r.isVisible && !r.isEdge && r.isPassible(true, false)) {
+                    ret.push(r);
+                }
             }
         }
+        console.log('LAYOUT: Applying secondary roads of len: ' + ret.length + ' for destinations: ' + destinations.length);
         room.memory.secondaryRoads = ret;
     },
 

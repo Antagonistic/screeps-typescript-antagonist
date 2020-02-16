@@ -199,7 +199,7 @@ export class LogisticsManager {
         }
         if (Game.cpu.bucket > 3000) {
             new HUD().runControlledRoom(this.room);
-            if (Game.time + this.room.UUID % 30 === 0 && this.terminal) {
+            if ((Game.time + this.room.UUID) % 30 === 0 && this.terminal) {
                 this.terminalNetwork.runTerminal(this.terminal);
             }
         }

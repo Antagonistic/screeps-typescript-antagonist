@@ -97,6 +97,7 @@ export class BuilderMission extends Mission {
         // Create new sites
         if (!this.remoteSpawning && this.room && this.operation.stableOperation) {
             const wait = Game.cpu.bucket <= 99000 ? 300 : 50;
+            if (this.buildSecondaryRoads) { this.logistics.getDestinations() }
             if (this.roadsites.length <= 1) {
                 /*if (!this.memory.nextBuildRoad || this.memory.nextBuildRoad <= Game.time) {
                     this.getRoadConstruct()

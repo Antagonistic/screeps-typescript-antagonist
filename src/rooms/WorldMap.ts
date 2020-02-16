@@ -101,16 +101,20 @@ export class WorldMap implements WorldMap {
 
   public processRoomCache(room: Room) {
     const mem = room.memory;
-    if (room.UUID + Game.time % 1000 === 0) {
+    if ((room.UUID + Game.time) % 1000 === 0) {
       if (room.controller && room.controller.my) {
         // Owned room
+        // if (room.memory.layoutTime && Game.time >= room.memory.layoutTime) {
         layoutManager.applyLayouts(room);
         if (room.memory.dest && room.memory.dest.length > 0) {
           const center = room.storage || _.head(room.find(FIND_MY_SPAWNS));
           if (center) {
             layoutManager.applySecondaryRoads(room, roomHelper.deserializeRoomPositions(room.memory.dest), center.pos);
+          } else {
+            console.log('LAYOUT: Cant find center for room ' + room.print);
           }
         }
+        // }
         room.memory.dest = undefined;
         room.memory.controllerBattery = undefined;
       } else {

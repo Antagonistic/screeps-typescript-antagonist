@@ -115,10 +115,12 @@ export const buildHelper = {
     runWalkRoad(room: Room, pos: UnserializedRoomPosition[]) {
         let built: boolean = false;
         for (const p of pos) {
+
             if (p.x === 0 || p.y === 0 || p.x === 49 || p.y === 49) { continue; }
             if (!Game.rooms[p.roomName]) { continue; }
             const _p = roomHelper.deserializeRoomPosition(p);
             if (_p) {
+                if (_.head(_p.lookFor(LOOK_TERRAIN)) === "wall") { continue; }
                 const road = _p.lookForStructure(STRUCTURE_ROAD);
                 if (road) {
                     if (road.hits < road.hitsMax / 2) { room.memory.roadRep!.push(road.id); }
@@ -131,11 +133,14 @@ export const buildHelper = {
                 const site = _.head(_p.lookFor(LOOK_CONSTRUCTION_SITES));
                 if (site) {
                     room.memory.roadCon!.push(site.id);
-                    continue;
                 }
-                if (!built) {
+                else if (!built && _p.isPassible(true, false)) {
                     const ret = _p.createConstructionSite(STRUCTURE_ROAD);
-                    if (ret === OK) { built = true; }
+                    if (ret === OK) {
+                        console.log('BUILD: Making new ' + STRUCTURE_ROAD + ' at ' + _p.print);
+                        built = true;
+                        return built;
+                    }
                 }
             }
         }
@@ -149,7 +154,9 @@ export const buildHelper = {
             if (this.runWalkRoad(room, room.memory.secondaryRoads)) {
                 return true;
             }
+            console.log('BUILD: No secondaries built');
         }
+
         if (room.memory.structures.road && room.memory.structures.road.length > 0) {
             if (this.runWalkRoad(room, room.memory.structures.road)) {
                 return true;
