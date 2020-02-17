@@ -134,6 +134,7 @@ Creep.prototype.actionTarget = function (): boolean {
         case TargetAction.BUILD: {
             creepActions.moveToBuild(this, t as ConstructionSite);
             this.say("🛠️");
+            if (t.pos.room) { t.pos.room.visual.text("🛠️", t.pos); }
             this.action = true;
             return true;
         }
@@ -142,6 +143,7 @@ Creep.prototype.actionTarget = function (): boolean {
             if (tRep.hits < tRep.hitsMax) {
                 creepActions.moveToRepair(this, tRep);
                 this.say("🔧");
+                if (t.pos.room) { t.pos.room.visual.text("🔧", t.pos); }
                 this.action = true;
                 return true;
             }

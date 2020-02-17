@@ -175,8 +175,16 @@ export const commandConsole = {
     }
     return Game.market.createOrder({ type: ORDER_SELL, resourceType: RESOURCE_ENERGY, price: 0.003, totalAmount: amount, roomName });
   },
-  layoutCoord(x: number, y: number, roomName: string = defaultRoom) {
+  layoutCoord(roomName: string, x: number, y: number) {
     return JSON.stringify(layoutManager.layoutCoord(getRoom(roomName), x, y));
+  },
+  marketBuyEnergy(roomName: string) {
+    const logistic = getLogistics(roomName);
+    if (!logistic) { return "failed: no logistic"; }
+    const term = logistic.terminal;
+    if (!term) { return "failed: no terminal"; }
+    logistic.terminalNetwork.reportEnergyBuyCandidates(term);
+    return "success";
   },
   addLayout(flagName: string, layout: string) {
     const flag = getFlag(flagName);
@@ -236,6 +244,17 @@ export const commandConsole = {
       const influence = global.emp.map.expandInfluence(global.emp.spawnRooms[_sR]);
       console.log(_sR + "  " + influence.length);
     }
+    return "success";
+  },
+  testDismantle(roomName: string = defaultRoom, destroyNow: boolean = false) {
+    const room = getRoom(roomName);
+    if (!room) { return "invalid room"; }
+    const dismantle = buildHelper.dismantleCandidates(room);
+    for (const d of dismantle) {
+      console.log(`DISMANTLE: ${d.structureType} ${d.pos.print}`);
+      if (destroyNow) { d.destroy(); }
+    }
+    room.memory.dismantle = dismantle.map(x => x.id);
     return "success";
   },
   vis(roomName: string = defaultRoom) {

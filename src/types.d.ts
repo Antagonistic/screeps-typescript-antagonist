@@ -144,6 +144,7 @@ interface RoomMemory {
   roadCon?: Id<ConstructionSite>[];
   roadRep?: Id<Structure>[];
   lastEnergy?: number;
+  dismantle?: Id<Structure>[];
 
 }
 

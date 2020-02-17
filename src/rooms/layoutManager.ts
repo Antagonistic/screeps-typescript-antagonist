@@ -73,13 +73,13 @@ export const layoutManager = {
         if (layout && layout.length > 0) {
             const _layout = layout[0];
             const pos = _layout.pos;
-            const _x = x - pos.x;
-            const _y = y - pos.y;
-            return new RoomPosition(_x, _y, room.name);
+            const _x = pos.x + x;
+            const _y = pos.y + y;
+            return { x: _x, y: _y, roomName: room.name };
         } else {
             const _x = x;
             const _y = y;
-            return new RoomPosition(_x, _y, room.name);
+            return { x: _x, y: _y, roomName: room.name };
         }
     },
 
@@ -113,7 +113,7 @@ export const layoutManager = {
                                 }
                             }
                             if (_l.memory) {
-                                console.log('LAYOUT: Applying memory ' + JSON.stringify(_l.memory));
+                                // console.log('LAYOUT: Applying memory ' + JSON.stringify(_l.memory));
                                 if (_l.memory.supervisor) {
                                     room.memory.supervisor = [];
                                     for (const sup of _l.memory.supervisor) {
@@ -132,7 +132,7 @@ export const layoutManager = {
         }
         const keys = Object.keys(ret);
         if (keys.length > 0) {
-            console.log('LAYOUT: Applied ' + keys.length + ' structure types');
+            // console.log('LAYOUT: Applied ' + keys.length + ' structure types');
             room.memory.structures = ret;
             room.memory.layoutTime = Game.time + 1000;
         } else {

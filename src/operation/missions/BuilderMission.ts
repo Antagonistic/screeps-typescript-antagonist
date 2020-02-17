@@ -96,7 +96,7 @@ export class BuilderMission extends Mission {
     public finalize(): void {
         // Create new sites
         if (!this.remoteSpawning && this.room && this.operation.stableOperation) {
-            const wait = Game.cpu.bucket <= 99000 ? 300 : 50;
+            const wait = Game.cpu.bucket <= 99000 ? 200 : 20;
             if (this.buildSecondaryRoads) { this.logistics.getDestinations() }
             if (this.roadsites.length <= 1) {
                 /*if (!this.memory.nextBuildRoad || this.memory.nextBuildRoad <= Game.time) {
@@ -245,14 +245,19 @@ export class BuilderMission extends Mission {
 
     public RepTarget(includeRoad: boolean = false, includeWall: boolean = false) {
         if (!this.room) { return undefined; }
-        const structures = this.room.find(FIND_STRUCTURES, { filter: x => x.hits < x.hitsMax });
+        let structures = this.room.find(FIND_STRUCTURES, { filter: x => x.hits < x.hitsMax });
+        const dismantle = this.spawnRoom.room.memory.dismantle;
+        if (dismantle && dismantle.length > 0) {
+            structures = structures.filter(x => !_.any(dismantle, o => x.id === o));
+        }
         if (structures && structures.length > 0) {
             const priority = _.filter(structures, x => PRIORITY_REPAIR.indexOf(x.structureType) > -1);
             if (priority.length > 0) {
                 return priority[0];
             }
             if (includeRoad) {
-                const roads = structures.filter(x => (x.structureType === STRUCTURE_ROAD || x.structureType === STRUCTURE_CONTAINER) && x.hits * 3 < x.hitsMax / 4);
+                const roads = structures.filter(x => (x.structureType === STRUCTURE_ROAD || x.structureType === STRUCTURE_CONTAINER) && x.hits < (x.hitsMax / 4 * 3));
+                // console.log('BUILD: RepTargets road: ' + JSON.stringify(roads));
                 if (roads.length > 0) {
                     return _.min(roads, x => x.hits / x.hitsMax);
                 }
@@ -272,6 +277,7 @@ export class BuilderMission extends Mission {
         for (const b of this.pavers) {
             if (!b.action) {
                 if (b.working) {
+                    if (b.memory.debug) { console.log('DEBUG: working'); }
                     b.actionTarget();
                     if (b.action) { continue; }
                     if (this.needEmergencyRefill()) {
@@ -288,7 +294,11 @@ export class BuilderMission extends Mission {
                     }
                     task.roadConstruct(b, this.room);
                     task.roadRepair(b, this.room);
-
+                    const rep = this.RepTarget(true, false);
+                    if (b.memory.debug) { console.log('DEBUG: ' + rep); }
+                    if (rep) {
+                        b.setTarget(rep, TargetAction.REPAIR);
+                    }
                     if (!b.action && this.remoteSpawning && this.room && this.room.controller && this.room.controller.my) {
                         b.action = creepActions.actionUpgrade(b, b.action);
                     }
@@ -320,7 +330,7 @@ export class BuilderMission extends Mission {
                     b.setTarget(this.sites[0], TargetAction.BUILD);
                 }
                 if (!b.action) {
-                    const rep = this.RepTarget(true, true);
+                    const rep = this.RepTarget(false, true);
                     if (rep) {
                         b.setTarget(rep, TargetAction.REPAIR);
                     }

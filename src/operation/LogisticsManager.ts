@@ -140,7 +140,7 @@ export class LogisticsManager {
 
     public energy() {
         const energy = this.E + (this.storage?.store.energy || 0) + (this.terminal?.store.energy || 0);
-        this.room.memory.layoutTime = energy;
+        this.room.memory.lastEnergy = energy;
         return energy;
     }
 

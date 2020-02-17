@@ -157,12 +157,12 @@ export const buildHelper = {
             }
             console.log('BUILD: No secondaries built');
         }
-
         if (room.memory.structures.road && room.memory.structures.road.length > 0) {
             if (this.runWalkRoad(room, room.memory.structures.road)) {
                 return true;
             }
         }
+        console.log('BUILD: Repair ' + room.memory.roadRep.length + ' roads');
         return false;
     },
 
@@ -193,14 +193,26 @@ export const buildHelper = {
     },
 
     dismantleCandidates(room: Room) {
+        const candidates = [];
         const structures = room.find(FIND_STRUCTURES);
         for (const s of structures) {
             if (s.structureType === STRUCTURE_CONTROLLER) { continue; }
+            if (s.structureType === STRUCTURE_RAMPART) { continue; }
+            if (s.structureType === STRUCTURE_STORAGE) { continue; }
             const structList = room.memory.structures[s.structureType];
             if ((!structList || !_.any(structList, o => o.x === s.pos.x && o.y === s.pos.y && o.roomName === s.pos.roomName))) {
-                ;
+                if (s.structureType === STRUCTURE_ROAD && room.memory.secondaryRoads) {
+                    if (!_.any(room.memory.secondaryRoads, o => o.x === s.pos.x && o.y === s.pos.y && o.roomName === s.pos.roomName)) {
+                        candidates.push(s);
+                        room.visual.circle(s.pos);
+                    }
+                } else {
+                    candidates.push(s);
+                    room.visual.circle(s.pos);
+                }
             }
         }
+        return candidates;
     }
 
 }

@@ -165,7 +165,7 @@ export class UpgradeMission extends Mission {
         // console.log(JSON.stringify(this.container));
         if (!this.container) { return false; }
         if (this.room && this.room.controller && this.room.controller.ticksToDowngrade < 5000) { return true; }
-        if (this.room && this.room.storage && this.room.storage.store.energy < 10000) { return false; }
+        if (this.logistics.isLowEnergy()) { return false; }
         if (this.container.structureType === STRUCTURE_LINK) {
             if (this.container.energy > 10) { return true; }
         }
