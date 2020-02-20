@@ -130,12 +130,14 @@ Object.defineProperty(Room.prototype, 'dangerousHostiles', {
                     (creep: Creep) => creep.getActiveBodyparts(ATTACK) > 0
                         || creep.getActiveBodyparts(WORK) > 0
                         || creep.getActiveBodyparts(RANGED_ATTACK) > 0
-                        || creep.getActiveBodyparts(HEAL) > 0);
+                        || creep.getActiveBodyparts(HEAL) > 0
+                        || creep.owner.username === "Invader");
             } else {
                 this._dangerousHostiles = _.filter(this.hostiles,
                     (creep: Creep) => creep.getActiveBodyparts(ATTACK) > 0
                         || creep.getActiveBodyparts(RANGED_ATTACK) > 0
-                        || creep.getActiveBodyparts(HEAL) > 0);
+                        || creep.getActiveBodyparts(HEAL) > 0
+                        || creep.owner.username === "Invader");
             }
         }
         return this._dangerousHostiles;

@@ -29,6 +29,7 @@ export class LogisticsManager {
     public sources: number = 0;
     public remoteSources: number = 0;
     public bootStrap: boolean;
+    private _energy?: number;
     constructor(spawnRoom: SpawnRoom) {
         this.spawnRoom = spawnRoom;
         this.room = spawnRoom.room;
@@ -63,12 +64,12 @@ export class LogisticsManager {
         }
         const dest: RoomPosition[] = [];
         for (const op of this.operations) {
-            console.log('Checking ' + op.type + ' ' + op.name);
+            // console.log('Checking ' + op.type + ' ' + op.name);
             for (const _m in op.missions) {
                 const m = op.missions[_m];
                 if (m instanceof MiningMission) {
                     if (m.remoteSpawning && this.room.memory.noRemote) { continue; }
-                    console.log('  Checking ' + m.name);
+                    // console.log('  Checking ' + m.name);
                     if (m.source) {
                         dest.push(m.source.pos);
                     }
@@ -139,19 +140,22 @@ export class LogisticsManager {
     }
 
     public energy() {
-        const energy = this.E + (this.storage?.store.energy || 0) + (this.terminal?.store.energy || 0);
-        this.room.memory.lastEnergy = energy;
-        return energy;
+        if (!this._energy) {
+            const controllerEnergy = (this.room.memory.controllerBattery ? Game.getObjectById(this.room.memory.controllerBattery)?.store.energy : 0) ?? 0;
+            const energy = this.E + (this.storage?.store.energy || 0) + (this.terminal?.store.energy || 0) + controllerEnergy;
+            this.room.memory.lastEnergy = this._energy = energy;
+        }
+        return this._energy;
     }
 
     public isLowEnergy() {
-        if (this.spawnRoom.rclLevel <= 4) { return false; }
+        if (this.spawnRoom.rclLevel < 4) { return false; }
         return this.energy() < 15000;
     }
 
     public getEstimatedUpgraderWork() {
         if (this.spawnRoom.rclLevel === 8) { return 15; }
-        let work = this.sources * 10 + this.remoteSources * 5;
+        let work = this.sources * 8 + this.remoteSources * 4;
         if (this.storage && this.isLowEnergy()) { work = work / 2; }
         if (this.storage && this.storage.store.energy < 5000) { work = work / 2; }
         // if (Game.time % 10 === 0) {

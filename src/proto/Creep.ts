@@ -7,6 +7,12 @@ import * as creepActions from "creeps/creepActions";
 
 import { TargetAction } from 'config/config';
 
+const energyStructures: string[] = [
+    STRUCTURE_EXTENSION,
+    STRUCTURE_TOWER,
+    STRUCTURE_SPAWN
+]
+
 Object.defineProperty(Creep.prototype, 'target', {
     get() {
         if (this.memory.target) {
@@ -181,11 +187,40 @@ Creep.prototype.actionTarget = function (): boolean {
         case TargetAction.DEPOSITENERGY: {
             const _t = t as Creep | AnyStoreStructure;
             // if (this.memory.debug) { console.log('DEBUG: getFreeCapacity ' + _t.store.getFreeCapacity(RESOURCE_ENERGY)) }
-            if (_t.store.getFreeCapacity(RESOURCE_ENERGY) > 0 && this.store.energy > 0) {
-                // creepActions.moveToTransfer(this, _t);
-                const ret = this.transfer(_t, RESOURCE_ENERGY);
-                if (ret === ERR_NOT_IN_RANGE) {
+            const freeCap = _t.store.getFreeCapacity(RESOURCE_ENERGY);
+            let myEnergy = this.store.energy;
+            if (freeCap > 0 && myEnergy > 0) {
+
+                if (!this.pos.isNearTo(_t.pos)) {
                     creepActions.moveTo(this, _t.pos);
+                    this.action = true;
+                    this.say("💰");
+                    return true;
+                }
+                // creepActions.moveToTransfer(this, _t);
+                if (myEnergy > freeCap && _t instanceof Structure) {
+                    // multi-fill!
+                    const struct = this.pos.findInRange(FIND_STRUCTURES, 1, { filter: x => energyStructures.includes(x.structureType) });
+                    if (struct && struct.length > 0) {
+                        for (const _s of struct) {
+                            const s = _s as StructureExtension | StructureTower | StructureSpawn;
+                            if (myEnergy <= 0) {
+                                break;
+                            }
+                            const amount = s.store.getFreeCapacity(RESOURCE_ENERGY);
+                            myEnergy -= amount;
+                            this.transfer(s, RESOURCE_ENERGY, amount);
+                        }
+                    } else {
+                        // just send to target
+                        this.transfer(_t, RESOURCE_ENERGY);
+                    }
+
+                } else {
+                    const ret = this.transfer(_t, RESOURCE_ENERGY);
+                    if (ret === ERR_NOT_IN_RANGE) {
+                        creepActions.moveTo(this, _t.pos);
+                    }
                 }
                 this.action = true;
                 this.say("💰");

@@ -125,7 +125,7 @@ export class UpgradeMission extends Mission {
         if (this.room && this.room.controller && this.room.controller.level < 2) {
             return 1;
         }
-        return this.getUpgradeAnalyze().count;
+        return Math.max(this.getUpgradeAnalyze().count, 3);
         // tslint:disable-next-line:prefer-const
         // let numUpgraders = 2;
         /*if (this.room && this.room.storage) {
