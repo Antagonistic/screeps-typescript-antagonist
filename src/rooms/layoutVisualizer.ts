@@ -40,8 +40,10 @@ export class LayoutVisualizer {
                 const rclLayout = layout.layout[i];
                 for (const key in rclLayout.build) {
                     const _key = key as BuildableStructureConstant;
-                    const build = rclLayout.build[key];
-                    this.renderPos(build, layout.pos, _key);
+                    const build = rclLayout.build[_key];
+                    if (build) {
+                        this.renderPos(build, layout.pos, _key);
+                    }
                 }
             }
         }

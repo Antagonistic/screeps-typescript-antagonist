@@ -129,6 +129,29 @@ export class WorldMap implements WorldMap {
     Traveler.updateRoomStatus(room);
     this.processRoomCache(room);
     room.memory.lastSeen = Game.time;
+    if (room.memory.sourcesPos === undefined) {
+      const source = room.sortedSources;
+      if (source && source.length > 0) {
+        room.memory.sourcesPos = source.map(x => x.pos);
+      } else {
+        room.memory.sourcesPos = null;
+      }
+    }
+    if (room.memory.controllerPos === undefined) {
+      if (room.controller) {
+        room.memory.controllerPos = room.controller.pos;
+      } else {
+        room.memory.controllerPos = null;
+      }
+    }
+    if (!room.memory.center) {
+      if (room.controller) {
+        room.memory.center = roomHelper.getSpotCandidate1(room.controller.pos) || roomHelper.findClosestPlainTile(new RoomPosition(25, 25, room.name));
+      } else {
+        room.memory.center = roomHelper.findClosestPlainTile(new RoomPosition(25, 25, room.name));
+      }
+    }
+
     if (room.controller) {
       if (room.controller.my) {
         // Update my room

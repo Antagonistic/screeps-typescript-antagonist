@@ -46,12 +46,12 @@ export class AutoLayout {
     public blockOffMatrix() {
         const matrix = new PathFinder.CostMatrix();
         const room = Game.rooms[this.roomName];
-        roomHelper.blockOffPosition(matrix, room.controller!, 3, 3);
-        roomHelper.blockOffPosition(matrix, room.controller!, 2, 5);
-        roomHelper.blockOffPosition(matrix, room.controller!, 1, 7);
+        roomHelper.blockOffPosition(matrix, room.controller!.pos, 3, 3);
+        roomHelper.blockOffPosition(matrix, room.controller!.pos, 2, 5);
+        roomHelper.blockOffPosition(matrix, room.controller!.pos, 1, 7);
 
         for (const s of room.find(FIND_SOURCES)) {
-            roomHelper.blockOffPosition(matrix, s, 2, 3);
+            roomHelper.blockOffPosition(matrix, s.pos, 2, 3);
         }
 
         return matrix;

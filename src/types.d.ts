@@ -145,7 +145,10 @@ interface RoomMemory {
   roadRep?: Id<Structure>[];
   lastEnergy?: number;
   dismantle?: Id<Structure>[];
-
+  sourcesPos?: UnserializedRoomPosition[] | null;
+  controllerPos?: UnserializedRoomPosition | null;
+  center?: UnserializedRoomPosition;
+  queueReaction?: LabReaction[];
 }
 
 type RoomStructurePositions = { [key in StructureConstant]?: UnserializedRoomPosition[] };
@@ -164,6 +167,16 @@ interface Memory {
     history: number[];
     average: number;
   };
+}
+
+interface RefillPath {
+  origin: UnserializedRoomPosition;
+  path: RefillPathNode;
+}
+
+interface RefillPathNode {
+  fill: OwnedStructure[];
+
 }
 
 interface WorldMap {
@@ -193,6 +206,7 @@ interface Empire {
 }
 
 interface RCLRoomLayout {
+  relative?: boolean;
   anchor: LightRoomPos;
   road: LightRoomPos[];
   [RCL: number]: RoomLayout;
@@ -203,7 +217,18 @@ interface RoomLayout {
   memory?: any;
 }
 
-type RoomLayoutBuild = { [key: string]: LightRoomPos[] };
+interface LabReaction {
+  product: Chemical;
+  input: Chemical[];
+}
+
+interface Chemical {
+  building: Id<StructureLab | StructureFactory>;
+  element: ResourceConstant;
+  amount: number;
+}
+
+type RoomLayoutBuild = { [key in StructureConstant]?: LightRoomPos[] };
 
 interface LightRoomPos {
   x: number;

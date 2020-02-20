@@ -1,22 +1,21 @@
 import { Operation, OperationPriority } from "./Operation";
 
 // import { log } from "lib/logger/log";
-import { BuilderMission } from "../missions/BuilderMission";
-import { EmergencyMission } from "../missions/EmergencyMission";
-import { GuardMission } from "../missions/GuardMission";
-import { MiningMission } from "../missions/MiningMission";
-import { UpgradeMission } from "../missions/UpgradeMission";
-
 import { LogisticsManager } from "operation/LogisticsManager";
+
 import { ClaimMission } from "operation/missions/ClaimMission";
+import { IgorMission } from "operation/missions/IgorMission";
 import { LinkMission } from "operation/missions/LinkMission";
 import { MineralMission } from "operation/missions/MineralMission";
 import { ScoutMission } from "operation/missions/ScoutMission";
 import { ScoutRandomMission } from "operation/missions/ScoutRandomMission";
 import { SupervisorMission } from "operation/missions/SupervisorMission";
-import * as layoutManager from "rooms/layoutManager";
-// import * as StructureManager from "rooms/structureManager";
+import { BuilderMission } from "../missions/BuilderMission";
+import { EmergencyMission } from "../missions/EmergencyMission";
+import { GuardMission } from "../missions/GuardMission";
+import { MiningMission } from "../missions/MiningMission";
 import { RefillMission } from "../missions/RefillMission";
+import { UpgradeMission } from "../missions/UpgradeMission";
 
 export class ControllerOperation extends Operation {
     public sources: Source[] = [];
@@ -28,6 +27,7 @@ export class ControllerOperation extends Operation {
         super(flag, name, type)
         if (flag.room) {
             this.sources = _.sortBy(flag.room.find(FIND_SOURCES), (s: Source) => s.pos.getRangeTo(flag));
+            flag.room.memory.center = flag.room.storage?.pos || flag.pos;
         }
         this.emergency = this.memory.emergency === undefined ? true : this.memory.emergency;
         this.logistics = this.spawnRoom.logistics;
@@ -64,6 +64,8 @@ export class ControllerOperation extends Operation {
 
             this.addMission(new UpgradeMission(this, this.logistics));
 
+            this.addMission(new IgorMission(this));
+
             this.addMission(new ScoutRandomMission(this));
 
             if (this.spawnRoom.rclLevel >= 6) {
@@ -72,7 +74,9 @@ export class ControllerOperation extends Operation {
 
             if (Game.time % 50 === 1) {
                 if (this.room) {
-                    console.log(this.room.print + " Operation stable: " + this.stableOperation);
+                    if (!this.stableOperation) {
+                        console.log(this.room.print + " Operation stable: " + this.stableOperation);
+                    }
                 }
                 if (this.stableOperation) {
                     // this.buildMineRoads();

@@ -7,6 +7,7 @@ import { headLayout } from "./layout/headLayout";
 import { noLayout } from "./layout/noLayout";
 import { sealedLayout } from "./layout/sealedLayout"
 import { snakeLayout } from "./layout/snakeLayout";
+import { squareLayout } from "./layout/squareLayout";
 import { roadHelper } from "./roadHelper";
 
 export interface SingleLayout {
@@ -33,14 +34,23 @@ export const layoutManager = {
                     case "snake":
                         layout = snakeLayout(room, flag);
                         break;
+                    case "square":
+                        layout = squareLayout(room, flag);
+                        break;
                     default:
                         layout = noLayout(room, flag);
                 }
             }
             if (layout) {
-                const x = layout.anchor.x - flag.pos.x;
-                const y = layout.anchor.y - flag.pos.y;
-                ret.push({ pos: { x, y }, layout });
+                if (layout.relative) {
+                    const x = -flag.pos.x;
+                    const y = -flag.pos.y;
+                    ret.push({ pos: { x, y }, layout });
+                } else {
+                    const x = layout.anchor.x - flag.pos.x;
+                    const y = layout.anchor.y - flag.pos.y;
+                    ret.push({ pos: { x, y }, layout });
+                }
             }
         }
         if (room.controller) {
@@ -98,8 +108,8 @@ export const layoutManager = {
                         if (_l) {
                             for (const key in _l.build) {
                                 const _key = key as BuildableStructureConstant;
-                                const build = _l.build[key];
-                                for (const p of build) {
+                                const build = _l.build[_key];
+                                for (const p of build!) {
                                     if (!p) {
                                         console.log('LAYOUT: ' + p + ' erronous expected ' + key + ' room ' + room.print);
                                     }

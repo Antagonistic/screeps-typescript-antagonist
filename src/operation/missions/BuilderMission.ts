@@ -96,18 +96,9 @@ export class BuilderMission extends Mission {
     public finalize(): void {
         // Create new sites
         if (!this.remoteSpawning && this.room && this.operation.stableOperation) {
-            const wait = Game.cpu.bucket <= 99000 ? 200 : 20;
+            const wait = Game.cpu.bucket <= 99000 ? 100 : 10;
             if (this.buildSecondaryRoads) { this.logistics.getDestinations() }
             if (this.roadsites.length <= 1) {
-                /*if (!this.memory.nextBuildRoad || this.memory.nextBuildRoad <= Game.time) {
-                    this.getRoadConstruct()
-                    this.getRoadRepList();
-                    if (buildHelper.runBuildStructure(this.room, true, true, false)) {
-                        this.memory.nextBuildRoad = Game.time + wait;
-                    } else {
-                        this.memory.nextBuildRoad = Game.time + wait * 5;
-                    }
-                }*/
                 if (!this.memory.nextBuildRoad || this.memory.nextBuildRoad <= Game.time) {
                     if (buildHelper.runIterativeBuildRoad(this.room, this.spawnRoom, this.buildSecondaryRoads)) {
                         this.memory.nextBuildRoad = Game.time + wait;
@@ -183,8 +174,8 @@ export class BuilderMission extends Mission {
     }
 
     public builderBody = (): BodyPartConstant[] => {
-        if (this.remoteSpawning) { return this.workerBodyOffRoad(); }
-        return this.workerBodyRoad();
+        if (this.remoteSpawning) { return this.workerBodyOffRoad(this.logistics.isLowEnergy() ? 800 : 1600); }
+        return this.workerBodyRoad(this.logistics.isLowEnergy() ? 800 : 1600);
     }
 
     public towerRepairSite(tower: StructureTower, sites: Structure[]): boolean {

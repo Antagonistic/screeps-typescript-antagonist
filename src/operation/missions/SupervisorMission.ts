@@ -124,6 +124,13 @@ export class SupervisorMission extends Mission {
         if (terminal && storage) {
             if (terminal.store.energy < this.logistics.getTerminalEnergyFloat() && storage.store.energy > 5000) {
                 sup.transfer(terminal, RESOURCE_ENERGY, creepE);
+                creepE = 0;
+            } else {
+                if (terminal.store.energy > 5000 && terminal.store.energy > storage.store.energy) {
+                    const amount = maxCreepE - creepE;
+                    sup.withdraw(terminal, RESOURCE_ENERGY, amount)
+                    creepE += amount;
+                }
             }
         }
     }

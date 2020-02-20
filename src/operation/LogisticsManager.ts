@@ -145,6 +145,7 @@ export class LogisticsManager {
     }
 
     public isLowEnergy() {
+        if (this.spawnRoom.rclLevel <= 4) { return false; }
         return this.energy() < 15000;
     }
 

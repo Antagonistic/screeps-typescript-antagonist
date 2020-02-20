@@ -1,6 +1,7 @@
 // tslint:disable-next-line:ordered-imports
 import { AVOID_COST, PLAIN_COST, ROAD_COST, SWAMP_COST } from "config/config";
 import { BodyFactory } from "creeps/BodyFactory";
+import { LayoutPath } from "creeps/Movement";
 import { Traveler } from "utils/Traveler";
 import { layoutManager } from "./layoutManager";
 
@@ -57,8 +58,8 @@ export const roomHelper = {
 
         // avoid controller
         if (room.controller) {
-            roomHelper.blockOffPosition(matrix, room.controller, 3, AVOID_COST);
-            roomHelper.blockOffPosition(matrix, room.controller, 2, AVOID_COST + 3);
+            roomHelper.blockOffPosition(matrix, room.controller.pos, 3, AVOID_COST);
+            roomHelper.blockOffPosition(matrix, room.controller.pos, 2, AVOID_COST + 3);
         }
 
         // avoid container/link adjacency
@@ -70,24 +71,26 @@ export const roomHelper = {
             }
 
             if (structure && structure.length > 0) {
-                roomHelper.blockOffPosition(matrix, structure[0], 1, AVOID_COST);
+                roomHelper.blockOffPosition(matrix, structure[0].pos, 1, AVOID_COST);
             }
         }
 
         // avoid going too close to lairs
         for (const lair of room.find(FIND_STRUCTURES, { filter: (x) => x.structureType === STRUCTURE_KEEPER_LAIR })) {
-            roomHelper.blockOffPosition(matrix, lair, 1, AVOID_COST);
+            roomHelper.blockOffPosition(matrix, lair.pos, 1, AVOID_COST);
         }
 
         return matrix;
     },
 
-    blockOffPosition(costs: CostMatrix, roomObject: RoomObject, range: number, cost = 30) {
-        const terrainLookup = Game.map.getRoomTerrain(roomObject.room!.name);
+    blockOffPosition(costs: CostMatrix, roomPos: RoomPosition | UnserializedRoomPosition, range: number, cost = 30, terrainLookup?: RoomTerrain) {
+        if (!terrainLookup) {
+            terrainLookup = Game.map.getRoomTerrain(roomPos.roomName);
+        }
         for (let xDelta = -range; xDelta <= range; xDelta++) {
             for (let yDelta = -range; yDelta <= range; yDelta++) {
-                const _x = roomObject.pos.x + xDelta;
-                const _y = roomObject.pos.y + yDelta;
+                const _x = roomPos.x + xDelta;
+                const _y = roomPos.y + yDelta;
                 const terrain = terrainLookup.get(_x, _y)
                 if (terrain === TERRAIN_MASK_WALL) { continue; }
                 costs.set(_x, _y, Math.max(costs.get(_x, _y), cost));
@@ -335,6 +338,20 @@ export const roomHelper = {
         }
     },
 
+    findClosestPlainTile(pos: RoomPosition): RoomPosition {
+        const terrain = Game.map.getRoomTerrain(pos.roomName);
+        for (let range = 1; range < 20; range++) {
+            for (let x = pos.x - range; x < pos.x + range; x++) {
+                for (let y = pos.y - range; y < pos.y + range; y++) {
+                    if (terrain.get(x, y) === 0) {
+                        return new RoomPosition(x, y, pos.roomName);
+                    }
+                }
+            }
+        }
+        return pos;
+    },
+
     getSpotCandidate1(pos: RoomPosition, center?: RoomPosition) {
         let spots = pos.openAdjacentSpots(true, true);
         if (spots.length === 0) { return undefined; }
@@ -343,79 +360,78 @@ export const roomHelper = {
         } else {
             spots = spots.filter(x => x.openAdjacentSpots(true, true).length >= 5);
             if (spots.length === 0) { return _.max(pos.openAdjacentSpots(true, true), (x: RoomPosition) => x.openAdjacentSpots().length); }
-            return center.findClosestByPath(spots);
+            return LayoutPath.findClosestByPathLayout(center, spots);
         }
     },
 
     getSpotCandidate2(pos: RoomPosition, center?: RoomPosition) {
         const spots = pos.openAdjacentSpots(true, true);
         if (spots.length === 0) { return undefined; }
-        const spotArr = [];
-        let maxOpen = 0;
-        let maxS;
-        for (const s1 of spots) {
-            const _s = s1.openAdjacentSpots(true, true);
-            for (const s2 of _s) {
-                if ((s2.x + s2.y) % 2 === 0) { continue; }
-                const _s2 = s2.openAdjacentSpots(true, true);
-                if (center && maxS && (_s2.length >= maxOpen || _s2.length >= 4) && s2.getRangeTo(center) < maxS.getRangeTo(center)) {
-                    maxOpen = _s2.length;
-                    maxS = s2;
-                } else if (_s2.length > maxOpen) {
-                    maxOpen = _s2.length;
-                    maxS = s2;
-                }
-            }
+        const spots2 = roomHelper.unique(_.flatten(spots.map(x => x.openAdjacentSpots(true, true))));
+        if (spots2.length === 0) { return this.getSpotCandidate1(pos, center); }
+        if (!center) {
+            return _.max(spots2, (x: RoomPosition) => x.openAdjacentSpots(true, true).length);
+        } else {
+            const _spots2 = spots2.filter(x => x.openAdjacentSpots(true, true).length >= 5);
+            if (_spots2.length === 0) { return _.max(spots2, (x: RoomPosition) => x.openAdjacentSpots().length); }
+            return LayoutPath.findClosestByPathLayout(center, _spots2);
         }
-        return maxS;
     },
 
     getSpotCandidate3(pos: RoomPosition, center?: RoomPosition) {
         const spots = pos.openAdjacentSpots(true, true);
         if (spots.length === 0) { return undefined; }
-        const spotArr = [];
-        let maxOpen = 0;
-        let maxS;
-        for (const s1 of spots) {
-            const _s = s1.openAdjacentSpots(true, true);
-            for (const s2 of _s) {
-                if ((s2.x + s2.y) % 2 === 0) { continue; }
-                const _s2 = s2.openAdjacentSpots(true, true);
-                for (const s3 of _s2) {
-                    if ((s3.x + s3.y) % 2 === 0) { continue; }
-                    const _s3 = s3.openAdjacentSpots(true, true);
-                    if (_s3.length > maxOpen) {
-                        maxOpen = _s3.length;
-                        maxS = s3;
-                    }
-                    if (center && maxS && _s3.length === maxOpen && s3.getRangeTo(center) < maxS.getRangeTo(center)) {
-                        maxOpen = _s3.length;
-                        maxS = s3;
-                    }
-                }
-            }
+        const spots2 = roomHelper.unique(_.flatten(spots.map(x => x.openAdjacentSpots(true, true))));
+        if (spots2.length === 0) { return this.getSpotCandidate1(pos, center); }
+        const spots3 = roomHelper.unique(_.flatten(spots2.map(x => x.openAdjacentSpots(true, true))));
+        if (spots3.length === 0) { return this.getSpotCandidate2(pos, center); }
+        if (!center) {
+            return _.max(spots3, (x: RoomPosition) => x.openAdjacentSpots(true, true).length);
+        } else {
+            const _spots3 = spots3.filter(x => x.openAdjacentSpots(true, true).length >= 5);
+            if (_spots3.length === 0) { return _.max(spots3, (x: RoomPosition) => x.openAdjacentSpots().length); }
+            return LayoutPath.findClosestByPathLayout(center, _spots3);
         }
-        return maxS;
     },
 
     getContainerPosition(point: RoomPosition) {
-        const center = point.room?.controller?.pos || new RoomPosition(25, 25, point.roomName);
+        let center;
+        if (Memory.rooms[point.roomName].center) {
+            center = roomHelper.deserializeRoomPosition(Memory.rooms[point.roomName].center);
+        } else {
+            center = new RoomPosition(25, 25, point.roomName);
+        }
         const spot = this.getSpotCandidate1(point, center);
         return spot || _.head(point.openAdjacentSpots(true, true));
     },
 
     getLinkPosition(point: RoomPosition, container: RoomPosition) {
-        const center = point.room?.controller?.pos || new RoomPosition(25, 25, point.roomName);
-        return this.getSpotCandidate1(container, center) || _.head(point.openAdjacentSpots(true, true));;
+        let center;
+        if (Memory.rooms[point.roomName].center) {
+            center = roomHelper.deserializeRoomPosition(Memory.rooms[point.roomName].center);
+        } else {
+            center = new RoomPosition(25, 25, point.roomName);
+        }
+        return this.getSpotCandidate1(container, center) || _.head(point.openAdjacentSpots(true, true));
     },
 
     getControllerContainerPosition(point: RoomPosition) {
-        const center = new RoomPosition(25, 25, point.roomName);
-        return this.getSpotCandidate2(point, center) || _.head(point.openAdjacentSpots(true, true));;
+        let center;
+        if (Memory.rooms[point.roomName].center) {
+            center = roomHelper.deserializeRoomPosition(Memory.rooms[point.roomName].center);
+        } else {
+            center = new RoomPosition(25, 25, point.roomName);
+        }
+        return this.getSpotCandidate2(point, center) || _.head(point.openAdjacentSpots(true, true));
     },
 
     getControllerLinkPosition(point: RoomPosition) {
-        const center = new RoomPosition(25, 25, point.roomName);
-        return this.getSpotCandidate3(point, center) || _.head(point.openAdjacentSpots(true, true));;
+        let center;
+        if (Memory.rooms[point.roomName].center) {
+            center = roomHelper.deserializeRoomPosition(Memory.rooms[point.roomName].center);
+        } else {
+            center = new RoomPosition(25, 25, point.roomName);
+        }
+        return this.getSpotCandidate3(point, center) || _.head(point.openAdjacentSpots(true, true));
     },
 };
