@@ -274,7 +274,7 @@ export class BuilderMission extends Mission {
                     if (this.needEmergencyRefill()) {
                         task.refill(b);
                     }
-                    const container = this.prioritySites.find(x => x.structureType === STRUCTURE_CONTAINER)
+                    const container = this.prioritySites.find(x => x.structureType === STRUCTURE_CONTAINER || x.structureType === STRUCTURE_STORAGE)
                     if (container) {
                         b.setTarget(container, TargetAction.BUILD);
                         continue;
@@ -290,6 +290,7 @@ export class BuilderMission extends Mission {
                     if (rep) {
                         b.setTarget(rep, TargetAction.REPAIR);
                     }
+                    task.scavange(b);
                     if (!b.action && this.remoteSpawning && this.room && this.room.controller && this.room.controller.my) {
                         b.action = creepActions.actionUpgrade(b, b.action);
                     }
@@ -326,6 +327,7 @@ export class BuilderMission extends Mission {
                         b.setTarget(rep, TargetAction.REPAIR);
                     }
                 }
+                task.scavange(b);
                 task.praise(b);
             } else {
 

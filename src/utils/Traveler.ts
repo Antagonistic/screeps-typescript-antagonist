@@ -114,6 +114,7 @@ export class Traveler {
                 // see note at end of file for more info on this
                 console.log(`TRAVELER: heavy cpu use: ${creep.name}, cpu: ${state.cpu} origin: ${
                     creep.pos.print}, dest: ${destination.print}`);
+                creep.memory.highCPU = true;
             }
 
             let color = "orange";

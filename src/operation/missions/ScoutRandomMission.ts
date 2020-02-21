@@ -27,6 +27,11 @@ export class ScoutRandomMission extends Mission {
     }
     public work(): void {
         for (const creep of this.scouts) {
+            if (creep.memory.highCPU) {
+                console.log(`SCOUT: High CPU: ${creep.name}, suiciding!`);
+                creep.suicide();
+                continue;
+            }
             if (creep.memory.home) {
                 if (creep.memory.home !== creep.room.name) {
                     creepActions.actionMoveToRoom(creep, false, creep.memory.home);

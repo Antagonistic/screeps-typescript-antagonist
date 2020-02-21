@@ -109,5 +109,52 @@ export const task = {
             }
         }
     },
+    scavange(creep: Creep) {
+        if (!creep.action) {
+            if (creep.room.storage || creep.room.terminal) {
+                for (const _res in creep.store) {
+                    const res = _res as ResourceConstant;
+                    if (res !== RESOURCE_ENERGY) {
+                        // drop off scavanged resources
+                        const dropOff = creep.room.terminal || creep.room.storage;
+                        if (dropOff) {
+                            creep.setTarget(dropOff, TargetAction.DEPOSIT);
+                        } else {
+                            creep.drop(res);
+                        }
+                    }
+                }
+                if (creep.store.getFreeCapacity() === 0) {
+                    return;
+                }
+                // Find new to scavange
+                const dropped = _.flatten(Object.values(creep.room.drops));
+                if (dropped.length > 0) {
+                    const drop = creep.pos.findClosestByPath(dropped);
+                    if (drop) {
+                        creep.setTarget(drop, TargetAction.PICKUP);
+                        return;
+                    }
+                }
+                const tombs = _.where(creep.room.tombstones, (x: Ruin) => x.store.getUsedCapacity() > 0);
+                if (tombs.length > 0) {
+                    const tomb = creep.pos.findClosestByPath(tombs);
+                    if (tomb) {
+                        creep.setTarget(tomb, TargetAction.WITHDRAW);
+                        return;
+                    }
+                }
+                const ruins = _.where(creep.room.ruins, (x: Ruin) => x.store.getUsedCapacity() > 0);
+                if (ruins.length > 0) {
+                    const ruin = creep.pos.findClosestByPath(ruins);
+                    if (ruin) {
+                        creep.setTarget(ruin, TargetAction.WITHDRAW);
+                        return;
+                    }
+                }
+            }
+
+        }
+    }
 
 }

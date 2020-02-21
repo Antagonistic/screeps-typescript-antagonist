@@ -18,6 +18,10 @@ import { buildHelper } from "rooms/buildHelper";
 import { defenceHelper } from "rooms/defenceHelper";
 import { layoutManager } from "rooms/layoutManager";
 
+
+const ROOM_SIZE = 50;
+const TERRAIN_MASK_PLAIN = 0;
+
 function getRoom(roomName: string) {
   return Game.rooms[roomName];
 }
@@ -282,5 +286,35 @@ export const commandConsole = {
   },
   myResources(hide: boolean = false) {
     return viking.myResources(hide);
+  },
+  extractRoomData(roomName: string, ...structures: Array<[number, number, string]>): RoomASCIIData {
+    const terrain = Game.map.getRoomTerrain(roomName);
+    const map: string[][] = [];
+    const charFor = {
+      [TERRAIN_MASK_WALL]: '#',
+      [TERRAIN_MASK_SWAMP]: '+',
+      [TERRAIN_MASK_PLAIN]: '-'
+    };
+
+    for (let y = 0; y < ROOM_SIZE; y++) {
+      map.push([]);
+      for (let x = 0; x < ROOM_SIZE; x++) {
+        map[y].push(charFor[terrain.get(x, y)]);
+      }
+    }
+    structures.forEach(([x, y, structureCode]) => {
+      map[y][x] = structureCode;
+    });
+    const mem = Memory.rooms[roomName];
+    if (mem) {
+      if (mem.controllerPos) {
+        const pos = mem.controllerPos;
+        map[pos.y][pos.x] = 'C';
+      }
+    }
+    return {
+      map: map.map(line => line.join(' ')).join('\n'),
+      name: roomName,
+    };
   }
 };

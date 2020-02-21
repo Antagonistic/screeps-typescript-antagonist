@@ -89,6 +89,7 @@ interface CreepMemory {
   debug?: boolean;
   waitTime?: number;
   partnerId?: Id<Creep>;
+  highCPU?: boolean;
 }
 
 interface RoomMemory {
@@ -295,7 +296,7 @@ interface Room {
   readonly dangerousHostiles: Creep[];
   readonly dangerousPlayerHostiles: Creep[];
   readonly flags: Flag[];
-  readonly drops: Resource[];
+  readonly drops: { [key: string]: Resource[] };
   readonly droppedEnergy: Resource[];
   readonly droppedPower: Resource[];
   readonly ruins: Ruin[];
@@ -313,6 +314,11 @@ interface RoomVisual {
   connectRoads(opts?: { opacity?: number }): RoomVisual | void;
   box(x: number, y: number, w: number, h: number, style?: LineStyle): RoomVisual;
   roads?: Array<[number, number]>;
+}
+
+interface RoomASCIIData {
+  name: string;
+  map: string;
 }
 
 declare const __REVISION__: string;
