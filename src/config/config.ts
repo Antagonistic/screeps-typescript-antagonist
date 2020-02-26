@@ -26,32 +26,6 @@ export const PLAIN_COST = 4;
 export const SWAMP_COST = 5;
 export const AVOID_COST = 7;
 
-export enum TargetAction {
-    MOVETO = "moveto",
-    PRAISE = "praise",
-    SIGN = "sign",
-    BUILD = "build",
-    REPAIR = "repair",
-    MINE = "mine",
-    PICKUP = "pickup",
-    WITHDRAW = "withdraw",
-    WITHDRAWENERGY = "withdrawenergy",
-    DEPOSIT = "deposit",
-    DEPOSITENERGY = "depositenergy",
-    HEAL = "heal",
-    ATTACK = "attack",
-    ATTACK_RANGED = "attackranged",
-    DISMANTLE = "dismantle"
-}
-
-export enum EnergyState {
-    UNKNOWN,
-    CRITICAL,
-    LOW,
-    NORMAL,
-    EXCESS
-}
-
 /**
  * Debug level for log output
  */

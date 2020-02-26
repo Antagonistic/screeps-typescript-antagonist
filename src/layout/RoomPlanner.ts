@@ -39,6 +39,7 @@ export class RoomPlanner {
         this.layoutCost = LayoutPath.LayoutCostMatrix(roomName) || new PathFinder.CostMatrix();
 
         this.planRoom();
+        this.visual();
     }
 
     private planRoom() {
@@ -154,6 +155,22 @@ export class RoomPlanner {
             return _.sample(loc, 10);
         }
         return loc;
+    }
+
+    public visual() {
+        const vis = new RoomVisual(this.roomName);
+        if (this.output.valid) {
+            for (const _key in this.output.core) {
+                const key = _key as BuildableStructureConstant;
+                this.renderPos(this.output.core[key]!, key, vis);
+            }
+        }
+    }
+
+    private renderPos(pos: LightRoomPos[], type: StructureConstant, visual: RoomVisual) {
+        for (const p of pos) {
+            visual.structure(p.x, p.y, type);
+        }
     }
 
 
