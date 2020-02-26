@@ -62,6 +62,7 @@ export const commandConsole = {
   },
   defenceTest(roomName: string = defaultRoom) {
     const room = getRoom(roomName);
+    if (!room.memory.structures) { return "no layout"; }
     const layoutObjects = _.flatten(Object.values(room.memory.structures)) as UnserializedRoomPosition[];
     const simResult = defenceHelper.assaultRampartSim(room, layoutObjects);
     if (simResult === true) {

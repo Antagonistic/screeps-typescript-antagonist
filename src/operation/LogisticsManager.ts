@@ -13,7 +13,7 @@ import { HUD } from "rooms/HUD";
 import { layoutManager } from "rooms/layoutManager";
 import { roadHelper } from "rooms/roadHelper";
 import { roomHelper } from "rooms/roomHelper";
-import { EnergyState } from "config/Constants";
+import { EnergyState, EnergyStateString } from "config/Constants";
 import { stat } from "fs";
 
 export class LogisticsManager {
@@ -286,7 +286,7 @@ export class LogisticsManager {
             }
         }
         if (this.room.energyState !== prevState) {
-            console.log(`ENERGY: State moved from ${prevState.toString()} to ${this.room.energyState.toString()}`);
+            console.log(`LOGISTICS: ${this.room.print} State moved from ${EnergyStateString[prevState]} to ${EnergyStateString[this.room.energyState]}`);
         }
     }
 

@@ -133,7 +133,7 @@ interface RoomMemory {
   snakeStorage?: UnserializedRoomPosition;
   snakeSpawn?: UnserializedRoomPosition;
 
-  structures: RoomStructurePositions;
+  structures?: RoomStructurePositions;
   secondaryRoads?: UnserializedRoomPosition[];
   layoutTime?: number;
   lastSpawned?: string;
@@ -155,6 +155,7 @@ interface RoomMemory {
 }
 
 type RoomStructurePositions = { [key in StructureConstant]?: UnserializedRoomPosition[] };
+type RoomStructurePositionsLight = { [key in StructureConstant]?: LightRoomPos[] };
 
 interface LayoutMemory {
   name: string;

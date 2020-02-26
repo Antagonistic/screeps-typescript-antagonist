@@ -93,6 +93,7 @@ export const buildHelper = {
         if (buildHelper.runBuildStructure(room, true, false, true)) {
             return true;
         } else {
+            if (!spawnRoom.room.memory.structures) { return false; }
             if (spawnRoom.rclLevel >= 6 && !lowPower && room.memory.bunkerDefence) {
                 const roomSpots = _.flatten(Object.values(spawnRoom.room.memory.structures)) as UnserializedRoomPosition[];
                 const ret = defenceHelper.assaultRampartSim(spawnRoom.room, roomSpots);
@@ -157,7 +158,7 @@ export const buildHelper = {
             }
             console.log('BUILD: No secondaries built');
         }
-        if (room.memory.structures.road && room.memory.structures.road.length > 0) {
+        if (room.memory.structures && room.memory.structures.road && room.memory.structures.road.length > 0) {
             if (this.runWalkRoad(room, room.memory.structures.road)) {
                 return true;
             }
@@ -193,13 +194,14 @@ export const buildHelper = {
     },
 
     dismantleCandidates(room: Room) {
-        const candidates = [];
+        const candidates: Structure[] = [];
         const structures = room.find(FIND_STRUCTURES);
+        if (!room.memory.structures) { return candidates; }
         for (const s of structures) {
             if (s.structureType === STRUCTURE_CONTROLLER) { continue; }
             if (s.structureType === STRUCTURE_RAMPART) { continue; }
             if (s.structureType === STRUCTURE_STORAGE) { continue; }
-            const structList = room.memory.structures[s.structureType];
+            const structList = room.memory.structures[s.structureType] || undefined;
             if ((!structList || !_.any(structList, o => o.x === s.pos.x && o.y === s.pos.y && o.roomName === s.pos.roomName))) {
                 if (s.structureType === STRUCTURE_ROAD && room.memory.secondaryRoads) {
                     if (!_.any(room.memory.secondaryRoads, o => o.x === s.pos.x && o.y === s.pos.y && o.roomName === s.pos.roomName)) {
