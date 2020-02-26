@@ -13,7 +13,7 @@ import { HUD } from "rooms/HUD";
 import { layoutManager } from "rooms/layoutManager";
 import { roadHelper } from "rooms/roadHelper";
 import { roomHelper } from "rooms/roomHelper";
-import { EnergyState } from "config/config";
+import { EnergyState } from "config/Constants";
 import { stat } from "fs";
 
 export class LogisticsManager {

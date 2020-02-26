@@ -4,20 +4,25 @@ import { Mission } from "./Mission";
 import { BodyFactory } from "creeps/BodyFactory";
 import * as creepActions from "creeps/creepActions";
 import { profile } from "Profiler";
+import { EnergyState } from "config/Constants";
 
 @profile
 export class ScoutMission extends Mission {
     public scouts: Creep[] = [];
     public roomName: string;
-    constructor(operation: Operation) {
+    public active: boolean;
+    constructor(operation: Operation, active: boolean = true) {
         super(operation, "scout");
         this.roomName = this.operation.roomName;
+        this.active = active;
+        if (this.energyState() === EnergyState.CRITICAL) { this.active = false; }
     }
 
     public initMission(): void {
         ;
     }
     public getMax() {
+        if (!this.active) { return 0; }
         if (this.room) { return 0; }
         if (this.spawnRoom.rclLevel < 3) { return 0; }
         return 1;

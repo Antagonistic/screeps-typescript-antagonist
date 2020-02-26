@@ -1,7 +1,7 @@
 import { Operation } from "../operations/Operation";
 import { Mission } from "./Mission";
 
-import { TargetAction, EnergyState } from "config/config";
+import { TargetAction, EnergyState } from "config/Constants";
 import { BodyFactory } from "creeps/BodyFactory";
 import * as creepActions from "creeps/creepActions";
 import { task } from "creeps/tasks";
@@ -13,12 +13,13 @@ export class GuardMission extends Mission {
     public towers: StructureTower[] = [];
     public hostiles: Creep[] = [];
     public hostileHealers: Creep[] = [];
-    public active: boolean = false;
+    public active: boolean;
     public stage: boolean;
 
-    constructor(operation: Operation, stage?: boolean) {
+    constructor(operation: Operation, stage?: boolean, active?: boolean) {
         super(operation, "Guard");
         this.stage = stage === true;
+        this.active = active === false ? false : this.getActive();
     }
     public initMission(): void {
         if (this.room && !this.remoteSpawning) {
@@ -45,7 +46,7 @@ export class GuardMission extends Mission {
     }
 
     public getMaxGuards = () => {
-        if (!this.getActive()) { return 0; }
+        if (!this.active) { return 0; }
         if (this.stage) { return 1; }
         if (!this.room) { return 0; }
         const hostiles = this.room.find(FIND_HOSTILE_CREEPS);

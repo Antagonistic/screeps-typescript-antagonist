@@ -42,7 +42,7 @@ const myRoom = mockInstanceOf<Room>({
 
 describe('Empire', () => {
     beforeEach(() => {
-        (await import('./mock')).mockScreeps();
+        //import('./mock').mockScreeps();
         //mockScreeps();
     });
 

@@ -148,7 +148,7 @@ interface RoomMemory {
   controllerPos?: UnserializedRoomPosition | null;
   center?: UnserializedRoomPosition;
   queueReaction?: LabReaction[];
-  energyState?: import("./config/config").EnergyState;
+  energyState?: import("./config/Constants").EnergyState;
   sLink?: Id<StructureLink>;
   cLink?: Id<StructureLink>;
   links?: Id<StructureLink>[];
@@ -299,7 +299,7 @@ interface Room {
   readonly ruins: Ruin[];
   readonly tombstones: Tombstone[];
   readonly sortedSources: Source[];
-  energyState: import("./config/config").EnergyState;
+  energyState: import("./config/Constants").EnergyState;
 }
 
 interface Source {

@@ -4,7 +4,7 @@
 }
 
 import { roomHelper } from "rooms/roomHelper";
-import { EnergyState } from "config/config";
+import { EnergyState } from "config/Constants";
 
 Object.defineProperty(Room.prototype, 'print', {
     get() {

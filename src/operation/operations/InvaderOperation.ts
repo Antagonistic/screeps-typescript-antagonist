@@ -4,6 +4,7 @@ import { PairAttackMission } from "operation/missions/PairAttackMission";
 import { ScoutMission } from "operation/missions/ScoutMission";
 import { Traveler } from "utils/Traveler";
 import { Operation, OperationPriority } from "./Operation";
+import { EnergyState } from "config/Constants";
 
 const FIND_DEPOSITS: FindConstant = 122;
 
@@ -18,6 +19,7 @@ export class InvaderOperation extends Operation {
 
     public getActive(): boolean {
         if (this.getToHomeRange() > 2) { return false; }
+        if (this.spawnRoom.room.energyState === EnergyState.CRITICAL) { return false; }
         if (this.level > 0) { return false; }
         if (this.spawnRoom.energyCapacityAvailable < 1200) { return false; }
         if (this.spawnRoom.rclLevel < 4 || !this.spawnRoom.room.storage || this.spawnRoom.room.storage.store.energy < 20000) { return false; }

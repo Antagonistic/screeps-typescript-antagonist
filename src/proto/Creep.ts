@@ -5,7 +5,7 @@
 
 import * as creepActions from "creeps/creepActions";
 
-import { TargetAction } from 'config/config';
+import { TargetAction } from 'config/Constants';
 
 const energyStructures: string[] = [
     STRUCTURE_EXTENSION,

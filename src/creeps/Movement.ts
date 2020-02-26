@@ -10,6 +10,15 @@ export class LayoutPath {
         return ret;
     }
 
+    public static findByPathLayout(origin: RoomPosition, goal: RoomPosition, cost?: CostMatrix): PathFinderPath {
+        const ret = PathFinder.search(origin, { pos: goal, range: 1 }, {
+            maxRooms: 1, roomCallback(roomName: string) {
+                return cost || LayoutPath.LayoutCostMatrix(roomName);
+            }
+        });
+        return ret;
+    }
+
     public static LayoutCostMatrix(roomName: string) {
         if (!Memory.rooms[roomName]) {
             return false;
@@ -58,12 +67,34 @@ export class LayoutPath {
         }
     }
 
-    public static getDistanceTransform(roomName: string): CostMatrix {
+    public static getLayoutDistanceTransform(roomName: string): CostMatrix | false {
+
+        if (!Memory.rooms[roomName]) {
+            return false;
+        }
+        const mem = Memory.rooms[roomName];
+
         const distanceMatrix = new PathFinder.CostMatrix();
+        const terrain = Game.map.getRoomTerrain(roomName);
+        if (mem.controllerPos) {
+            LayoutPath.blockOffPosition(distanceMatrix, mem.controllerPos, 3, 0xff, terrain);
+        }
+        if (mem.sourcesPos) {
+            for (const s of mem.sourcesPos) {
+                LayoutPath.blockOffPosition(distanceMatrix, s, 2, 0xff, terrain);
+            }
+        }
+        return this.getDistanceTransform(roomName, distanceMatrix);
+    }
+
+    public static getDistanceTransform(roomName: string, distanceMatrix?: CostMatrix): CostMatrix {
+        if (!distanceMatrix) {
+            distanceMatrix = new PathFinder.CostMatrix();
+        }
         const terrain = Game.map.getRoomTerrain(roomName);
         for (let y = 0; y < 50; ++y) {
             for (let x = 0; x < 50; ++x) {
-                if (terrain.get(x, y) === TERRAIN_MASK_WALL) {
+                if (terrain.get(x, y) === TERRAIN_MASK_WALL || distanceMatrix.get(x, y) === 0xff) {
                     distanceMatrix.set(x, y, 0);
                 }
                 else {

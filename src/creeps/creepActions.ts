@@ -1,5 +1,5 @@
 import * as Config from "config/config";
-import { TargetAction } from "config/config";
+import { TargetAction } from "config/Constants";
 import { profile } from "Profiler";
 import { roomHelper } from "rooms/roomHelper";
 import { Traveler } from "utils/Traveler";

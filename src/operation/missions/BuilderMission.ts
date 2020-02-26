@@ -3,7 +3,7 @@ import { Mission } from "./Mission";
 
 import 'config/config'
 
-import { TargetAction, EnergyState } from "config/config";
+import { TargetAction, EnergyState } from "config/Constants";
 import * as creepActions from "creeps/creepActions";
 import { task } from "creeps/tasks";
 import { LogisticsManager } from "operation/LogisticsManager";
@@ -81,6 +81,8 @@ export class BuilderMission extends Mission {
             this.roadsites = this.room.find(FIND_CONSTRUCTION_SITES,
                 { filter: (x: ConstructionSite) => x.structureType === STRUCTURE_ROAD });
             this.prioritySites = _.filter(this.sites, s => PRIORITY_BUILD.indexOf(s.structureType) > -1);
+
+            this.active = this.active || this.prioritySites.length > 0;
             // console.log(this.sites.length);
         }
     }

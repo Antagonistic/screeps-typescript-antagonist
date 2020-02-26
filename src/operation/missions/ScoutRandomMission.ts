@@ -4,6 +4,7 @@ import { Mission } from "./Mission";
 import { BodyFactory } from "creeps/BodyFactory";
 import * as creepActions from "creeps/creepActions";
 import { profile } from "Profiler";
+import { EnergyState } from "config/Constants";
 
 @profile
 export class ScoutRandomMission extends Mission {
@@ -15,7 +16,7 @@ export class ScoutRandomMission extends Mission {
         super(operation, "scoutSurround");
         this.roomName = this.operation.roomName;
         this.nextSpawn = this.memory.nextSpawn || 0;
-        this.active = this.spawnRoom.rclLevel >= 3 && this.operation.stableOperation && Game.time >= this.nextSpawn;
+        this.active = this.spawnRoom.rclLevel >= 3 && this.operation.stableOperation && Game.time >= this.nextSpawn && this.energyState() !== EnergyState.CRITICAL;
     }
 
     public initMission(): void {

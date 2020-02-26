@@ -10,7 +10,7 @@ import { profile } from "Profiler";
 import { roadHelper } from "rooms/roadHelper"
 import { roomHelper } from "rooms/roomHelper"
 import { Traveler } from "utils/Traveler"
-import { EnergyState } from "config/config";
+import { EnergyState } from "config/Constants";
 
 
 @profile
@@ -93,6 +93,9 @@ export class MiningMission extends Mission {
         // console.log(JSON.stringify(this.memory));
         // console.log(JSON.stringify(this.memory));
         // console.log(this.memory.fillcart)
+        if (!this.memory.minerSpot) {
+            this.refreshMissionMemory();
+        }
     }
 
     public spawn(): void {
@@ -358,22 +361,23 @@ export class MiningMission extends Mission {
         let action: boolean = false;
         action = creepActions.actionMoveToRoom(creep, action, this.operation.roomName);
         if (!action) {
-            if (this.minersNeeded() === 1 && this.container) {
-                if (creep.pos.x === this.container.pos.x && creep.pos.y === this.container.pos.y) {
+            if (this.minersNeeded() === 1 && this.memory.minerSpot) {
+                if (creep.pos.x === this.memory.minerSpot.x && creep.pos.y === this.memory.minerSpot.y) {
                     creep.memory.inPosition = true;
                 } else {
-                    creepActions.moveTo(creep, this.container.pos, true);
+                    creepActions.moveTo(creep, roomHelper.deserializeRoomPosition(this.memory.minerSpot)!, true);
                 }
             } else {
                 if (creep.pos.isNearTo(this.source.pos)) {
-                    if (this.container != null) {
-                        if (creep.pos.isNearTo(this.container.pos)) {
+                    if (this.memory.minerSpot != null) {
+                        const spot = roomHelper.deserializeRoomPosition(this.memory.minerSpot)!;
+                        if (creep.pos.isNearTo(spot)) {
                             creep.memory.inPosition = true;
                         }
                         else {
                             // creepActions.moveTo(creep, this.container.pos, true);
                             for (const p of this.source.pos.openAdjacentSpots()) {
-                                if (p.isNearTo(this.container.pos)) {
+                                if (p.isNearTo(spot)) {
                                     const _creeps = p.lookFor("creep");
                                     if (!_creeps || _creeps.length === 0) {
                                         creepActions.moveTo(creep, p, true);
