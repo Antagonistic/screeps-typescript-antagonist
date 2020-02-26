@@ -1,9 +1,13 @@
-import { mockGlobal, mockInstanceOf, mockStructure } from "screeps-jest"
+import { mockGlobal, mockInstanceOf, mockStructure, mockRoomPositionConstructor } from "screeps-jest"
+
+import 'proto/Misc'
+import 'proto/RoomPosition'
 
 const ROOM_SIZE = 50;
 const TERRAIN_MASK_PLAIN = 0;
 
-function mockRoom(roomData: RoomASCIIData): Room {
+export function mockRoom(roomData: RoomASCIIData): Room {
+    mockRoomPositionConstructor(global);
     const map = roomData.map.replace(/\s/g, '');
 
     // Mocks the controller
@@ -111,7 +115,7 @@ function coordinatesToIndex(x: number, y: number) {
  * Function for extracting room data from existing rooms. Assumes the room is not visible, so you have to provide the
  * list of structures to add, besides terrain.
  */
-function extractRoomData(roomName: string, ...structures: Array<[number, number, string]>): RoomASCIIData {
+export function extractRoomData(roomName: string, ...structures: Array<[number, number, string]>): RoomASCIIData {
     const terrain = Game.map.getRoomTerrain(roomName);
     const map: string[][] = [];
     const charFor = {
@@ -134,12 +138,6 @@ function extractRoomData(roomName: string, ...structures: Array<[number, number,
         map: map.map(line => line.join(' ')).join('\n')
     };
 }
-
-
-export {
-    mockRoom,
-    extractRoomData
-};
 
 
 export function mockScreeps() {

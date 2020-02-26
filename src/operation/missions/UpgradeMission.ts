@@ -32,6 +32,10 @@ export class UpgradeMission extends Mission {
             this.container = this.findContainer();
         }
         this._hasEnergy = this.hasEnergy();
+        if (!this.logistics.healthyLinks()) {
+            this.isLink = false;
+            this.needCart = true;
+        }
     }
     public initMission(): void {
         if (!this.room) { return; }
@@ -125,6 +129,7 @@ export class UpgradeMission extends Mission {
         if (this.room && this.room.controller && this.room.controller.level < 2) {
             return 1;
         }
+        if (this.logistics.isLowEnergy()) { return 0; }
         return Math.max(this.getUpgradeAnalyze().count, 3);
         // tslint:disable-next-line:prefer-const
         // let numUpgraders = 2;

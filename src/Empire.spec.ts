@@ -1,5 +1,4 @@
-import { mockScreeps } from 'mock';
-mockScreeps();
+
 
 import { mockGlobal, mockInstanceOf, mockStructure } from 'screeps-jest';
 
@@ -43,7 +42,8 @@ const myRoom = mockInstanceOf<Room>({
 
 describe('Empire', () => {
     beforeEach(() => {
-        mockScreeps();
+        (await import('./mock')).mockScreeps();
+        //mockScreeps();
     });
 
     it('should construct correctly', () => {

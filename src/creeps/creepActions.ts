@@ -820,6 +820,24 @@ export function actionGetDroppedEnergy(creep: Creep, action: boolean, scavange?:
   return action;
 }
 
+export function actionGetLinkEnergy(creep: Creep, action: boolean) {
+  if (action === false) {
+    const energyCont: StructureLink[] = creep.room.find<StructureLink>(FIND_STRUCTURES,
+      {
+        filter: (x: StructureLink) => x.structureType === STRUCTURE_LINK
+          && x.store.energy >= 50
+      });
+    // console.log("energyCont: " + energyCont);
+    if (energyCont && energyCont.length) {
+      const salt: number = (creep.memory.uuid || 0) % energyCont.length;
+      moveToWithdraw(creep, energyCont[salt]);
+      creep.memory.energyTarget = energyCont[salt].id;
+      return true;
+    }
+  }
+  return action;
+}
+
 export function actionGetContainerEnergy(creep: Creep, action: boolean,
   factor: number = 2, useBuffer?: boolean): boolean {
   if (action === false) {

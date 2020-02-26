@@ -13,6 +13,8 @@ import { HUD } from "rooms/HUD";
 import { layoutManager } from "rooms/layoutManager";
 import { roadHelper } from "rooms/roadHelper";
 import { roomHelper } from "rooms/roomHelper";
+import { EnergyState } from "config/config";
+import { stat } from "fs";
 
 export class LogisticsManager {
     public spawnRoom: SpawnRoom;
@@ -148,16 +150,27 @@ export class LogisticsManager {
         return this._energy;
     }
 
+    public healthyLinks() {
+        if (!this.room.storage) { return false; }
+        if (!this.room.memory.sLink) { return false; }
+        if (!this.room.memory.cLink) { return false; }
+        return true;
+    }
+
     public isLowEnergy() {
         if (this.spawnRoom.rclLevel < 4) { return false; }
-        return this.energy() < 15000;
+        const state = this.room.energyState;
+        if (state === EnergyState.CRITICAL || state === EnergyState.LOW) { return true; }
+        return false;
     }
 
     public getEstimatedUpgraderWork() {
         if (this.spawnRoom.rclLevel === 8) { return 15; }
         let work = this.sources * 8 + this.remoteSources * 4;
-        if (this.storage && this.isLowEnergy()) { work = work / 2; }
-        if (this.storage && this.storage.store.energy < 5000) { work = work / 2; }
+        //if (this.storage && this.isLowEnergy()) { work = work / 2; }
+        //if (this.storage && this.storage.store.energy < 5000) { work = work / 2; }
+        if (this.room.energyState === EnergyState.LOW) { work = work / 2; }
+        if (this.room.energyState === EnergyState.CRITICAL) { work = 2; }
         // if (Game.time % 10 === 0) {
         // console.log('LOGIC: ' + this.room + ' estimates ' + work + ' upgrade parts.');
         // }
@@ -218,7 +231,63 @@ export class LogisticsManager {
                 this.terminalNetwork.runTerminal(this.terminal);
             }
         }
+        if (Game.time % 100 === 51) {
+            this.updateEnergyState();
+        }
 
+    }
+
+    public updateEnergyState() {
+        if (this.spawnRoom.rclLevel <= 4 && !this.storage) { this.room.energyState = EnergyState.NORMAL; }
+        if (this.spawnRoom.rclLevel >= 6 && !this.storage) { this.room.energyState = EnergyState.CRITICAL; }
+        const prevState = this.room.energyState;
+        switch (prevState) {
+            case EnergyState.UNKNOWN: {
+                if (this.energy() < 5000) { this.room.energyState = EnergyState.CRITICAL; break; }
+                if (this.storage) {
+                    if (this.energy() < 15000 || this.S < 5000) { this.room.energyState = EnergyState.LOW; break; }
+                } else {
+                    if (this.energy() < 15000) { this.room.energyState = EnergyState.LOW; break; }
+                }
+                if (this.energy() > 700000) { this.room.energyState = EnergyState.EXCESS; break; }
+                this.room.energyState = EnergyState.NORMAL; break;
+            }
+            case EnergyState.CRITICAL: {
+                if (this.storage) {
+                    if (this.energy() > 15000 && this.S > 5000) { this.room.energyState = EnergyState.LOW; break; }
+                } else {
+                    if (this.energy() > 15000) { this.room.energyState = EnergyState.LOW; break; }
+                }
+            }
+            case EnergyState.LOW: {
+                if (this.storage) {
+                    if (this.energy() < 10000 && this.S < 5000) { this.room.energyState = EnergyState.CRITICAL; break; }
+                    if (this.energy() > 25000 && this.S > 15000) { this.room.energyState = EnergyState.NORMAL; break; }
+                } else {
+                    if (this.energy() < 10000) { this.room.energyState = EnergyState.CRITICAL; break; }
+                    if (this.energy() > 25000) { this.room.energyState = EnergyState.NORMAL; break; }
+                }
+            }
+            case EnergyState.NORMAL: {
+                if (this.storage) {
+                    if (this.energy() < 20000 && this.S < 10000) { this.room.energyState = EnergyState.LOW; break; }
+                    if (this.energy() > 800000) { this.room.energyState = EnergyState.EXCESS; break; }
+                } else {
+                    if (this.energy() < 20000) { this.room.energyState = EnergyState.LOW; break; }
+                    if (this.energy() > 800000) { this.room.energyState = EnergyState.EXCESS; break; }
+                }
+            }
+            case EnergyState.EXCESS: {
+                if (this.storage) {
+                    if (this.energy() < 500000) { this.room.energyState = EnergyState.NORMAL; break; }
+                } else {
+                    if (this.energy() > 500000) { this.room.energyState = EnergyState.EXCESS; break; }
+                }
+            }
+        }
+        if (this.room.energyState !== prevState) {
+            console.log(`ENERGY: State moved from ${prevState.toString()} to ${this.room.energyState.toString()}`);
+        }
     }
 
 }

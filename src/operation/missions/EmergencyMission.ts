@@ -55,6 +55,7 @@ export class EmergencyMission extends Mission {
             }
             action = creepActions.actionGetDroppedEnergy(c, action, true);
             action = creepActions.actionGetContainerEnergy(c, action, 4);
+            action = creepActions.actionGetLinkEnergy(c, action);
             action = creepActions.actionGetSourceEnergy(c, action, 2);
         }
     }

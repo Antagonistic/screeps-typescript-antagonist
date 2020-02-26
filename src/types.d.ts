@@ -1,3 +1,4 @@
+
 // import "./Profiler/typings"
 
 // import { ActionTarget } from 'config/config';
@@ -7,7 +8,7 @@ declare namespace NodeJS {
   interface Global {
     log: any;
     cc: any;
-    emp: Empire;
+    emp: import('./Empire').Empire;
     Profiler: Profiler;
 
     lastMemoryTick: number | undefined;
@@ -114,9 +115,6 @@ interface RoomMemory {
   // stable_structures: boolean;
   bufferChests?: string[];
   remoteRoom?: string[];
-  mininglinks?: string[] | undefined;
-  spawnlinks?: string[] | undefined;
-  controllerlinks?: string[] | undefined;
   availBoost?: { [name: string]: string; };
   rally?: UnserializedRoomPosition;
   battery?: string;
@@ -150,6 +148,10 @@ interface RoomMemory {
   controllerPos?: UnserializedRoomPosition | null;
   center?: UnserializedRoomPosition;
   queueReaction?: LabReaction[];
+  energyState?: import("./config/config").EnergyState;
+  sLink?: Id<StructureLink>;
+  cLink?: Id<StructureLink>;
+  links?: Id<StructureLink>[];
 }
 
 type RoomStructurePositions = { [key in StructureConstant]?: UnserializedRoomPosition[] };
@@ -180,12 +182,6 @@ interface RefillPathNode {
 
 }
 
-interface WorldMap {
-  controlledRooms: { [roomName: string]: Room };
-  init(): { [roomName: string]: SpawnRoom };
-  expandInfluence(spawn: SpawnRoom): string[];
-}
-
 interface SpawnRoom {
   spawns: StructureSpawn[];
   room: Room;
@@ -197,14 +193,14 @@ interface SpawnRoom {
   createCreep(bodyParts: string[] | null, role: string, memory?: any, room?: Room, creepName?: string): boolean;
 }
 
-interface Empire {
+/*interface Empire {
   spawnRooms: { [roomName: string]: SpawnRoom };
   map: WorldMap;
   init(): { [roomName: string]: SpawnRoom };
   // operations: { [operationName: string]: IOperation };
   // init(): void;
   getSpawnRoom(roomName: string): any;
-}
+}*/
 
 interface RCLRoomLayout {
   relative?: boolean;
@@ -283,6 +279,7 @@ interface Room {
   _storage?: StructureStorage;
   owner: string | undefined;
   reserved: string | undefined;
+  readonly my: boolean;
   readonly coord: RoomCoord;
   readonly UUID: number;
   readonly print: string;
@@ -302,6 +299,7 @@ interface Room {
   readonly ruins: Ruin[];
   readonly tombstones: Tombstone[];
   readonly sortedSources: Source[];
+  energyState: import("./config/config").EnergyState;
 }
 
 interface Source {

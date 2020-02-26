@@ -114,6 +114,10 @@ export abstract class Mission extends BodyFactory {
         return false;
     }
 
+    public energyState() {
+        return this.spawnRoom.room.energyState;
+    }
+
     /*public processRoomScout(room: Room): void {
         const flags = room.flags;
         if (!flags || flags.length === 0) {

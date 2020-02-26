@@ -3,7 +3,7 @@ import { Mission } from "./Mission";
 
 import 'config/config'
 
-import { TargetAction } from "config/config";
+import { TargetAction, EnergyState } from "config/config";
 import * as creepActions from "creeps/creepActions";
 import { task } from "creeps/tasks";
 import { LogisticsManager } from "operation/LogisticsManager";
@@ -120,6 +120,7 @@ export class BuilderMission extends Mission {
     }
 
     public needMason() {
+        if (this.spawnRoom.room.energyState === EnergyState.CRITICAL) { return false; }
         if (this.memory.needMasonTimer && this.memory.needMasonTimer > Game.time) {
             if (this.memory.needMason === undefined) { this.memory.needMasonTimer = undefined; return false; }
             return this.memory.needMason;
@@ -158,24 +159,28 @@ export class BuilderMission extends Mission {
 
     public maxPavers = (): number => {
         if (!this.active) { return 0; }
-        if (this.room && this.spawnRoom.rclLevel >= 4 && !this.room.memory.noRemote) {
+        if (this.room?.energyState === EnergyState.CRITICAL) { return 0; }
+        /*if (this.room && this.spawnRoom.rclLevel >= 4 && !this.room.memory.noRemote) {
             return 1;
-        }
+        }*/
         if (this.room && this.roadsites.length !== 0) {
             return 1;
         }
         if (this.room && buildHelper.getRoadCon(this.room)) {
             return 1;
         }
-        if (this.room && buildHelper.getRoadRep(this.room)) {
+        if (this.room && (this.spawnRoom.room.memory.roadRep?.length || 0) > 5) {
             return 1;
         }
         return 0;
     }
 
     public builderBody = (): BodyPartConstant[] => {
-        if (this.remoteSpawning) { return this.workerBodyOffRoad(this.logistics.isLowEnergy() ? 800 : 1600); }
-        return this.workerBodyRoad(this.logistics.isLowEnergy() ? 800 : 1600);
+        let energy = 1600;
+        if (this.room?.energyState === EnergyState.CRITICAL) { energy = 400; }
+        if (this.room?.energyState === EnergyState.LOW) { energy = 800; }
+        if (this.remoteSpawning) { return this.workerBodyOffRoad(energy); }
+        return this.workerBodyRoad(energy);
     }
 
     public towerRepairSite(tower: StructureTower, sites: Structure[]): boolean {
@@ -217,6 +222,7 @@ export class BuilderMission extends Mission {
     public runTowers() {
         if (!this.room) { return; }
         if (Game.time % 5 !== 4) { return; }
+        if (this.spawnRoom.room.energyState === EnergyState.CRITICAL) { return; }
         const towers: StructureTower[] = this.room.find<StructureTower>(FIND_MY_STRUCTURES, { filter: x => x.structureType === STRUCTURE_TOWER });
         if (towers && towers.length > 0) {
             const sites = this.room.find(FIND_STRUCTURES, { filter: x => x.hits < x.hitsMax });
@@ -328,7 +334,9 @@ export class BuilderMission extends Mission {
                     }
                 }
                 task.scavange(b);
-                task.praise(b);
+                if (this.energyState() !== EnergyState.CRITICAL) {
+                    task.praise(b);
+                }
             } else {
 
                 b.action = this.operation.creepGetEnergy(b, b.action, true, true);

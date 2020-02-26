@@ -10,6 +10,7 @@ import { profile } from "Profiler";
 import { roadHelper } from "rooms/roadHelper"
 import { roomHelper } from "rooms/roomHelper"
 import { Traveler } from "utils/Traveler"
+import { EnergyState } from "config/config";
 
 
 @profile
@@ -63,10 +64,11 @@ export class MiningMission extends Mission {
         this.stableMission = this.memory.stableMission;
         this.operation.stableOperation = this.operation.stableOperation && this.stableMission;
         this.isLink = false;
-        this.dropOff = this.findStorage();
         this.logistics = logistics;
         this.drop = this.findDrops();
+        this.dropOff = this.findStorage();
         this.noHaul = !!this.link || !!this.minerStorage || !this.container;
+        if (!this.logistics.healthyLinks()) { this.noHaul = false; }
         // this.pavedPath = this.memory.isPathPaved === undefined ? this.isPathPaved() : this.memory.isPathPaved;
         if (this.spawnRoom.room.storage && this.spawnRoom.room.storage.store.energy >= 900000) { this.active = false; }
     }
@@ -98,15 +100,8 @@ export class MiningMission extends Mission {
         this.miners = this.spawnRole(this.name, this.getMaxMiners, this.getOversizedMinerBody, { role: "miner" }, this.memory.dist || 10);
         if (_.any(this.miners, x => x.memory.inPosition)) { this.logistics.registerSource(this.remoteSpawning); }
         // const cartBodyFunc = this.remoteSpawning ? this.getLongCartBody : this.getCartBody;
-        const cartBodyFunc = () => {
-            const P = this.getCartAnalyze().carry;
-            if (!this.isPathPaved()) {
-                return BodyFactory.workerBody(0, P * 2, P * 2);
-            }
-            return BodyFactory.workerBody(0, P * 2, P);
-        }
         // const hasworkpart = _.contains(cartBodyFunc(), WORK);
-        this.carts = this.spawnRole(this.name + "cart", this.getMaxCarts, cartBodyFunc, { role: "hauler" }, 0);
+        this.carts = this.spawnRole(this.name + "cart", this.getMaxCarts, () => this.getMiningCartBody(), { role: "hauler" }, 0);
 
         if (Game.time % 50 === 0) {
             // Check to update whether mining op is at capacity
@@ -194,6 +189,19 @@ export class MiningMission extends Mission {
             return BodyFactory.workerBody(3, 1, 2);
         } else { return BodyFactory.workerBody(2, 1, 1); }
     };
+
+    public getMiningCartBody() {
+        if (this.energyState() === EnergyState.CRITICAL && this.spawnRoom.availableSpawnEnergy <= 1000 && this.spawnRoom.room.find(FIND_MY_CREEPS, { filter: x => x.memory.role === "hauler" }).length === 0) {
+            const bodyUnit = BodyFactory.workerBody(0, 1, 1);
+            const maxUnits = this.maxUnitsNow(bodyUnit);
+            return BodyFactory.workerBody(0, maxUnits, maxUnits);
+        }
+        const P = this.getCartAnalyze().carry;
+        if (!this.isPathPaved()) {
+            return BodyFactory.workerBody(0, P * 2, P * 2);
+        }
+        return BodyFactory.workerBody(0, P * 2, P);
+    }
 
     public getOversizedMinerBody = () => {
         if (!this.logistics.bootStrap && !this.logistics.isLowEnergy() && this.spawnRoom.energyCapacityAvailable >= 2000) {
@@ -284,16 +292,23 @@ export class MiningMission extends Mission {
             const destinations: Array<StructureLink | StructureStorage> = [];
             for (const _d of _destinations) {
                 // Dont feed controller or storage links
-                if (room.storage && _d.structureType === STRUCTURE_LINK) {
-                    if (_d.pos.inRangeTo(room.storage.pos, 3)) {
+                if (_d.structureType === STRUCTURE_LINK) {
+                    if (room.storage) {
+                        if (_d.pos.inRangeTo(room.storage.pos, 3)) {
+                            continue;
+                        }
+                    }
+                    if (room.controller) {
+                        if (_d.pos.inRangeTo(room.controller.pos, 3)) {
+                            continue;
+                        }
+                    }
+                    // Don't haul to own link
+                    if (_d.pos.inRangeTo(this.source, 2)) {
                         continue;
                     }
                 }
-                if (room.controller && _d.structureType === STRUCTURE_LINK) {
-                    if (_d.pos.inRangeTo(room.controller.pos, 3)) {
-                        continue;
-                    }
-                }
+
 
                 destinations.push(_d);
             }
@@ -504,8 +519,8 @@ export class MiningMission extends Mission {
             this.pickupOrder++;
             action = true;
         } else {
-            if (this.container && this.hasEnergy() >= 50) {
-                creepActions.moveToWithdraw(creep, this.container);
+            if (this.drop && this.hasEnergy() >= 50) {
+                creepActions.moveToWithdraw(creep, this.drop);
             } else {
                 if (this.miners.length > 0) {
                     // stand next to miner hoping for transfer
@@ -568,7 +583,7 @@ export class MiningMission extends Mission {
             this.minerStorage = Game.getObjectById(this.memory.minerStorage) || undefined;
             if (!this.minerStorage) { this.memory.minerStorage = undefined; }
         }
-        if (this.link) { this.isLink = true; }
+        if (this.link && this.spawnRoom.room.storage && this.spawnRoom.room.memory.sLink) { this.isLink = true; }
 
         this.drop = this.minerStorage || this.link || this.container;
         return this.drop;

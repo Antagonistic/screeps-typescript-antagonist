@@ -44,6 +44,14 @@ export enum TargetAction {
     DISMANTLE = "dismantle"
 }
 
+export enum EnergyState {
+    UNKNOWN,
+    CRITICAL,
+    LOW,
+    NORMAL,
+    EXCESS
+}
+
 /**
  * Debug level for log output
  */

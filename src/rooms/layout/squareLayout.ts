@@ -41,6 +41,9 @@ export function squareLayout(room: Room, flag: Flag): RCLRoomLayout {
                 link: [{ x: 0, y: 1 }],
                 tower: [{ x: 4, y: -1 }],
                 extension: [{ x: 1, y: -3 }, { x: 1, y: -2 }, { x: -1, y: -3 }, { x: -2, y: -3 }, { x: -2, y: -4 }, { x: -3, y: -4 }, { x: -4, y: -3 }, { x: -4, y: -2 }, { x: -3, y: -2 }, { x: -3, y: -1 }]
+            },
+            memory: {
+                supervisor: [{ "x": 0, "y": 0 }]
             }
         },
         6: {

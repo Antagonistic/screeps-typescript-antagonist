@@ -86,9 +86,18 @@ export class BodyFactory {
         return Math.floor((this.spawnRoom.energyCapacityAvailable * proportion) / unitCost);
     }
 
+    public maxUnitsPerCostNow(unitCost: number, proportion: number = 1): number {
+        return Math.floor((this.spawnRoom.availableSpawnEnergy * proportion) / unitCost);
+    }
+
     public maxUnits(body: BodyPartConstant[], proportion?: number) {
         const cost = BodyFactory.calculateBodyCost(body);
         return Math.min(this.maxUnitsPerCost(cost, proportion), Math.floor(50 / body.length));
+    }
+
+    public maxUnitsNow(body: BodyPartConstant[], proportion?: number) {
+        const cost = BodyFactory.calculateBodyCost(body);
+        return Math.min(this.maxUnitsPerCostNow(cost, proportion), Math.floor(50 / body.length));
     }
 
     public getLongCartBody = () => {

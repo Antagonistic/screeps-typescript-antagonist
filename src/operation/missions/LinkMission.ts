@@ -21,30 +21,32 @@ export class LinkMission extends Mission {
             const _links = this.room.find<StructureLink>(FIND_MY_STRUCTURES, { filter: x => x.structureType === STRUCTURE_LINK });
             const storage = this.room.storage;
             const controller = this.room.controller;
-            this.memory.links = [];
+            this.spawnRoom.room.memory.links = [];
             for (const l of _links) {
                 if (l.pos.inRangeTo(controller.pos, 3)) {
-                    this.memory.cLink = l.id;
+                    this.spawnRoom.room.memory.cLink = l.id;
                 } else {
                     if (l.pos.inRangeTo(storage, 2)) {
-                        this.memory.sLink = l.id;
+                        this.spawnRoom.room.memory.sLink = l.id;
                     } else {
-                        this.memory.links.push(l.id);
+                        this.spawnRoom.room.memory.links.push(l.id);
                     }
                 }
             }
             this.memory.init = true;
         }
-        if (this.memory.sLink) {
-            this.sLink = Game.getObjectById(this.memory.sLink) || undefined;
-            this.active = true;
+        if (this.spawnRoom.room.memory.sLink) {
+            this.sLink = Game.getObjectById(this.spawnRoom.room.memory.sLink) || undefined;
+            if (!this.sLink) { delete this.memory.init; }
+            else { this.active = true; }
         }
-        if (this.memory.cLink) {
-            this.cLink = Game.getObjectById(this.memory.cLink) || undefined;
-            this.active = true;
+        if (this.spawnRoom.room.memory.cLink) {
+            this.cLink = Game.getObjectById(this.spawnRoom.room.memory.cLink) || undefined;
+            if (!this.cLink) { delete this.memory.init; }
+            else { this.active = true; }
         }
-        if (this.memory.links && this.memory.links.length > 0) {
-            for (const l of this.memory.links) {
+        if (this.spawnRoom.room.memory.links && this.spawnRoom.room.memory.links.length > 0) {
+            for (const l of this.spawnRoom.room.memory.links) {
                 const _l: StructureLink | undefined = Game.getObjectById(l) || undefined;
                 if (_l) {
                     this.links.push(_l);
@@ -92,9 +94,9 @@ export class LinkMission extends Mission {
     public finalize(): void {
         if (this.getSalt() % 1000 === 896) {
             delete this.memory.init;
-            delete this.memory.sLink;
-            delete this.memory.cLink;
-            delete this.memory.links;
+            delete this.spawnRoom.room.memory.sLink;
+            delete this.spawnRoom.room.memory.cLink;
+            delete this.spawnRoom.room.memory.links;
             console.log('LINK: clearing link caching ' + this.room!.print);
         }
     }

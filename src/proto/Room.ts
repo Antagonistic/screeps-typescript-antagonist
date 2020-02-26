@@ -4,6 +4,7 @@
 }
 
 import { roomHelper } from "rooms/roomHelper";
+import { EnergyState } from "config/config";
 
 Object.defineProperty(Room.prototype, 'print', {
     get() {
@@ -52,6 +53,13 @@ Object.defineProperty(Room.prototype, 'creeps', {
 Object.defineProperty(Room.prototype, 'owner', {
     get() {
         return this.controller && this.controller.owner ? this.controller.owner.username : undefined;
+    },
+    configurable: true,
+});
+
+Object.defineProperty(Room.prototype, 'my', {
+    get() {
+        return this.controller && this.controller.my;
     },
     configurable: true,
 });
@@ -220,6 +228,25 @@ Object.defineProperty(Room.prototype, 'sortedSources', {
             this._sortedSources = _.sortBy(this.find(FIND_SOURCES), [(x: Source) => x.pos.getRangeTo(center)]);
         }
         return this._sortedSources;
+    },
+    configurable: true,
+});
+
+Object.defineProperty(Room.prototype, 'energyState', {
+    get() {
+        if (!this._energyState) {
+            if (!this.memory.energyState) { this._energyState = EnergyState.UNKNOWN }
+            else {
+                this._energyState = this.memory.energyState;
+            }
+        }
+        return this._energyState;
+    },
+    set(newVal) {
+        if (newVal != this.memory.energyState) {
+            this.memory.energyState = newVal;
+            this._energyState = newVal;
+        }
     },
     configurable: true,
 });

@@ -36,6 +36,10 @@ export class RefillMission extends Mission {
                     }
                 } else {
                     task.getEnergyStorage(creep, 0);
+                    if (!creep.action && creep.store.energy > 50 && creep.room.energyAvailable < (creep.room.energyCapacityAvailable / 2)) {
+                        // Rather than rally on empty storage, refill what you have to refill
+                        task.refill(creep);
+                    }
                 }
                 creep.rally();
             }

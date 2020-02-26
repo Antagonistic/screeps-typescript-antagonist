@@ -1,7 +1,7 @@
 import { Operation } from "../operations/Operation";
 import { Mission } from "./Mission";
 
-import { TargetAction } from "config/config";
+import { TargetAction, EnergyState } from "config/config";
 import { BodyFactory } from "creeps/BodyFactory";
 import * as creepActions from "creeps/creepActions";
 import { task } from "creeps/tasks";
@@ -39,7 +39,13 @@ export class GuardMission extends Mission {
         this.report()
     }
 
+    public getActive() {
+        if ((this.remoteSpawning || this.stage) && (this.energyState() === EnergyState.CRITICAL || this.energyState() === EnergyState.LOW)) { return false; }
+        return true;
+    }
+
     public getMaxGuards = () => {
+        if (!this.getActive()) { return 0; }
         if (this.stage) { return 1; }
         if (!this.room) { return 0; }
         const hostiles = this.room.find(FIND_HOSTILE_CREEPS);
@@ -50,6 +56,11 @@ export class GuardMission extends Mission {
     }
 
     protected defenderBody = (): BodyPartConstant[] => {
+        if (this.energyState() === EnergyState.CRITICAL || this.energyState() === EnergyState.LOW) {
+            const bodyUnit = BodyFactory.configBody({ [ATTACK]: 1, [MOVE]: 1 });
+            const maxUnits = Math.min(this.maxUnitsNow(bodyUnit), 8);
+            return BodyFactory.configBody({ [ATTACK]: maxUnits, [MOVE]: maxUnits });
+        }
         if (this.spawnRoom.energyCapacityAvailable >= 2710) {
             const bodyUnit = BodyFactory.configBody({ [TOUGH]: 1, [ATTACK]: 5, [MOVE]: 6 });
             const maxUnits = Math.min(this.maxUnits(bodyUnit), 4);

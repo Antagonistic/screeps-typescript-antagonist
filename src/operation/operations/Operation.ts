@@ -165,10 +165,12 @@ export abstract class Operation {
     // } else {
     if (!creepActions.actionGetEnergyCache(creep, false)) {
       if (!this.initGetEnergy) {
-        const hauler = creep.room.find(FIND_MY_CREEPS, { filter: x => x.memory.target === creep.id && x.store.energy > 10 });
-        if (hauler && hauler.length > 0) {
-          creep.setTarget(hauler[0], TargetAction.MOVETO);
-          return true;
+        if (creep.store.energy < 50) {
+          const hauler = creep.room.find(FIND_MY_CREEPS, { filter: x => x.memory.target === creep.id && x.store.energy > 10 });
+          if (hauler && hauler.length > 0) {
+            creep.setTarget(hauler[0], TargetAction.MOVETO);
+            return true;
+          }
         }
         this.droppedEnergy = creep.room.find(FIND_DROPPED_RESOURCES, { filter: x => x.resourceType === RESOURCE_ENERGY && x.amount >= 10 });
         this.tombStones = creep.room.find(FIND_TOMBSTONES, { filter: x => x.store.energy >= 10 });
