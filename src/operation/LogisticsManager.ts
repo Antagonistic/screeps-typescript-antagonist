@@ -262,18 +262,18 @@ export class LogisticsManager {
             case EnergyState.LOW: {
                 if (this.storage) {
                     if (this.energy() < 10000 && this.S < 5000) { this.room.energyState = EnergyState.CRITICAL; break; }
-                    if (this.energy() > 25000 && this.S > 15000) { this.room.energyState = EnergyState.NORMAL; break; }
+                    if (this.energy() > 50000 && this.S > 20000) { this.room.energyState = EnergyState.NORMAL; break; }
                 } else {
                     if (this.energy() < 10000) { this.room.energyState = EnergyState.CRITICAL; break; }
-                    if (this.energy() > 25000) { this.room.energyState = EnergyState.NORMAL; break; }
+                    if (this.energy() > 50000) { this.room.energyState = EnergyState.NORMAL; break; }
                 }
             }
             case EnergyState.NORMAL: {
                 if (this.storage) {
-                    if (this.energy() < 20000 && this.S < 10000) { this.room.energyState = EnergyState.LOW; break; }
+                    if (this.energy() < 30000 && this.S < 10000) { this.room.energyState = EnergyState.LOW; break; }
                     if (this.energy() > 800000) { this.room.energyState = EnergyState.EXCESS; break; }
                 } else {
-                    if (this.energy() < 20000) { this.room.energyState = EnergyState.LOW; break; }
+                    if (this.energy() < 30000) { this.room.energyState = EnergyState.LOW; break; }
                     if (this.energy() > 800000) { this.room.energyState = EnergyState.EXCESS; break; }
                 }
             }

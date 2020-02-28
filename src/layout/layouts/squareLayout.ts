@@ -9,7 +9,7 @@ interface RoomPlannerLayoutTemplate {
     memory: RoomMemory;
 }
 
-const squareLayout: RoomPlannerLayoutTemplate = {
+export const squareLayout: RoomPlannerLayoutTemplate = {
     absolute: false,
     anchor: { x: 0, y: 0 },
     build: {
@@ -17,11 +17,19 @@ const squareLayout: RoomPlannerLayoutTemplate = {
         terminal: [{ x: -1, y: 0 }],
         link: [{ x: 0, y: 1 }],
         spawn: [{ x: 0, y: -1 }],
-        extension: [{ x: -2, y: 1 }, { x: -3, y: 1 }, { x: -3, y: 2 }, { x: -4, y: 2 }, { x: -4, y: 3 }, { x: -4, y: 4 }, { x: -3, y: 4 }, { x: -2, y: 4 }, { x: -2, y: 3 }, { x: -1, y: 3 },
-        { x: -1, y: 2 }, { x: 2, y: -1 }, { x: 3, y: -1 }, { x: 3, y: -2 }, { x: 4, y: -2 }, { x: 4, y: -3 }, { x: 4, y: -4 }, { x: 3, y: -4 }, { x: 2, y: -4 }, { x: 2, y: -3 },
-        { x: 1, y: -3 }, { x: 1, y: -2 }, { x: -1, y: -3 }, { x: -2, y: -3 }, { x: -2, y: -4 }, { x: -3, y: -4 }, { x: -4, y: -3 }, { x: -4, y: -2 }, { x: -3, y: -2 }, { x: -3, y: -1 }],
-        tower: [{ x: -4, y: 1 }, { x: 4, y: -1 }],
-        road: [{ x: -1, y: -2 }, { x: -2, y: -2 }, { x: -3, y: -3 }, { x: 1, y: 1 }, { x: 1, y: -1 }, { x: -1, y: 1 }, { x: -2, y: 0 }, { x: -3, y: 0 }, { x: -4, y: 0 }, { x: 0, y: 2 }, { x: 0, y: 3 }, { x: 0, y: 4 }],
+        extension: [{ x: -2, y: 1 }, { x: -3, y: 1 }, { x: -3, y: 2 }, { x: -4, y: 2 }, { x: -4, y: 3 }, { x: -4, y: 4 }, { x: -3, y: 4 }, { x: -2, y: 4 }, { x: -2, y: 3 }, { x: -1, y: 3 }
+            , { x: -1, y: 2 }, { x: 2, y: -1 }, { x: 3, y: -1 }, { x: 3, y: -2 }, { x: 4, y: -2 }, { x: 4, y: -3 }, { x: 4, y: -4 }, { x: 3, y: -4 }, { x: 2, y: -4 }, { x: 2, y: -3 }
+            , { x: 1, y: -3 }, { x: 1, y: -2 }, { x: -1, y: -3 }, { x: -2, y: -3 }, { x: -2, y: -4 }, { x: -3, y: -4 }, { x: -4, y: -3 }, { x: -4, y: -2 }, { x: -3, y: -2 }, { x: -3, y: -1 }
+            , { x: 2, y: 1 }, { x: 3, y: 1 }, { x: 3, y: 2 }, { x: 4, y: 2 }, { x: 4, y: 3 }, { x: 3, y: 4 }, { x: 2, y: 4 }, { x: 2, y: 3 }, { x: 1, y: 3 }, { x: 1, y: 2 }],
+        tower: [{ x: -4, y: 1 }, { x: 4, y: -1 }, { x: 4, y: 4 }, { x: -4, y: -4 }, { x: -1, y: 4 }, { x: 1, y: -4 }],
+        road: [{ x: 0, y: 0 }, { x: -1, y: -1 }, { x: -2, y: -2 }, { x: -3, y: -3 }, { x: 1, y: -1 }, { x: -2, y: 0 }, { x: -3, y: 0 }, { x: -4, y: 0 }, { x: -5, y: 0 }
+            , { x: 0, y: 2 }, { x: 0, y: 3 }, { x: 0, y: 4 }, { x: 0, y: 5 }, { x: 0, y: -2 }, { x: 0, y: -3 }, { x: 0, y: -4 }, { x: 0, y: -5 }
+            , { x: 2, y: -2 }, { x: 3, y: -3 }, { x: 1, y: 1 }, { x: 2, y: 2 }, { x: 3, y: 3 }, { x: -1, y: 1 }, { x: -2, y: 2 }, { x: -3, y: 3 }
+            , { x: 2, y: 0 }, { x: 3, y: 0 }, { x: 4, y: 0 }, { x: 5, y: 0 }],
+        factory: [{ x: -2, y: -1 }],
+        powerSpawn: [{ x: -1, y: -4 }],
+        nuker: [{ x: 1, y: 4 }],
+        observer: [{ x: -4, y: -1 }]
     },
     memory: {
         noLinkMine: true,

@@ -17,6 +17,8 @@ import { LogisticsManager } from "operation/LogisticsManager";
 import { buildHelper } from "rooms/buildHelper";
 import { defenceHelper } from "rooms/defenceHelper";
 import { layoutManager } from "rooms/layoutManager";
+import { RoomPlanner } from "layout/RoomPlanner";
+import { RoomClass } from "config/Constants";
 
 
 const ROOM_SIZE = 50;
@@ -317,5 +319,9 @@ export const commandConsole = {
       map: map.map(line => line.join(' ')).join('\n'),
       name: roomName,
     };
+  },
+  planRoom(roomName: string, roomClass: RoomClass = RoomClass.SQUARE) {
+    const plan = new RoomPlanner(roomName, roomClass);
+    plan.visual();
   }
 };

@@ -21,7 +21,7 @@ export const DEFAULT_MIN_LIFE_BEFORE_NEEDS_REFILL: number = 500;
 export const DEFAULT_MAX_LIFE_WHILE_NEEDS_REFILL: number = 1400;
 
 
-export const ROAD_COST = 3;
+export const ROAD_COST = 2;
 export const PLAIN_COST = 4;
 export const SWAMP_COST = 5;
 export const AVOID_COST = 7;

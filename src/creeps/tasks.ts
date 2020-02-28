@@ -1,4 +1,4 @@
-import { TargetAction } from "config/config";
+import { TargetAction } from "config/Constants";
 import * as creepActions from "creeps/creepActions";
 import { buildHelper } from "rooms/buildHelper";
 

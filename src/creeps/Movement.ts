@@ -1,18 +1,30 @@
+import { SWAMP_COST, PLAIN_COST } from "config/config";
 
 export class LayoutPath {
 
-    public static findClosestByPathLayout(origin: RoomPosition, goals: RoomPosition[], cost?: CostMatrix): RoomPosition | null {
-        const ret = origin.findClosestByPath(goals, {
-            maxRooms: 1, costCallback(roomName: string) {
+    public static findClosestByPathLayout(origin: RoomPosition, goals: RoomPosition[], range: number = 1, cost?: CostMatrix): RoomPosition | null {
+        const ret = PathFinder.search(origin, _.map(goals, x => { return { pos: x, range: range } }), {
+            maxRooms: 1, flee: false, roomCallback(roomName: string) {
+                return cost || LayoutPath.LayoutCostMatrix(roomName);
+            }
+        });
+        const end = _.last(ret.path);
+        if (!end) { return null; }
+        return _.min(goals, x => end.getRangeTo(x));
+    }
+
+    public static findFleePathLayout(origin: RoomPosition, goals: RoomPosition[], range: number = 5, cost?: CostMatrix) {
+        const ret = PathFinder.search(origin, _.map(goals, x => { return { pos: x, range: range } }), {
+            maxRooms: 1, flee: true, roomCallback(roomName: string) {
                 return cost || LayoutPath.LayoutCostMatrix(roomName);
             }
         });
         return ret;
     }
 
-    public static findByPathLayout(origin: RoomPosition, goal: RoomPosition, cost?: CostMatrix): PathFinderPath {
-        const ret = PathFinder.search(origin, { pos: goal, range: 1 }, {
-            maxRooms: 1, roomCallback(roomName: string) {
+    public static findByPathLayout(origin: RoomPosition, goal: RoomPosition, range: number = 1, cost?: CostMatrix): PathFinderPath {
+        const ret = PathFinder.search(origin, { pos: goal, range: range }, {
+            maxRooms: 1, swampCost: SWAMP_COST, plainCost: PLAIN_COST, roomCallback(roomName: string) {
                 return cost || LayoutPath.LayoutCostMatrix(roomName);
             }
         });
@@ -32,20 +44,20 @@ export class LayoutPath {
         for (let y = 0; y < 50; ++y) {
             for (let x = 0; x < 50; ++x) {
                 if (terrain.get(x, y) !== TERRAIN_MASK_WALL) {
-                    matrix.set(x, y, 1);
+                    matrix.set(x, y, 2);
                 }
             }
         }
 
         if (mem.controllerPos) {
-            LayoutPath.blockOffPosition(matrix, mem.controllerPos, 3, 3, terrain);
+            LayoutPath.blockOffPosition(matrix, mem.controllerPos, 3, 4, terrain);
             LayoutPath.blockOffPosition(matrix, mem.controllerPos, 2, 5, terrain);
             LayoutPath.blockOffPosition(matrix, mem.controllerPos, 1, 7, terrain);
         }
 
         if (mem.sourcesPos) {
             for (const s of mem.sourcesPos) {
-                LayoutPath.blockOffPosition(matrix, s, 2, 3, terrain);
+                LayoutPath.blockOffPosition(matrix, s, 2, 4, terrain);
             }
         }
 

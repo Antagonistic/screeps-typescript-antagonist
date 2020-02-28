@@ -144,6 +144,14 @@ export class WorldMap implements WorldMap {
         room.memory.controllerPos = null;
       }
     }
+    if (room.memory.mineralInfo === undefined) {
+      const mineral = _.head(room.find(FIND_MINERALS));
+      if (mineral) {
+        room.memory.mineralInfo = { pos: mineral.pos, type: mineral.mineralType, density: mineral.density };
+      } else {
+        room.memory.mineralInfo = null;
+      }
+    }
     if (!room.memory.center) {
       if (room.controller) {
         room.memory.center = roomHelper.getSpotCandidate1(room.controller.pos) || roomHelper.findClosestPlainTile(new RoomPosition(25, 25, room.name));

@@ -359,7 +359,7 @@ export const roomHelper = {
             return _.max(spots, (x: RoomPosition) => x.openAdjacentSpots(true, true).length);
         } else {
             spots = spots.filter(x => x.openAdjacentSpots(true, true).length >= 5);
-            if (spots.length === 0) { return _.max(pos.openAdjacentSpots(true, true), (x: RoomPosition) => x.openAdjacentSpots().length); }
+            if (spots.length === 0) { return _.max(pos.openAdjacentSpots(true, true), (x: RoomPosition) => x.openAdjacentSpots(true, true).length); }
             return LayoutPath.findClosestByPathLayout(center, spots);
         }
     },
@@ -373,7 +373,7 @@ export const roomHelper = {
             return _.max(spots2, (x: RoomPosition) => x.openAdjacentSpots(true, true).length);
         } else {
             const _spots2 = spots2.filter(x => x.openAdjacentSpots(true, true).length >= 5);
-            if (_spots2.length === 0) { return _.max(spots2, (x: RoomPosition) => x.openAdjacentSpots().length); }
+            if (_spots2.length === 0) { return _.max(spots2, (x: RoomPosition) => x.openAdjacentSpots(true, true).length); }
             return LayoutPath.findClosestByPathLayout(center, _spots2);
         }
     },
@@ -389,28 +389,30 @@ export const roomHelper = {
             return _.max(spots3, (x: RoomPosition) => x.openAdjacentSpots(true, true).length);
         } else {
             const _spots3 = spots3.filter(x => x.openAdjacentSpots(true, true).length >= 5);
-            if (_spots3.length === 0) { return _.max(spots3, (x: RoomPosition) => x.openAdjacentSpots().length); }
+            if (_spots3.length === 0) { return _.max(spots3, (x: RoomPosition) => x.openAdjacentSpots(true, true).length); }
             return LayoutPath.findClosestByPathLayout(center, _spots3);
         }
     },
 
-    getContainerPosition(point: RoomPosition) {
-        let center;
-        if (Memory.rooms[point.roomName].center) {
-            center = roomHelper.deserializeRoomPosition(Memory.rooms[point.roomName].center);
-        } else {
-            center = new RoomPosition(25, 25, point.roomName);
+    getContainerPosition(point: RoomPosition, center?: RoomPosition) {
+        if (!center) {
+            if (Memory.rooms[point.roomName].center) {
+                center = roomHelper.deserializeRoomPosition(Memory.rooms[point.roomName].center);
+            } else {
+                center = new RoomPosition(25, 25, point.roomName);
+            }
         }
         const spot = this.getSpotCandidate1(point, center);
         return spot || _.head(point.openAdjacentSpots(true, true));
     },
 
-    getLinkPosition(point: RoomPosition, container: RoomPosition) {
-        let center;
-        if (Memory.rooms[point.roomName].center) {
-            center = roomHelper.deserializeRoomPosition(Memory.rooms[point.roomName].center);
-        } else {
-            center = new RoomPosition(25, 25, point.roomName);
+    getLinkPosition(point: RoomPosition, container: RoomPosition, center?: RoomPosition) {
+        if (!center) {
+            if (Memory.rooms[point.roomName].center) {
+                center = roomHelper.deserializeRoomPosition(Memory.rooms[point.roomName].center);
+            } else {
+                center = new RoomPosition(25, 25, point.roomName);
+            }
         }
         return this.getSpotCandidate1(container, center) || _.head(point.openAdjacentSpots(true, true));
     },

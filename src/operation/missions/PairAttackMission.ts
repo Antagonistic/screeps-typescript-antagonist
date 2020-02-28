@@ -1,7 +1,7 @@
 import { Operation } from "operation/operations/Operation";
 import { Mission } from "./Mission";
 
-import { TargetAction } from "config/config";
+import { TargetAction } from "config/Constants";
 import * as creepActions from "creeps/creepActions";
 import { profile } from "Profiler";
 

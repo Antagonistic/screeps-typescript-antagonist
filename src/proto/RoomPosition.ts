@@ -113,6 +113,12 @@ RoomPosition.prototype.getPositionAtDirection = function (direction: number, ran
 RoomPosition.prototype.isPassible = function (ignoreCreeps?: boolean, ignoreStructures?: boolean): boolean {
     if (this.isNearExit(0)) { return false; }
 
+    if (!this.room) {
+        if (ignoreCreeps && ignoreStructures) {
+            return Game.map.getRoomTerrain(this.roomName).get(this.x, this.y) !== TERRAIN_MASK_WALL;
+        }
+    }
+
     // look for walls
     if (_.head(this.lookFor(LOOK_TERRAIN)) !== "wall") {
 

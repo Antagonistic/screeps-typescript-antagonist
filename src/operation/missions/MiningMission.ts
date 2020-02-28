@@ -526,9 +526,12 @@ export class MiningMission extends Mission {
             if (this.drop && this.hasEnergy() >= 50) {
                 creepActions.moveToWithdraw(creep, this.drop);
             } else {
-                if (this.miners.length > 0) {
+                const _miners = this.miners.filter(x => x.memory.inPosition === true);
+                if (_miners.length > 0) {
                     // stand next to miner hoping for transfer
-                    creepActions.moveTo(creep, this.miners[creep.memory.uuid % this.miners.length]);
+                    creepActions.moveTo(creep, _miners[creep.memory.uuid % _miners.length]);
+                } else {
+                    creep.rally();
                 }
             }
         }

@@ -146,6 +146,7 @@ interface RoomMemory {
   dismantle?: Id<Structure>[];
   sourcesPos?: UnserializedRoomPosition[] | null;
   controllerPos?: UnserializedRoomPosition | null;
+  mineralInfo?: MineralInfo | null;
   center?: UnserializedRoomPosition;
   queueReaction?: LabReaction[];
   energyState?: import("./config/Constants").EnergyState;
@@ -160,6 +161,12 @@ type RoomStructurePositionsLight = { [key in StructureConstant]?: LightRoomPos[]
 interface LayoutMemory {
   name: string;
   flagName: string;
+}
+
+interface MineralInfo {
+  pos: UnserializedRoomPosition;
+  type: MineralConstant;
+  density: number;
 }
 
 interface Memory {
