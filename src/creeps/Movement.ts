@@ -2,10 +2,10 @@ import { SWAMP_COST, PLAIN_COST } from "config/config";
 
 export class LayoutPath {
 
-    public static findClosestByPathLayout(origin: RoomPosition, goals: RoomPosition[], range: number = 1, cost?: CostMatrix): RoomPosition | null {
+    public static findClosestByPathLayout(origin: RoomPosition, goals: RoomPosition[], range: number = 1, cost?: CostMatrices): RoomPosition | null {
         const ret = PathFinder.search(origin, _.map(goals, x => { return { pos: x, range: range } }), {
             maxRooms: 1, flee: false, roomCallback(roomName: string) {
-                return cost || LayoutPath.LayoutCostMatrix(roomName);
+                return cost?.roomName || LayoutPath.LayoutCostMatrix(roomName);
             }
         });
         const end = _.last(ret.path);
@@ -13,19 +13,19 @@ export class LayoutPath {
         return _.min(goals, x => end.getRangeTo(x));
     }
 
-    public static findFleePathLayout(origin: RoomPosition, goals: RoomPosition[], range: number = 5, cost?: CostMatrix) {
+    public static findFleePathLayout(origin: RoomPosition, goals: RoomPosition[], range: number = 5, cost?: CostMatrices) {
         const ret = PathFinder.search(origin, _.map(goals, x => { return { pos: x, range: range } }), {
             maxRooms: 1, flee: true, roomCallback(roomName: string) {
-                return cost || LayoutPath.LayoutCostMatrix(roomName);
+                return cost?.roomName || LayoutPath.LayoutCostMatrix(roomName);
             }
         });
         return ret;
     }
 
-    public static findByPathLayout(origin: RoomPosition, goal: RoomPosition, range: number = 1, cost?: CostMatrix): PathFinderPath {
+    public static findByPathLayout(origin: RoomPosition, goal: RoomPosition, range: number = 1, cost?: CostMatrices): PathFinderPath {
         const ret = PathFinder.search(origin, { pos: goal, range: range }, {
             maxRooms: 1, swampCost: SWAMP_COST, plainCost: PLAIN_COST, roomCallback(roomName: string) {
-                return cost || LayoutPath.LayoutCostMatrix(roomName);
+                return cost?.roomName || LayoutPath.LayoutCostMatrix(roomName);
             }
         });
         return ret;

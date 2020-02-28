@@ -10,11 +10,19 @@ import { squareLayout } from "layout/layouts/squareLayout"
 interface RoomPlannerLayout {
     valid: boolean;
     core: RoomStructurePositions;
-    remotes?: { [key: string]: RoomStructurePositions };
+    remotes?: { [key: string]: RemotePlan };
     mineral?: RoomStructurePositions;
     POI: RoomPosition[];
     rally?: RoomPosition;
     memory: RoomMemory;
+}
+
+interface RemotePlan {
+    core: RoomStructurePositions;
+    isSK: boolean;
+    numSource: number;
+    rally?: UnserializedRoomPosition;
+    score: number;
 }
 
 interface RoomPlannerLayoutTemplate {
@@ -29,7 +37,7 @@ const remapMemory: string[] = ["supervisor"];
 export class RoomPlanner {
     public output: RoomPlannerLayout;
     public roomName: string;
-    public layoutCost: CostMatrix;
+    public layoutCost: CostMatrices;
     public classType: RoomClass;
     public visible: boolean;
     public room?: Room;
@@ -44,7 +52,8 @@ export class RoomPlanner {
         this.classType = classType;
         this.room = Game.rooms[roomName];
         this.visible = !!this.room;
-        this.layoutCost = LayoutPath.LayoutCostMatrix(roomName) || new PathFinder.CostMatrix();
+        this.layoutCost = {};
+        this.layoutCost[roomName] = LayoutPath.LayoutCostMatrix(roomName) || new PathFinder.CostMatrix();
         this.planRoom();
         if (visual) {
             this.visual();
@@ -73,6 +82,7 @@ export class RoomPlanner {
     private planLayoutSquare() {
         const _bunkerLoc = this.optimalBunkerPosition(5);
         if (!_bunkerLoc) {
+            console.log(`ROOMPLANNER: ${this.roomName} cannot find optimal bunker location`);
             this.output.valid = false;
             return;
         }
@@ -183,19 +193,9 @@ export class RoomPlanner {
         }
     }
 
-    private applyStandardPOIRoad(center: RoomPosition) {
-        for (const POI of this.output.POI) {
-            if (center.inRangeTo(POI, 3)) { continue; } // No road needed
-            const path = LayoutPath.findByPathLayout(center, POI, 2, this.layoutCost);
-            if (path.incomplete) {
-                console.log(`ROOMPLANNER: ${this.roomName} incomplete path to POI ${POI.print}!`);
-            }
-            this.addStructuresCore(path.path, STRUCTURE_ROAD, true);
-        }
-    }
-
     private addStructure(layout: RoomStructurePositions, pos: RoomPosition | UnserializedRoomPosition | LightRoomPos, key: StructureConstant, addFront: boolean = false) {
-        const _pos = new RoomPosition(pos.x, pos.y, this.roomName);
+        const roomName = (pos as UnserializedRoomPosition).roomName || this.roomName;
+        const _pos = new RoomPosition(pos.x, pos.y, roomName);
         if (!layout[key]) layout[key] = [];
         if (addFront) {
             layout[key]?.unshift(_pos);
@@ -204,18 +204,18 @@ export class RoomPlanner {
             layout[key]?.push(_pos);
         }
         if (this.layoutCost) {
-            if (this.layoutCost.get(pos.x, pos.y) === 0xff) {
+            if (this.layoutCost[roomName].get(pos.x, pos.y) === 0xff) {
                 console.log(`ROOMPLANNER: ${this.roomName} Overlapping structure ${key}! ${_pos.print}`)
                 this.output.valid = false;
             }
             if (key !== STRUCTURE_CONTAINER && key !== STRUCTURE_ROAD && key !== STRUCTURE_RAMPART) {
-                this.layoutCost.set(_pos.x, _pos.y, 0xff);
+                this.layoutCost[roomName].set(_pos.x, _pos.y, 0xff);
             }
             if (key === STRUCTURE_ROAD) {
-                if (this.layoutCost.get(_pos.x, _pos.y) === 1) {
+                if (this.layoutCost[roomName].get(_pos.x, _pos.y) === 1) {
                     console.log(`ROOMPLANNER: ${this.roomName} road already laid out! ${_pos.print}`)
                 }
-                this.layoutCost.set(_pos.x, _pos.y, 1);
+                this.layoutCost[roomName].set(_pos.x, _pos.y, 1);
             }
         }
     }
@@ -225,7 +225,8 @@ export class RoomPlanner {
 
     private addStructures(layout: RoomStructurePositions, pos: Array<RoomPosition | UnserializedRoomPosition | LightRoomPos>, key: StructureConstant, addFront: boolean = false) {
         for (const p of pos) {
-            if (key === STRUCTURE_ROAD && this.layoutCost.get(p.x, p.y) === 1) {
+            const roomName = (p as UnserializedRoomPosition).roomName || this.roomName;
+            if (key === STRUCTURE_ROAD && this.layoutCost[roomName].get(p.x, p.y) === 1) {
                 continue;
             }
             this.addStructure(layout, p, key, addFront);
@@ -285,6 +286,39 @@ export class RoomPlanner {
         return dist;
     }
 
+    private planStandardRemote(remoteName: string, center: RoomPosition) {
+        const mem = Memory.rooms[remoteName];
+        if (!mem) { return; }
+        if (mem.sourcesPos) {
+            if (!this.output.remotes) this.output.remotes = {};
+            this.output.remotes[remoteName] = {
+                core: {},
+                numSource: mem.sourcesPos.length,
+                isSK: mem.sourcesPos.length > 2,
+                score: 0
+            }
+            let score = 0;
+            for (const s of mem.sourcesPos) {
+                const pos = roomHelper.deserializeRoomPosition(s);
+                if (pos) {
+                    const sourcePath = LayoutPath.findByPathLayout(center, pos);
+                    const containerPos = _.last(sourcePath.path);
+                    this.addStructure(this.output.remotes[remoteName].core, containerPos, STRUCTURE_CONTAINER);
+                    this.addStructures(this.output.remotes[remoteName].core, sourcePath.path, STRUCTURE_ROAD);
+                }
+            }
+            if (mem.sourcesPos.length === 1) {
+
+            }
+            if (mem.sourcesPos.length === 2) {
+
+            }
+            if (mem.sourcesPos.length > 2) {
+
+            }
+        }
+    }
+
     private potentialBunkerLocations(radius: number) {
         const layoutDistance = LayoutPath.getLayoutDistanceTransform(this.roomName);
         var loc: LightRoomPos[] = [];
@@ -324,12 +358,13 @@ export class RoomPlanner {
 
     public visual() {
         const vis = new RoomVisual(this.roomName);
-        if (this.output.valid) {
-            this.renderPos(this.output.core, vis);
-            if (this.output.mineral) { this.renderPos(this.output.mineral, vis); }
-            if (this.output.remotes && this.output.remotes.length > 0) {
-                _.each(this.output.remotes, x => this.renderPos(x, vis));
-            }
+        this.renderPos(this.output.core, vis);
+        if (this.output.mineral) { this.renderPos(this.output.mineral, vis); }
+        if (this.output.remotes && Object.keys(this.output.remotes).length > 0) {
+            // _.each(this.output.remotes, x => this.renderPos(x.core, vis));
+        }
+        if (!this.output.valid) {
+            console.log(`ROOMPLANNER: Invalid layout ${_.flatten(Object.values(this.output.core)).length} structures`)
         }
         vis.connectRoads();
         if (this.output.rally) {

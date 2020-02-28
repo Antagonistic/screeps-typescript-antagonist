@@ -157,6 +157,7 @@ interface RoomMemory {
 
 type RoomStructurePositions = { [key in StructureConstant]?: UnserializedRoomPosition[] };
 type RoomStructurePositionsLight = { [key in StructureConstant]?: LightRoomPos[] };
+type CostMatrices = { [key: string]: CostMatrix };
 
 interface LayoutMemory {
   name: string;
