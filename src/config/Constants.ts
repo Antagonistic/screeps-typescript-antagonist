@@ -39,3 +39,5 @@ export enum RoomClass {
     REMOTE = "remote"
 }
 
+
+export const BUNKER_VALID_MAX: number = 20;

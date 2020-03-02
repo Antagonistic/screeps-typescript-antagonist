@@ -5,7 +5,7 @@ export class LayoutPath {
     public static findClosestByPathLayout(origin: RoomPosition, goals: RoomPosition[], range: number = 1, cost?: CostMatrices): RoomPosition | null {
         const ret = PathFinder.search(origin, _.map(goals, x => { return { pos: x, range: range } }), {
             maxRooms: 1, flee: false, roomCallback(roomName: string) {
-                return cost?.roomName || LayoutPath.LayoutCostMatrix(roomName);
+                if (cost && cost[roomName]) { return cost[roomName] } else return LayoutPath.LayoutCostMatrix(roomName);
             }
         });
         const end = _.last(ret.path);
@@ -16,7 +16,7 @@ export class LayoutPath {
     public static findFleePathLayout(origin: RoomPosition, goals: RoomPosition[], range: number = 5, cost?: CostMatrices) {
         const ret = PathFinder.search(origin, _.map(goals, x => { return { pos: x, range: range } }), {
             maxRooms: 1, flee: true, roomCallback(roomName: string) {
-                return cost?.roomName || LayoutPath.LayoutCostMatrix(roomName);
+                if (cost && cost[roomName]) { return cost[roomName] } else return LayoutPath.LayoutCostMatrix(roomName);
             }
         });
         return ret;
@@ -25,7 +25,7 @@ export class LayoutPath {
     public static findByPathLayout(origin: RoomPosition, goal: RoomPosition, range: number = 1, cost?: CostMatrices): PathFinderPath {
         const ret = PathFinder.search(origin, { pos: goal, range: range }, {
             maxRooms: 1, swampCost: SWAMP_COST, plainCost: PLAIN_COST, roomCallback(roomName: string) {
-                return cost?.roomName || LayoutPath.LayoutCostMatrix(roomName);
+                if (cost && cost[roomName]) { return cost[roomName] } else return LayoutPath.LayoutCostMatrix(roomName);
             }
         });
         return ret;

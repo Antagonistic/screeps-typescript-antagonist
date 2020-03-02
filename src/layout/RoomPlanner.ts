@@ -1,4 +1,4 @@
-import { RoomClass } from "config/Constants"
+import { RoomClass, BUNKER_VALID_MAX } from "config/Constants"
 import { LayoutPath } from "creeps/Movement";
 import { roomHelper } from "rooms/roomHelper";
 
@@ -41,6 +41,7 @@ export class RoomPlanner {
     public classType: RoomClass;
     public visible: boolean;
     public room?: Room;
+    public mem?: RoomMemory;
     constructor(roomName: string, classType: RoomClass, visual: boolean = false) {
         this.roomName = roomName;
         this.output = {
@@ -54,9 +55,15 @@ export class RoomPlanner {
         this.visible = !!this.room;
         this.layoutCost = {};
         this.layoutCost[roomName] = LayoutPath.LayoutCostMatrix(roomName) || new PathFinder.CostMatrix();
-        this.planRoom();
-        if (visual) {
-            this.visual();
+        this.mem = Memory.rooms[roomName];
+        if (this.mem) {
+            this.planRoom();
+            if (visual) {
+                this.visual();
+            }
+        }
+        else {
+            console.log(`ROOMPLANNER: ${this.roomName} was not surveyed`);
         }
     }
 
@@ -203,20 +210,21 @@ export class RoomPlanner {
         else {
             layout[key]?.push(_pos);
         }
-        if (this.layoutCost) {
-            if (this.layoutCost[roomName].get(pos.x, pos.y) === 0xff) {
-                console.log(`ROOMPLANNER: ${this.roomName} Overlapping structure ${key}! ${_pos.print}`)
-                this.output.valid = false;
+        if (!this.layoutCost[roomName]) {
+            this.layoutCost[roomName] = LayoutPath.LayoutCostMatrix(roomName) || new PathFinder.CostMatrix();
+        }
+        if (this.layoutCost[roomName].get(pos.x, pos.y) === 0xff) {
+            console.log(`ROOMPLANNER: ${this.roomName} Overlapping structure ${key}! ${_pos.print}`)
+            this.output.valid = false;
+        }
+        if (key !== STRUCTURE_CONTAINER && key !== STRUCTURE_ROAD && key !== STRUCTURE_RAMPART) {
+            this.layoutCost[roomName].set(_pos.x, _pos.y, 0xff);
+        }
+        if (key === STRUCTURE_ROAD) {
+            if (this.layoutCost[roomName].get(_pos.x, _pos.y) === 1) {
+                console.log(`ROOMPLANNER: ${this.roomName} road already laid out! ${_pos.print}`)
             }
-            if (key !== STRUCTURE_CONTAINER && key !== STRUCTURE_ROAD && key !== STRUCTURE_RAMPART) {
-                this.layoutCost[roomName].set(_pos.x, _pos.y, 0xff);
-            }
-            if (key === STRUCTURE_ROAD) {
-                if (this.layoutCost[roomName].get(_pos.x, _pos.y) === 1) {
-                    console.log(`ROOMPLANNER: ${this.roomName} road already laid out! ${_pos.print}`)
-                }
-                this.layoutCost[roomName].set(_pos.x, _pos.y, 1);
-            }
+            this.layoutCost[roomName].set(_pos.x, _pos.y, 1);
         }
     }
     private addStructureCore(pos: RoomPosition | UnserializedRoomPosition | LightRoomPos, key: StructureConstant, addFront: boolean = false) {
@@ -330,17 +338,17 @@ export class RoomPlanner {
                 }
             }
         }
-        if (loc.length > 20) {
+        if (loc.length > BUNKER_VALID_MAX) {
             loc = loc.filter(p => (p.x + p.y) % 2 == 0);
         }
-        if (loc.length > 20) {
+        if (loc.length > BUNKER_VALID_MAX) {
             loc = loc.filter(p => (p.x + p.y) % 4 == 0);
         }
-        if (loc.length > 20) {
+        if (loc.length > BUNKER_VALID_MAX) {
             loc = loc.filter(p => (p.x + p.y) % 8 == 0);
         }
-        if (loc.length > 20) {
-            loc = _.sample(loc, 20);
+        if (loc.length > BUNKER_VALID_MAX) {
+            loc = _.sample(loc, BUNKER_VALID_MAX);
         }
         const flags = Object.values(Game.flags).filter(x => x.pos.roomName === this.roomName);
         if (flags && flags.length > 0) {
