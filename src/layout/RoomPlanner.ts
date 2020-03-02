@@ -96,7 +96,7 @@ export class RoomPlanner {
         const bunkerLoc = new RoomPosition(_bunkerLoc.x, _bunkerLoc.y, this.roomName);
         this.applyLayoutTemplate(squareLayout, _bunkerLoc);
         this.applyStandardRoom(bunkerLoc);
-        // this.applyStandardPOIRoad(bunkerLoc);
+        this.planStandardRemotes(bunkerLoc);
         this.output.rally = this.fleeFromPOI(new RoomPosition(bunkerLoc.x, bunkerLoc.y, this.roomName), 6);
     }
 
@@ -292,6 +292,14 @@ export class RoomPlanner {
             }
         }
         return dist;
+    }
+
+    private planStandardRemotes(center: RoomPosition) {
+        if (this.mem && this.mem.neighbors && this.mem.neighbors.length > 0) {
+            for (const n of this.mem.neighbors) {
+                this.planStandardRemote(n, center);
+            }
+        }
     }
 
     private planStandardRemote(remoteName: string, center: RoomPosition) {
