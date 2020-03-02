@@ -1,42 +1,15 @@
-import { RoomClass, BUNKER_VALID_MAX } from "config/Constants"
+import { RoomClass, BUNKER_VALID_MAX, PLAN_SEGMENT, BUNKER_RADIUS } from "config/Constants"
 import { LayoutPath } from "creeps/Movement";
 import { roomHelper } from "rooms/roomHelper";
 
 import { squareLayout } from "layout/layouts/squareLayout"
+import { RoomLayout } from "./RoomLayout";
 
 // Experimental full room planning
 // Assume no vision
 
-interface RoomPlannerLayout {
-    valid: boolean;
-    core: RoomStructurePositions;
-    remotes?: { [key: string]: RemotePlan };
-    mineral?: RoomStructurePositions;
-    POI: RoomPosition[];
-    rally?: RoomPosition;
-    memory: RoomMemory;
-}
-
-interface RemotePlan {
-    core: RoomStructurePositions;
-    isSK: boolean;
-    numSource: number;
-    rally?: RoomPosition;
-    score: number;
-    name: string;
-}
-
-interface RoomPlannerLayoutTemplate {
-    anchor: LightRoomPos;
-    absolute: boolean;
-    build: RoomStructurePositionsLight;
-    memory: RoomMemory;
-}
-
-type MultiRoomVisual = { [key: string]: RoomVisual };
-
-export class RoomPlanner {
-    public output: RoomPlannerLayout;
+export class RoomPlanner extends RoomLayout {
+    // public data: RoomPlannerLayout;
     public roomName: string;
     public layoutCost: CostMatrices;
     public classType: RoomClass;
@@ -44,13 +17,8 @@ export class RoomPlanner {
     public room?: Room;
     public mem?: RoomMemory;
     constructor(roomName: string, classType: RoomClass, visual: boolean = false) {
+        super(roomName, true);
         this.roomName = roomName;
-        this.output = {
-            valid: true,
-            core: {},
-            POI: [],
-            memory: {}
-        };
         this.classType = classType;
         this.room = Game.rooms[roomName];
         this.visible = !!this.room;
@@ -61,6 +29,7 @@ export class RoomPlanner {
             this.planRoom();
             if (visual) {
                 this.visual();
+                this.saveToSegment(PLAN_SEGMENT);
             }
         }
         else {
@@ -70,6 +39,7 @@ export class RoomPlanner {
 
     private planRoom() {
         this.initPointsOfInterest();
+        this.data.class = this.classType;
         switch (this.classType) {
             case RoomClass.SQUARE: {
                 this.planLayoutSquare();
@@ -88,42 +58,43 @@ export class RoomPlanner {
     }
 
     private planLayoutSquare() {
-        const _bunkerLoc = this.optimalBunkerPosition(5);
+        const _bunkerLoc = this.optimalBunkerPosition(BUNKER_RADIUS);
         if (!_bunkerLoc) {
             console.log(`ROOMPLANNER: ${this.roomName} cannot find optimal bunker location`);
-            this.output.valid = false;
+            this.data.valid = false;
             return;
         }
         const bunkerLoc = new RoomPosition(_bunkerLoc.x, _bunkerLoc.y, this.roomName);
         this.applyLayoutTemplate(squareLayout, _bunkerLoc);
-        this.applyStandardRoom(bunkerLoc);
+        this.applyStandardRoom(bunkerLoc, true);
         this.planStandardRemotes(bunkerLoc);
-        this.output.rally = this.fleeFromPOI(new RoomPosition(bunkerLoc.x, bunkerLoc.y, this.roomName), 6);
+        this.planSquareRamparts(bunkerLoc, BUNKER_RADIUS);
+        this.data.rally = this.fleeFromPOI(new RoomPosition(bunkerLoc.x, bunkerLoc.y, this.roomName), 7);
     }
 
     private applyLayoutTemplate(template: RoomPlannerLayoutTemplate, pos: LightRoomPos) {
         const dP = template.absolute ? { x: 0, y: 0 } : { x: pos.x - template.anchor.x, y: pos.y - template.anchor.y };
         for (const _key in template.build) {
             const key = _key as StructureConstant;
-            if (!this.output.core[key]) { this.output.core[key] = []; }
+            if (!this.data.core[key]) { this.data.core[key] = []; }
             for (const p of template.build[key]!) {
                 const _x = (p.x + dP.x);
                 const _y = (p.y + dP.y);
                 if (key === STRUCTURE_STORAGE) { // Add Storage to POI
-                    this.output.POI.push(new RoomPosition(_x, _y, this.roomName));
+                    this.data.POI.push(new RoomPosition(_x, _y, this.roomName));
                 }
                 this.addStructureCore({ x: _x, y: _y }, key);
             }
         }
         if (template.memory) {
-            this.output.memory = _.merge(this.output.memory, template.memory);
+            this.data.memory = _.merge(this.data.memory, template.memory);
             for (const key in template.memory) {
                 if (key === "supervisor") {
-                    this.output.memory.supervisor = [];
+                    this.data.memory.supervisor = [];
                     const pos = template.memory.supervisor;
                     if (pos) {
                         for (const p of pos) {
-                            this.output.memory.supervisor.push({ x: p.x + dP.x, y: p.y + dP.y })
+                            this.data.memory.supervisor.push({ x: p.x + dP.x, y: p.y + dP.y })
                         }
                     }
                 }
@@ -131,7 +102,7 @@ export class RoomPlanner {
         }
     }
 
-    private applyStandardRoom(center: RoomPosition) {
+    private applyStandardRoom(center: RoomPosition, rampart: boolean = false) {
         const mem = Memory.rooms[this.roomName];
         if (!mem) { return; }
         if (mem.controllerPos) {
@@ -140,13 +111,21 @@ export class RoomPlanner {
                 let containerPos;
                 let linkPos;
                 if (this.room) {
-                    containerPos = _.head(pos.findInRange(FIND_STRUCTURES, 2, { filter: x => x.structureType === STRUCTURE_CONTAINER }))?.pos;
-                    linkPos = _.head(pos.findInRange(FIND_MY_STRUCTURES, 2, { filter: x => x.structureType === STRUCTURE_LINK }))?.pos;
+                    containerPos = _.head(pos.findInRange(FIND_STRUCTURES, 3, { filter: x => x.structureType === STRUCTURE_CONTAINER }))?.pos;
+                    linkPos = _.head(pos.findInRange(FIND_MY_STRUCTURES, 3, { filter: x => x.structureType === STRUCTURE_LINK }))?.pos;
                 }
                 if (!containerPos) containerPos = roomHelper.getControllerContainerPosition(pos);
                 if (!linkPos) linkPos = roomHelper.getControllerLinkPosition(pos);
                 this.addStructureCore(containerPos, STRUCTURE_CONTAINER);
+                if (rampart) { this.addStructureCore(containerPos, STRUCTURE_RAMPART); }
                 this.addStructureCore(linkPos, STRUCTURE_LINK);
+                if (rampart) { this.addStructureCore(linkPos, STRUCTURE_RAMPART); }
+                if (rampart) {
+                    const controlLocations = pos.openAdjacentSpots(true, true);
+                    if (controlLocations && controlLocations.length > 0) {
+                        controlLocations.forEach(x => this.addStructureCore(x, STRUCTURE_RAMPART));
+                    }
+                }
 
                 const path = LayoutPath.findByPathLayout(center, linkPos, 1, this.layoutCost);
                 if (path.incomplete) {
@@ -168,7 +147,9 @@ export class RoomPlanner {
                     if (!containerPos) containerPos = roomHelper.getContainerPosition(pos, center);
                     if (!linkPos) linkPos = roomHelper.getLinkPosition(pos, containerPos, center);
                     this.addStructureCore(containerPos, STRUCTURE_CONTAINER);
+                    if (rampart) { this.addStructureCore(containerPos, STRUCTURE_RAMPART); }
                     this.addStructureCore(linkPos, STRUCTURE_LINK);
+                    if (rampart) { this.addStructureCore(linkPos, STRUCTURE_RAMPART); }
 
                     const path = LayoutPath.findByPathLayout(center, containerPos, 1, this.layoutCost);
                     if (path.incomplete) {
@@ -182,19 +163,21 @@ export class RoomPlanner {
             if (this.room) {
                 const pos = roomHelper.deserializeRoomPosition(mem.mineralInfo.pos);
                 if (pos) {
-                    this.output.mineral = {};
+                    this.data.mineral = {};
+                    this.addStructure(this.data.mineral, mem.mineralInfo.pos, STRUCTURE_EXTRACTOR);
+
                     let containerPos;
                     if (this.room) {
                         containerPos = _.head(pos.findInRange(FIND_STRUCTURES, 2, { filter: x => x.structureType === STRUCTURE_CONTAINER }))?.pos;
                     }
                     if (!containerPos) containerPos = roomHelper.getContainerPosition(pos, center);
-                    this.addStructure(this.output.mineral, containerPos, STRUCTURE_CONTAINER);
+                    this.addStructure(this.data.mineral, containerPos, STRUCTURE_CONTAINER);
 
                     const path = LayoutPath.findByPathLayout(center, containerPos, 1, this.layoutCost);
                     if (path.incomplete) {
                         console.log(`ROOMPLANNER: ${this.roomName} incomplete path to POI ${containerPos.print}!`);
                     }
-                    this.addStructures(this.output.mineral, path.path, STRUCTURE_ROAD, true);
+                    this.addStructures(this.data.mineral, path.path, STRUCTURE_ROAD, true);
                 }
 
             }
@@ -204,6 +187,14 @@ export class RoomPlanner {
     private addStructure(layout: RoomStructurePositions, pos: RoomPosition | UnserializedRoomPosition | LightRoomPos, key: StructureConstant, addFront: boolean = false) {
         const roomName = (pos as UnserializedRoomPosition).roomName || this.roomName;
         const _pos = new RoomPosition(pos.x, pos.y, roomName);
+        if (Game.map.getRoomTerrain(roomName).get(_pos.x, _pos.y) === TERRAIN_MASK_WALL) {
+            if (key !== STRUCTURE_EXTRACTOR) { // Only structure can place on walls
+                if (key !== STRUCTURE_ROAD && key !== STRUCTURE_RAMPART) {
+                    console.log(`ROOMPLANNER: ${this.roomName} structure placed on wall ${key}! ${_pos.print}`)
+                }
+                return;
+            }
+        }
         if (!layout[key]) layout[key] = [];
         if (addFront) {
             layout[key]?.unshift(_pos);
@@ -214,9 +205,9 @@ export class RoomPlanner {
         if (!this.layoutCost[roomName]) {
             this.layoutCost[roomName] = LayoutPath.LayoutCostMatrix(roomName) || new PathFinder.CostMatrix();
         }
-        if (this.layoutCost[roomName].get(pos.x, pos.y) === 0xff) {
+        if (this.layoutCost[roomName].get(pos.x, pos.y) === 0xff && key !== STRUCTURE_RAMPART) {
             console.log(`ROOMPLANNER: ${this.roomName} Overlapping structure ${key}! ${_pos.print}`)
-            this.output.valid = false;
+            this.data.valid = false;
         }
         if (key !== STRUCTURE_CONTAINER && key !== STRUCTURE_ROAD && key !== STRUCTURE_RAMPART) {
             this.layoutCost[roomName].set(_pos.x, _pos.y, 0xff);
@@ -229,7 +220,7 @@ export class RoomPlanner {
         }
     }
     private addStructureCore(pos: RoomPosition | UnserializedRoomPosition | LightRoomPos, key: StructureConstant, addFront: boolean = false) {
-        this.addStructure(this.output.core, pos, key, addFront);
+        this.addStructure(this.data.core, pos, key, addFront);
     }
 
     private addStructures(layout: RoomStructurePositions, pos: Array<RoomPosition | UnserializedRoomPosition | LightRoomPos>, key: StructureConstant, addFront: boolean = false) {
@@ -243,11 +234,11 @@ export class RoomPlanner {
     }
 
     private addStructuresCore(pos: Array<RoomPosition | UnserializedRoomPosition | LightRoomPos>, key: StructureConstant, addFront: boolean = false) {
-        this.addStructures(this.output.core, pos, key, addFront);
+        this.addStructures(this.data.core, pos, key, addFront);
     }
 
     private fleeFromPOI(pos: RoomPosition, range: number) {
-        return _.last(LayoutPath.findFleePathLayout(pos, this.output.POI, range, this.layoutCost).path);
+        return _.last(LayoutPath.findFleePathLayout(pos, this.data.POI, range, this.layoutCost).path);
     }
 
     private initPointsOfInterest() {
@@ -255,12 +246,12 @@ export class RoomPlanner {
         if (!mem) { return; }
         if (mem.controllerPos) {
             const pos = roomHelper.deserializeRoomPosition(mem.controllerPos);
-            if (pos) { this.output.POI.push(pos); }
+            if (pos) { this.data.POI.push(pos); }
         }
         if (mem.sourcesPos) {
             for (const s of mem.sourcesPos) {
                 const pos = roomHelper.deserializeRoomPosition(s);
-                if (pos) { this.output.POI.push(pos); }
+                if (pos) { this.data.POI.push(pos); }
             }
         }
     }
@@ -281,9 +272,9 @@ export class RoomPlanner {
 
     private POIPathLength(pos: LightRoomPos) {
         let dist = 0;
-        if (this.output.POI.length > 0) {
+        if (this.data.POI.length > 0) {
             const _pos = new RoomPosition(pos.x, pos.y, this.roomName);
-            for (const p of this.output.POI) {
+            for (const p of this.data.POI) {
                 const ret = LayoutPath.findByPathLayout(_pos, p);
                 if (ret.incomplete) {
                     dist += 999;
@@ -303,13 +294,23 @@ export class RoomPlanner {
         }
     }
 
+    private planSquareRamparts(pos: RoomPosition, radius: number) {
+        for (let dx = -radius; dx <= radius; dx++) {
+            for (let dy = -radius; dy <= radius; dy++) {
+                if (dx >= -radius + 3 && dy >= -radius + 3 && dx <= radius - 3 && dy <= radius - 3) { continue; }
+                if (Math.abs(dx) == radius && Math.abs(dy) == radius) { continue; }
+                this.addStructureCore({ x: (pos.x + dx), y: (pos.y + dy) }, STRUCTURE_RAMPART);
+            }
+        }
+    }
+
     private planStandardRemote(remoteName: string, center: RoomPosition) {
         const mem = Memory.rooms[remoteName];
         if (!mem) { return; }
         if (!this.layoutCost[remoteName]) { this.layoutCost[remoteName] = LayoutPath.LayoutCostMatrix(remoteName) || new PathFinder.CostMatrix(); }
         if (mem.sourcesPos) {
-            if (!this.output.remotes) this.output.remotes = {};
-            this.output.remotes[remoteName] = {
+            if (!this.data.remotes) this.data.remotes = {};
+            this.data.remotes[remoteName] = {
                 core: {},
                 numSource: mem.sourcesPos.length,
                 isSK: mem.sourcesPos.length > 2,
@@ -322,8 +323,8 @@ export class RoomPlanner {
                 if (pos) {
                     const sourcePath = LayoutPath.findByPathLayout(center, pos, 1, this.layoutCost);
                     const containerPos = _.last(sourcePath.path);
-                    this.addStructure(this.output.remotes[remoteName].core, containerPos, STRUCTURE_CONTAINER);
-                    this.addStructures(this.output.remotes[remoteName].core, sourcePath.path, STRUCTURE_ROAD);
+                    this.addStructure(this.data.remotes[remoteName].core, containerPos, STRUCTURE_CONTAINER);
+                    this.addStructures(this.data.remotes[remoteName].core, sourcePath.path, STRUCTURE_ROAD);
                 }
             }
             if (mem.sourcesPos.length === 1) {
@@ -373,36 +374,5 @@ export class RoomPlanner {
             }
         }
         return loc;
-    }
-
-    public visual() {
-
-        const vis: MultiRoomVisual = {};
-        vis[this.roomName] = new RoomVisual(this.roomName)
-        this.renderPos(this.output.core, vis);
-        if (this.output.mineral) { this.renderPos(this.output.mineral, vis); }
-        if (this.output.remotes && Object.keys(this.output.remotes).length > 0) {
-            _.each(this.output.remotes, x => {
-                vis[x.name] = new RoomVisual(x.name);
-                if (x.rally) { vis[x.name].circle(x.rally, { radius: 0.5, fill: "#FF2121" }) };
-                this.renderPos(x.core, vis)
-            });
-        }
-        if (!this.output.valid) {
-            console.log(`ROOMPLANNER: Invalid layout ${_.flatten(Object.values(this.output.core)).length} structures`)
-        }
-        _.each(Object.values(vis), x => x.connectRoads());
-        if (this.output.rally) {
-            vis[this.roomName].circle(this.output.rally, { radius: 0.5, fill: "#FF2121" });
-        }
-    }
-
-    private renderPos(layout: RoomStructurePositions, visual: MultiRoomVisual) {
-        for (const _key in layout) {
-            const key = _key as BuildableStructureConstant;
-            for (const p of layout[key]!) {
-                visual[p.roomName].structure(p.x, p.y, key);
-            }
-        }
     }
 };

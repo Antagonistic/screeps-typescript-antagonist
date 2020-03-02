@@ -1,4 +1,3 @@
-
 // import "./Profiler/typings"
 
 // import { ActionTarget } from 'config/config';
@@ -328,5 +327,35 @@ interface RoomASCIIData {
   name: string;
   map: string;
 }
+
+interface RoomPlannerLayout {
+  valid: boolean;
+  core: RoomStructurePositions;
+  remotes?: { [key: string]: RemotePlan };
+  mineral?: RoomStructurePositions;
+  POI: RoomPosition[];
+  rally?: RoomPosition;
+  memory: RoomMemory;
+  layoutTime: number;
+  class: import('./config/Constants').RoomClass;
+}
+
+interface RemotePlan {
+  core: RoomStructurePositions;
+  isSK: boolean;
+  numSource: number;
+  rally?: RoomPosition;
+  score: number;
+  name: string;
+}
+
+interface RoomPlannerLayoutTemplate {
+  anchor: LightRoomPos;
+  absolute: boolean;
+  build: RoomStructurePositionsLight;
+  memory: RoomMemory;
+}
+type SavedLayouts = { [key: string]: RoomPlannerLayout };
+type MultiRoomVisual = { [key: string]: RoomVisual };
 
 declare const __REVISION__: string;

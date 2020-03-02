@@ -122,6 +122,7 @@ export class MarketManager {
                 let choice = "none";
                 let price = 0.0;
                 let mineralAmount = t.term.store[rT as ResourceConstant];
+                if (mineralAmount <= 2000) { continue; }
                 if (!mineralAmount) { continue; }
                 const myO = _.findLast(myorders, x => x.resourceType === rT);
                 if (myO) {

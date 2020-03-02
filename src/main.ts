@@ -33,6 +33,7 @@ import { AutoSnakeLayout } from "rooms/AutoSnakeLayout";
 import { HUD } from "rooms/HUD";
 import { LayoutVisualizer } from "rooms/layoutVisualizer";
 import { Traveler } from "utils/Traveler"
+import { RoomLayout } from 'layout/RoomLayout';
 
 /*if (Config.USE_PROFILER) {
   Profiler.enable();
@@ -122,11 +123,13 @@ export function unwrappedLoop() {
   // Profiler.end("final");
 
 
-  for (const i in Game.rooms) {
-    const room: Room = Game.rooms[i];
-    if (room.memory.visual) {
-      new LayoutVisualizer(room.name).run();
+  for (const i in Memory.rooms) {
+    //const room: Room = Game.rooms[i];
+    const mem: RoomMemory = Memory.rooms[i];
+    if (mem && mem.visual) {
+      // new LayoutVisualizer(room.name).run();
       // new AutoSnakeLayout(room.name).run(true);
+      new RoomLayout(i).visual();
     }
   }
 

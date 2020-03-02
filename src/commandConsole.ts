@@ -321,7 +321,8 @@ export const commandConsole = {
     };
   },
   planRoom(roomName: string, roomClass: RoomClass = RoomClass.SQUARE) {
-    const plan = new RoomPlanner(roomName, roomClass);
-    plan.visual();
+    const plan = new RoomPlanner(roomName, roomClass, true);
+    if (Memory.rooms[roomName]) { Memory.rooms[roomName].visual = true }
+    return plan.data.valid;
   }
 };
