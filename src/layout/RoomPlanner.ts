@@ -405,6 +405,4 @@ export class RoomPlanner {
             }
         }
     }
-
-
 };
