@@ -159,6 +159,12 @@ export class WorldMap implements WorldMap {
         room.memory.center = roomHelper.findClosestPlainTile(new RoomPosition(25, 25, room.name));
       }
     }
+    if (!room.memory.neighbors) {
+      room.memory.neighbors = [];
+      _.each(Object.values(Game.map.describeExits(room.name)), x => {
+        if (x) { room.memory.neighbors?.push(x); }
+      });
+    }
 
     if (room.controller) {
       if (room.controller.my) {

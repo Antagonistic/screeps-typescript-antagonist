@@ -21,8 +21,9 @@ interface RemotePlan {
     core: RoomStructurePositions;
     isSK: boolean;
     numSource: number;
-    rally?: UnserializedRoomPosition;
+    rally?: RoomPosition;
     score: number;
+    name: string;
 }
 
 interface RoomPlannerLayoutTemplate {
@@ -32,7 +33,7 @@ interface RoomPlannerLayoutTemplate {
     memory: RoomMemory;
 }
 
-const remapMemory: string[] = ["supervisor"];
+type MultiRoomVisual = { [key: string]: RoomVisual };
 
 export class RoomPlanner {
     public output: RoomPlannerLayout;
@@ -305,19 +306,21 @@ export class RoomPlanner {
     private planStandardRemote(remoteName: string, center: RoomPosition) {
         const mem = Memory.rooms[remoteName];
         if (!mem) { return; }
+        if (!this.layoutCost[remoteName]) { this.layoutCost[remoteName] = LayoutPath.LayoutCostMatrix(remoteName) || new PathFinder.CostMatrix(); }
         if (mem.sourcesPos) {
             if (!this.output.remotes) this.output.remotes = {};
             this.output.remotes[remoteName] = {
                 core: {},
                 numSource: mem.sourcesPos.length,
                 isSK: mem.sourcesPos.length > 2,
-                score: 0
+                score: 0,
+                name: remoteName
             }
             let score = 0;
             for (const s of mem.sourcesPos) {
                 const pos = roomHelper.deserializeRoomPosition(s);
                 if (pos) {
-                    const sourcePath = LayoutPath.findByPathLayout(center, pos);
+                    const sourcePath = LayoutPath.findByPathLayout(center, pos, 1, this.layoutCost);
                     const containerPos = _.last(sourcePath.path);
                     this.addStructure(this.output.remotes[remoteName].core, containerPos, STRUCTURE_CONTAINER);
                     this.addStructures(this.output.remotes[remoteName].core, sourcePath.path, STRUCTURE_ROAD);
@@ -373,26 +376,32 @@ export class RoomPlanner {
     }
 
     public visual() {
-        const vis = new RoomVisual(this.roomName);
+
+        const vis: MultiRoomVisual = {};
+        vis[this.roomName] = new RoomVisual(this.roomName)
         this.renderPos(this.output.core, vis);
         if (this.output.mineral) { this.renderPos(this.output.mineral, vis); }
         if (this.output.remotes && Object.keys(this.output.remotes).length > 0) {
-            // _.each(this.output.remotes, x => this.renderPos(x.core, vis));
+            _.each(this.output.remotes, x => {
+                vis[x.name] = new RoomVisual(x.name);
+                if (x.rally) { vis[x.name].circle(x.rally, { radius: 0.5, fill: "#FF2121" }) };
+                this.renderPos(x.core, vis)
+            });
         }
         if (!this.output.valid) {
             console.log(`ROOMPLANNER: Invalid layout ${_.flatten(Object.values(this.output.core)).length} structures`)
         }
-        vis.connectRoads();
+        _.each(Object.values(vis), x => x.connectRoads());
         if (this.output.rally) {
-            vis.circle(this.output.rally, { radius: 0.5, fill: "#FF2121" });
+            vis[this.roomName].circle(this.output.rally, { radius: 0.5, fill: "#FF2121" });
         }
     }
 
-    private renderPos(layout: RoomStructurePositions, visual: RoomVisual) {
+    private renderPos(layout: RoomStructurePositions, visual: MultiRoomVisual) {
         for (const _key in layout) {
             const key = _key as BuildableStructureConstant;
             for (const p of layout[key]!) {
-                visual.structure(p.x, p.y, key);
+                visual[p.roomName].structure(p.x, p.y, key);
             }
         }
     }

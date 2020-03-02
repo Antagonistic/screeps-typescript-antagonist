@@ -24,7 +24,7 @@ export class LayoutPath {
 
     public static findByPathLayout(origin: RoomPosition, goal: RoomPosition, range: number = 1, cost?: CostMatrices): PathFinderPath {
         const ret = PathFinder.search(origin, { pos: goal, range: range }, {
-            maxRooms: 1, swampCost: SWAMP_COST, plainCost: PLAIN_COST, roomCallback(roomName: string) {
+            maxRooms: 3, swampCost: SWAMP_COST, plainCost: PLAIN_COST, roomCallback(roomName: string) {
                 if (cost && cost[roomName]) { return cost[roomName] } else return LayoutPath.LayoutCostMatrix(roomName);
             }
         });

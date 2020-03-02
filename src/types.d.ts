@@ -99,7 +99,6 @@ interface RoomMemory {
   homelevel?: number;
   spawns?: string[];
   remote?: string[];
-  neighbors?: string[];
   layout?: LayoutMemory[];
   lastSeen?: Number;
   nextScan?: Number;
@@ -147,12 +146,14 @@ interface RoomMemory {
   sourcesPos?: UnserializedRoomPosition[] | null;
   controllerPos?: UnserializedRoomPosition | null;
   mineralInfo?: MineralInfo | null;
+  neighbors?: string[];
   center?: UnserializedRoomPosition;
   queueReaction?: LabReaction[];
   energyState?: import("./config/Constants").EnergyState;
   sLink?: Id<StructureLink>;
   cLink?: Id<StructureLink>;
   links?: Id<StructureLink>[];
+
 }
 
 type RoomStructurePositions = { [key in StructureConstant]?: UnserializedRoomPosition[] };
