@@ -15,7 +15,7 @@ export class RoomLayout {
 
     protected getEmpty(): RoomPlannerLayout {
         return {
-            valid: true,
+            valid: false,
             core: {},
             POI: [],
             memory: {},
@@ -44,6 +44,53 @@ export class RoomLayout {
             data[this.roomName] = this.data;
             RawMemory.segments[segment] = JSON.stringify(data);
             console.log(`ROOMPLANNER: ${this.roomName} layout saved`);
+        }
+    }
+
+    public applyLayout() {
+        let RCL = 1;
+        if (!this.data.valid) {
+            console.log(`ROOMPLANNER: ${this.roomName} applying invalid layout!`);
+        }
+        const room = Game.rooms[this.roomName];
+        const mem = Memory.rooms[this.roomName];
+        if (room && room.controller && room.controller.my) {
+            RCL = room.controller.level || 1;
+        }
+        const mineralActive = RCL > 6;
+        const remotes = !mem.noRemote;
+
+        mem.structures = {};
+
+        this.applyRoomStructurePos(mem.structures, this.data.core, RCL);
+
+        if (mineralActive && this.data.mineral) {
+            this.applyRoomStructurePos(mem.structures, this.data.mineral, RCL);
+        }
+        if (remotes && this.data.remotes && RCL >= 4) {
+            const remotes = Object.values(this.data.remotes);
+            if (remotes.length > 0) {
+                for (const r of remotes) {
+                    this.applyRoomStructurePos(mem.structures, r.core, RCL);
+                }
+            }
+        }
+    }
+
+    protected applyRoomStructurePos(target: RoomStructurePositions, source: RoomStructurePositions, RCL: number) {
+        for (const _key in source) {
+            const key = _key as BuildableStructureConstant;
+            const present = target[key]?.length || 0;
+            const max = CONTROLLER_STRUCTURES[key][RCL] - present;
+            const list = source[key];
+            if (list) {
+                if (target[key]) {
+                    _.take(list, max).forEach(x => target[key]!.push(x));
+                }
+                else {
+                    target[key] = _.take(list, max);
+                }
+            }
         }
     }
 

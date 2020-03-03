@@ -31,6 +31,15 @@ export class LayoutPath {
         return ret;
     }
 
+    public static findByPathLayoutExclusive(origin: RoomPosition, goal: RoomPosition, range: number = 1, cost?: CostMatrices): PathFinderPath {
+        const ret = PathFinder.search(origin, { pos: goal, range: range }, {
+            maxRooms: 3, swampCost: 12, plainCost: 12, roomCallback(roomName: string) {
+                if (cost && cost[roomName]) { return cost[roomName] } else return LayoutPath.LayoutCostMatrix(roomName);
+            }
+        });
+        return ret;
+    }
+
     public static LayoutCostMatrix(roomName: string) {
         if (!Memory.rooms[roomName]) {
             return false;
@@ -99,6 +108,33 @@ export class LayoutPath {
         return this.getDistanceTransform(roomName, distanceMatrix);
     }
 
+    public static getLayoutDistanceTransformCart(roomName: string): CostMatrix {
+        const distanceCartMatrix = new PathFinder.CostMatrix();
+        const terrain = Game.map.getRoomTerrain(roomName);
+        for (let y = 0; y < 50; ++y) {
+            for (let x = 0; x < 50; ++x) {
+                if (terrain.get(x, y) === TERRAIN_MASK_WALL) {
+                    distanceCartMatrix.set(x, y, 0);
+                }
+                else {
+                    distanceCartMatrix.set(x, y,
+                        Math.min(distanceCartMatrix.get(x, y - 1),
+                            distanceCartMatrix.get(x - 1, y)) + 1);
+                }
+            }
+        }
+        for (let y = 49; y >= 0; --y) {
+            for (let x = 49; x >= 0; --x) {
+                const value = Math.min(distanceCartMatrix.get(x, y),
+                    distanceCartMatrix.get(x, y + 1) + 1,
+                    distanceCartMatrix.get(x + 1, y) + 1);
+                distanceCartMatrix.set(x, y, value);
+                // this.visual.circle(x, y, { radius: value / 25 });
+            }
+        }
+        return distanceCartMatrix;
+    }
+
     public static getDistanceTransform(roomName: string, distanceMatrix?: CostMatrix): CostMatrix {
         if (!distanceMatrix) {
             distanceMatrix = new PathFinder.CostMatrix();
@@ -126,4 +162,61 @@ export class LayoutPath {
         }
         return distanceMatrix;
     }
+
+    public static getWalkableGridMatrix(roomName: string, distance?: CostMatrix): CostMatrix {
+        const gridWalkableMatrix = new PathFinder.CostMatrix();
+        if (!distance) {
+            distance = this.getLayoutDistanceTransformCart(roomName);
+        }
+        const terrain = Game.map.getRoomTerrain(roomName);
+        for (let y = 0; y < 50; ++y) {
+            for (let x = 0; x < 50; ++x) {
+                if ((x + y) % 2 === 1) { continue; }
+                if (terrain.get(x, y) !== TERRAIN_MASK_WALL) {
+                    const dist = Math.max(7 - distance.get(x, y) * 2, 1);
+                    gridWalkableMatrix.set(x, y, dist);
+                } else {
+                    gridWalkableMatrix.set(x, y, 0);
+                }
+            }
+        }
+
+        return gridWalkableMatrix;
+    }
+
+    public static blockOffMatrix(roomName: string) {
+        const matrix = new PathFinder.CostMatrix();
+
+        const mem = Memory.rooms[roomName];
+        if (!mem) { return matrix; }
+        if (mem.controllerPos) {
+            this.blockOffPosition(matrix, mem.controllerPos, 3, 3);
+            this.blockOffPosition(matrix, mem.controllerPos, 2, 5);
+            this.blockOffPosition(matrix, mem.controllerPos, 1, 7);
+        }
+        if (mem.sourcesPos && mem.sourcesPos.length > 0) {
+            for (const s of mem.sourcesPos) {
+                this.blockOffPosition(matrix, s, 2, 3);
+            }
+        }
+
+        return matrix;
+    }
+
+    public static combine(cost1: CostMatrix, cost2: CostMatrix) {
+        const ret = new PathFinder.CostMatrix();
+        for (let y = 0; y < 50; ++y) {
+            for (let x = 0; x < 50; ++x) {
+                const v1 = cost1.get(x, y);
+                const v2 = cost2.get(x, y);
+                if (v1 > 0) {
+                    ret.set(x, y, Math.max(v1, v2));
+                } else {
+                    ret.set(x, y, 0);
+                }
+            }
+        }
+        return ret;
+    }
+
 }

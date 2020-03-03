@@ -127,6 +127,7 @@ export function unwrappedLoop() {
     //const room: Room = Game.rooms[i];
     const mem: RoomMemory = Memory.rooms[i];
     if (mem && mem.visual) {
+      if (mem.visual > Game.time) { delete mem.visual; }
       // new LayoutVisualizer(room.name).run();
       // new AutoSnakeLayout(room.name).run(true);
       new RoomLayout(i).visual();

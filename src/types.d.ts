@@ -101,7 +101,7 @@ interface RoomMemory {
   layout?: LayoutMemory[];
   lastSeen?: Number;
   nextScan?: Number;
-  visual?: boolean;
+  visual?: number;
   dest?: UnserializedRoomPosition[];
   hostile?: boolean;
   type?: string;
@@ -155,8 +155,8 @@ interface RoomMemory {
 
 }
 
-type RoomStructurePositions = { [key in StructureConstant]?: UnserializedRoomPosition[] };
-type RoomStructurePositionsLight = { [key in StructureConstant]?: LightRoomPos[] };
+type RoomStructurePositions = { [key in BuildableStructureConstant]?: UnserializedRoomPosition[] };
+type RoomStructurePositionsLight = { [key in BuildableStructureConstant]?: LightRoomPos[] };
 type CostMatrices = { [key: string]: CostMatrix };
 
 interface LayoutMemory {

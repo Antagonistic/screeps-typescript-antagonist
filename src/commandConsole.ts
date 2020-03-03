@@ -269,7 +269,7 @@ export const commandConsole = {
     if (!Memory.rooms[roomName]) {
       return "no room";
     }
-    Memory.rooms[roomName].visual = true;
+    Memory.rooms[roomName].visual = Game.time + 20;
     const room = getRoom(roomName);
     if (room) { layoutManager.applyLayouts(room); }
     // room.memory.visual = true;
@@ -322,7 +322,22 @@ export const commandConsole = {
   },
   planRoom(roomName: string, roomClass: RoomClass = RoomClass.SQUARE) {
     const plan = new RoomPlanner(roomName, roomClass, true);
-    if (Memory.rooms[roomName]) { Memory.rooms[roomName].visual = true }
+    if (Memory.rooms[roomName]) { Memory.rooms[roomName].visual = Game.time + 20; }
     return plan.data.valid;
+  },
+  layoutAll() {
+    for (const sR in global.emp.spawnRooms) {
+      const room = getRoom(sR);
+      if (room.memory.layout && _.any(room.memory.layout, x => x.name === "sealed")) {
+        // const plan = new RoomPlanner(sR, RoomClass.SQUARE, true);
+        console.log(`CONSOLE: ${room.print} is type ${RoomClass.SQUARE}`);
+      } else if (room.memory.layout && _.any(room.memory.layout, x => x.name === "square")) {
+        // const plan = new RoomPlanner(sR, RoomClass.SQUARE, true);
+        console.log(`CONSOLE: ${room.print} is type ${RoomClass.SQUARE}`);
+      } else if (room.memory.layout && _.any(room.memory.layout, x => x.name === "snake")) {
+        console.log(`CONSOLE: ${room.print} is type ${RoomClass.SNAKE}`);
+      }
+
+    }
   }
 };

@@ -238,8 +238,8 @@ export const roomHelper = {
         return { count: workersNeeded, work: workPerWorker };
     },
 
-    deserializeRoomPosition(roomPosition?: UnserializedRoomPosition | RoomPosition): RoomPosition | undefined {
-        if (!roomPosition) { return undefined; }
+    deserializeRoomPosition(roomPosition?: UnserializedRoomPosition | RoomPosition): RoomPosition {
+        if (!roomPosition) { throw "Empty roomPosition" }
         return new RoomPosition(roomPosition.x, roomPosition.y, roomPosition.roomName);
     },
 

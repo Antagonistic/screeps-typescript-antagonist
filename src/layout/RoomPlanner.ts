@@ -4,6 +4,7 @@ import { roomHelper } from "rooms/roomHelper";
 
 import { squareLayout } from "layout/layouts/squareLayout"
 import { RoomLayout } from "./RoomLayout";
+import { AutoLayout } from "rooms/AutoLayout";
 
 // Experimental full room planning
 // Assume no vision
@@ -38,14 +39,17 @@ export class RoomPlanner extends RoomLayout {
     }
 
     private planRoom() {
+        if (!this.mem) { return; }
         this.initPointsOfInterest();
         this.data.class = this.classType;
+        this.data.valid = true;
         switch (this.classType) {
             case RoomClass.SQUARE: {
                 this.planLayoutSquare();
                 break;
             }
             case RoomClass.SNAKE: {
+                this.planLayoutSnake();
                 break;
             }
             case RoomClass.PRAISE: {
@@ -72,10 +76,90 @@ export class RoomPlanner extends RoomLayout {
         this.data.rally = this.fleeFromPOI(new RoomPosition(bunkerLoc.x, bunkerLoc.y, this.roomName), 7);
     }
 
+    private planLayoutSnake(rampart: boolean = true) {
+        if (!this.mem) {
+            this.data.valid = false;
+            return;
+        }
+        if (!this.mem.controllerPos) {
+            this.data.valid = false;
+            return;
+        }
+        const controlPos = roomHelper.deserializeRoomPosition(this.mem.controllerPos);
+        if (!this.mem.sourcesPos || this.mem.sourcesPos.length == 0) {
+            this.data.valid = false;
+            return;
+        }
+
+        const walkable = LayoutPath.getWalkableGridMatrix(this.roomName);
+        const snakeMatrix = LayoutPath.combine(walkable, LayoutPath.getLayoutDistanceTransformCart(this.roomName));
+        this.layoutCost[this.roomName] = snakeMatrix;
+        let storage: RoomPosition | undefined;
+        if (this.room) {
+            storage = _.head(controlPos.findInRange(FIND_MY_STRUCTURES, 3, { filter: x => x.structureType === STRUCTURE_STORAGE }))?.pos;
+        }
+        if (!storage) { storage = this.getSpotCandidate(controlPos, 3, true); }
+        this.addStructureCore(storage, STRUCTURE_STORAGE);
+
+        let center: RoomPosition = storage;
+        const sortedSources = _.sortBy(roomHelper.deserializeRoomPositions(this.mem.sourcesPos), [(x: Source) => x.pos.getRangeTo(center)]);
+        let spots = [];
+        for (const s of sortedSources) {
+            let containerPos: RoomPosition | undefined;
+            if (this.room) {
+                containerPos = _.head(s.findInRange(FIND_STRUCTURES, 1, { filter: x => x.structureType === STRUCTURE_CONTAINER }))?.pos;
+            }
+            if (!containerPos) containerPos = roomHelper.getContainerPosition(s);
+            this.addStructureCore(containerPos, STRUCTURE_CONTAINER);
+            if (rampart) { this.addStructureCore(containerPos, STRUCTURE_RAMPART); }
+            const path = LayoutPath.findByPathLayoutExclusive(containerPos, center, 1, this.layoutCost);
+            if (center === storage) { center = _.last(path.path); }
+            this.addStructuresCore(path.path, STRUCTURE_ROAD);
+            let _spots = roomHelper.unique(_.flatten(_.map(path.path, x => this.getOpenCardinalPosition(x, s))));
+            _spots = _spots.filter(p => (p.x !== containerPos!.x) || (p.y !== containerPos!.y));
+            spots.push(_spots);
+        }
+        let mix = [];
+        if (this.mem.sourcesPos.length == 2) {
+            mix = roomHelper.unique(_.filter(_.flatten(_.zip(spots[0], spots[1])), x => x instanceof RoomPosition));
+        } else if (this.mem.sourcesPos.length == 1) {
+            mix = spots[0];
+        } else {
+            this.data.valid = false;
+            return;
+        }
+        mix = mix.filter(p => (p.x !== storage!.x) || (p.y !== storage!.y));
+        const terminal = mix.pop();
+        const tower1 = mix.shift();
+        const spawn1 = mix.shift();
+        const spawn2 = mix.pop();
+        const spawn3 = mix.shift();
+        const tower2 = mix.pop();
+        const tower3 = mix.shift();
+        if (!terminal || !spawn1 || !spawn2 || !spawn3 || !tower1 || !tower2 || !tower3) {
+            this.data.valid = false;
+            return;
+        }
+        this.addStructureCore(terminal, STRUCTURE_TERMINAL);
+        this.addStructureCore(tower1, STRUCTURE_TOWER);
+        this.addStructureCore(tower2, STRUCTURE_TOWER);
+        this.addStructureCore(tower3, STRUCTURE_TOWER);
+        this.addStructureCore(spawn1, STRUCTURE_SPAWN);
+        this.addStructureCore(spawn2, STRUCTURE_SPAWN);
+        this.addStructureCore(spawn3, STRUCTURE_SPAWN);
+        let count = 0;
+        for (let i = 0; i < mix.length; i++) {
+            if (count <= 60) {
+                this.addStructureCore(mix[i], STRUCTURE_EXTENSION);
+            }
+            count++;
+        }
+    }
+
     private applyLayoutTemplate(template: RoomPlannerLayoutTemplate, pos: LightRoomPos) {
         const dP = template.absolute ? { x: 0, y: 0 } : { x: pos.x - template.anchor.x, y: pos.y - template.anchor.y };
         for (const _key in template.build) {
-            const key = _key as StructureConstant;
+            const key = _key as BuildableStructureConstant;
             if (!this.data.core[key]) { this.data.core[key] = []; }
             for (const p of template.build[key]!) {
                 const _x = (p.x + dP.x);
@@ -184,7 +268,7 @@ export class RoomPlanner extends RoomLayout {
         }
     }
 
-    private addStructure(layout: RoomStructurePositions, pos: RoomPosition | UnserializedRoomPosition | LightRoomPos, key: StructureConstant, addFront: boolean = false) {
+    private addStructure(layout: RoomStructurePositions, pos: RoomPosition | UnserializedRoomPosition | LightRoomPos, key: BuildableStructureConstant, addFront: boolean = false) {
         const roomName = (pos as UnserializedRoomPosition).roomName || this.roomName;
         const _pos = new RoomPosition(pos.x, pos.y, roomName);
         if (Game.map.getRoomTerrain(roomName).get(_pos.x, _pos.y) === TERRAIN_MASK_WALL) {
@@ -219,11 +303,11 @@ export class RoomPlanner extends RoomLayout {
             this.layoutCost[roomName].set(_pos.x, _pos.y, 1);
         }
     }
-    private addStructureCore(pos: RoomPosition | UnserializedRoomPosition | LightRoomPos, key: StructureConstant, addFront: boolean = false) {
+    private addStructureCore(pos: RoomPosition | UnserializedRoomPosition | LightRoomPos, key: BuildableStructureConstant, addFront: boolean = false) {
         this.addStructure(this.data.core, pos, key, addFront);
     }
 
-    private addStructures(layout: RoomStructurePositions, pos: Array<RoomPosition | UnserializedRoomPosition | LightRoomPos>, key: StructureConstant, addFront: boolean = false) {
+    private addStructures(layout: RoomStructurePositions, pos: Array<RoomPosition | UnserializedRoomPosition | LightRoomPos>, key: BuildableStructureConstant, addFront: boolean = false) {
         for (const p of pos) {
             const roomName = (p as UnserializedRoomPosition).roomName || this.roomName;
             if (key === STRUCTURE_ROAD && this.layoutCost[roomName].get(p.x, p.y) === 1) {
@@ -233,12 +317,37 @@ export class RoomPlanner extends RoomLayout {
         }
     }
 
-    private addStructuresCore(pos: Array<RoomPosition | UnserializedRoomPosition | LightRoomPos>, key: StructureConstant, addFront: boolean = false) {
+    private addStructuresCore(pos: Array<RoomPosition | UnserializedRoomPosition | LightRoomPos>, key: BuildableStructureConstant, addFront: boolean = false) {
         this.addStructures(this.data.core, pos, key, addFront);
     }
 
     private fleeFromPOI(pos: RoomPosition, range: number) {
         return _.last(LayoutPath.findFleePathLayout(pos, this.data.POI, range, this.layoutCost).path);
+    }
+
+    private getSpotCandidate(pos: RoomPosition | UnserializedRoomPosition, range: number, grid: boolean = false): RoomPosition {
+        const terrain = Game.map.getRoomTerrain(pos.roomName);
+        const candidates: RoomPosition[] = [];
+        for (let dx = -range; dx <= range; dx++) {
+            for (let dy = -range; dy <= range; dy++) {
+                const x = pos.x + dx;
+                const y = pos.y + dy;
+                if (Math.abs(dx) !== range && Math.abs(dy) !== range) { continue; }
+                if (x < 2 || x > 47 || y < 2 || y > 47) { continue; }
+                if (grid && ((x + y) % 2) == 0) { continue; }
+                if (terrain.get(x, y) === TERRAIN_MASK_WALL) { continue; }
+                candidates.push(new RoomPosition(x, y, pos.roomName));
+            }
+        }
+        if (candidates.length == 0) {
+            if (range > 1) {
+                return this.getSpotCandidate(pos, range - 1, grid);
+            } else {
+                throw `ROOMPLANNER: SNAKE: ${this.roomName} could not find ANY spot for ${pos}`;
+            }
+        }
+        const ret = _.max(candidates, (x: RoomPosition) => x.openAdjacentSpots(true, true).length);
+        return ret;
     }
 
     private initPointsOfInterest() {
@@ -292,6 +401,21 @@ export class RoomPlanner extends RoomLayout {
                 this.planStandardRemote(n, center);
             }
         }
+    }
+
+    private getOpenCardinalPosition(pos: RoomPosition, center?: RoomPosition): RoomPosition[] {
+        const positions = [];
+        for (let i = 1; i <= 8; i += 2) {
+            const testPosition = pos.getPositionAtDirection(i);
+            if (!testPosition) { continue; }
+            if (!testPosition.isNearExit(0) && _.head(testPosition.lookFor(LOOK_TERRAIN)) !== "wall") {
+                positions.push(testPosition);
+            }
+        }
+        if (center) {
+            return _.sortBy(positions, x => x.getRangeTo(center));
+        }
+        return positions;
     }
 
     private planSquareRamparts(pos: RoomPosition, radius: number) {

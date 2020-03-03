@@ -198,9 +198,16 @@ export const buildHelper = {
         const structures = room.find(FIND_STRUCTURES);
         if (!room.memory.structures) { return candidates; }
         for (const s of structures) {
+            if (s.structureType as BuildableStructureConstant) {
+                ;
+            }
             if (s.structureType === STRUCTURE_CONTROLLER) { continue; }
             if (s.structureType === STRUCTURE_RAMPART) { continue; }
             if (s.structureType === STRUCTURE_STORAGE) { continue; }
+            if (s.structureType === STRUCTURE_KEEPER_LAIR) { continue; }
+            if (s.structureType === STRUCTURE_POWER_BANK) { continue; }
+            if (s.structureType === STRUCTURE_PORTAL) { continue; }
+            if (s.structureType === STRUCTURE_INVADER_CORE) { continue; }
             const structList = room.memory.structures[s.structureType] || undefined;
             if ((!structList || !_.any(structList, o => o.x === s.pos.x && o.y === s.pos.y && o.roomName === s.pos.roomName))) {
                 if (s.structureType === STRUCTURE_ROAD && room.memory.secondaryRoads) {
