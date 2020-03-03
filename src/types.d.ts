@@ -152,7 +152,7 @@ interface RoomMemory {
   sLink?: Id<StructureLink>;
   cLink?: Id<StructureLink>;
   links?: Id<StructureLink>[];
-
+  owner?: string;
 }
 
 type RoomStructurePositions = { [key in BuildableStructureConstant]?: UnserializedRoomPosition[] };

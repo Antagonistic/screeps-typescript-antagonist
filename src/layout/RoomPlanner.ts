@@ -129,6 +129,10 @@ export class RoomPlanner extends RoomLayout {
             return;
         }
         mix = mix.filter(p => (p.x !== storage!.x) || (p.y !== storage!.y));
+        if (mix.length < 40) {
+            this.data.valid = false;
+            return;
+        }
         const terminal = mix.pop();
         const tower1 = mix.shift();
         const spawn1 = mix.shift();

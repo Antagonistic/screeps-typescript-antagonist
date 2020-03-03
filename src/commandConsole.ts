@@ -19,6 +19,7 @@ import { defenceHelper } from "rooms/defenceHelper";
 import { layoutManager } from "rooms/layoutManager";
 import { RoomPlanner } from "layout/RoomPlanner";
 import { RoomClass } from "config/Constants";
+import { Traveler } from "utils/Traveler";
 
 
 const ROOM_SIZE = 50;
@@ -339,5 +340,23 @@ export const commandConsole = {
       }
 
     }
+  },
+  scoreRooms(roomName: string = defaultRoom) {
+    const candidate = [];
+    for (const r in Memory.rooms) {
+      const mem = Memory.rooms[r];
+      if (mem.controllerPos && !mem.owner) {
+        if (mem.sourcesPos && mem.sourcesPos.length == 2) {
+          const room = Game.rooms[r];
+          if (room && room.controller && room.controller.my) { continue; }
+          const _dist = Traveler.findRoute(roomName, r);
+          const dist = _dist ? Object.keys(_dist).length : 99;
+          if (dist && dist < 8) {
+            candidate.push({ name: r, dist: dist });
+          }
+        }
+      }
+    }
+    return _.map(_.sortBy(candidate, x => x.dist), x => x.name);
   }
 };

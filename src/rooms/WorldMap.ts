@@ -140,6 +140,11 @@ export class WorldMap implements WorldMap {
     if (room.memory.controllerPos === undefined) {
       if (room.controller) {
         room.memory.controllerPos = room.controller.pos;
+        if (room.controller.owner) {
+          room.memory.owner = room.controller.owner.username;
+        } else {
+          delete room.memory.owner;
+        }
       } else {
         room.memory.controllerPos = null;
       }
