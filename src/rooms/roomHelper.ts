@@ -3,7 +3,6 @@ import { AVOID_COST, PLAIN_COST, ROAD_COST, SWAMP_COST } from "config/config";
 import { BodyFactory } from "creeps/BodyFactory";
 import { LayoutPath } from "creeps/Movement";
 import { Traveler } from "utils/Traveler";
-import { layoutManager } from "./layoutManager";
 
 export const roomHelper = {
     getRally(roomName: string): RoomPosition {

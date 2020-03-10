@@ -28,11 +28,8 @@ import { commandConsole } from "./commandConsole";
 
 // var Traveler = require('Traveler');
 
-import { AutoLayout } from "rooms/AutoLayout";
-import { AutoSnakeLayout } from "rooms/AutoSnakeLayout";
 import { HUD } from "rooms/HUD";
-import { LayoutVisualizer } from "rooms/layoutVisualizer";
-import { Traveler } from "utils/Traveler"
+import { RoomPlanner } from 'layout/RoomPlanner';
 import { RoomLayout } from 'layout/RoomLayout';
 
 /*if (Config.USE_PROFILER) {
@@ -127,7 +124,7 @@ export function unwrappedLoop() {
     //const room: Room = Game.rooms[i];
     const mem: RoomMemory = Memory.rooms[i];
     if (mem && mem.visual) {
-      if (mem.visual > Game.time) { delete mem.visual; }
+      if (mem.visual < Game.time) { delete mem.visual; }
       // new LayoutVisualizer(room.name).run();
       // new AutoSnakeLayout(room.name).run(true);
       new RoomLayout(i).visual();

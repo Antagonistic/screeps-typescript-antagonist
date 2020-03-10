@@ -1,5 +1,4 @@
 import { defenceHelper } from "./defenceHelper";
-import { layoutManager } from "./layoutManager";
 import { roadHelper } from "./roadHelper";
 import { roomHelper } from "./roomHelper";
 
@@ -44,7 +43,8 @@ export const buildHelper = {
     runBuildStructure(room: Room, buildOne: boolean = true, road: boolean = false, wall: boolean = false, lowPower: boolean = false) {
         let count = 0;
         if (!room.memory.layoutTime || room.memory.layoutTime < Game.time) {
-            layoutManager.applyLayouts(room);
+            // layoutManager.applyLayouts(room);
+            // new RoomPlanner(room.name, room.memory.roomClass).applyLayout();
         }
         for (const key in room.memory.structures) {
             const _key = key as BuildableStructureConstant;
@@ -111,7 +111,7 @@ export const buildHelper = {
                 }
             }
         }
-        return false;
+        return this.runIterativeDismantle(room);
     },
 
     runWalkRoad(room: Room, pos: UnserializedRoomPosition[]) {
@@ -156,7 +156,7 @@ export const buildHelper = {
             if (this.runWalkRoad(room, room.memory.secondaryRoads)) {
                 return true;
             }
-            console.log('BUILD: No secondaries built');
+            // console.log('BUILD: No secondaries built');
         }
         if (room.memory.structures && room.memory.structures.road && room.memory.structures.road.length > 0) {
             if (this.runWalkRoad(room, room.memory.structures.road)) {
@@ -202,12 +202,13 @@ export const buildHelper = {
                 ;
             }
             if (s.structureType === STRUCTURE_CONTROLLER) { continue; }
-            if (s.structureType === STRUCTURE_RAMPART) { continue; }
-            if (s.structureType === STRUCTURE_STORAGE) { continue; }
+            // if (s.structureType === STRUCTURE_RAMPART) { continue; }
+            // if (s.structureType === STRUCTURE_STORAGE) { continue; }
             if (s.structureType === STRUCTURE_KEEPER_LAIR) { continue; }
             if (s.structureType === STRUCTURE_POWER_BANK) { continue; }
             if (s.structureType === STRUCTURE_PORTAL) { continue; }
             if (s.structureType === STRUCTURE_INVADER_CORE) { continue; }
+            if (s.structureType === STRUCTURE_EXTRACTOR) { continue; }
             const structList = room.memory.structures[s.structureType] || undefined;
             if ((!structList || !_.any(structList, o => o.x === s.pos.x && o.y === s.pos.y && o.roomName === s.pos.roomName))) {
                 if (s.structureType === STRUCTURE_ROAD && room.memory.secondaryRoads) {
@@ -222,6 +223,41 @@ export const buildHelper = {
             }
         }
         return candidates;
+    },
+
+    runIterativeDismantle(room: Room) {
+        const candidates = this.dismantleCandidates(room);
+        if (candidates.length > 0) {
+            for (const candidate of candidates) {
+                if (candidate.structureType === STRUCTURE_SPAWN) {
+                    if (room.find(FIND_MY_SPAWNS).length < 2) {
+                        continue; // Don't dismantle last spawn
+                    }
+                }
+                if (candidate.structureType === STRUCTURE_LINK) {
+                    const flags = room.find(FIND_FLAGS);
+                    if (flags && flags.length > 0) {
+                        for (const f of flags) {
+                            if ((f.memory as any).link) { delete (f.memory as any).link; } // clear link memory
+                        }
+                    }
+                }
+                if (candidate.structureType === STRUCTURE_STORAGE) {
+                    const storage = candidate as StructureStorage;
+                    if (!room.terminal) { continue; }
+                    if (storage.store.getUsedCapacity() > 100000) {
+                        continue;
+                    }
+                }
+                if (candidate.structureType === STRUCTURE_TERMINAL) {
+                    if (!room.storage) { continue; }
+                }
+                console.log(`BUILD: Dismantling ${candidate.structureType} at ${candidate.pos.print}`);
+                candidate.destroy();
+                return true;
+            }
+        }
+        return false;
     }
 
 }

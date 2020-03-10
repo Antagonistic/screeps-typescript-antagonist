@@ -21,6 +21,7 @@ export class MiningOperation extends Operation {
         this.logistics = this.spawnRoom.logistics;
         this.logistics.registerOperation(this);
         this.active = this.getActive();
+        Memory.rooms[flag.pos.roomName].active = this.active;
     }
 
     public getActive() {

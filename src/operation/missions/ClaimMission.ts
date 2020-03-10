@@ -60,9 +60,14 @@ export class ClaimMission extends Mission {
                                 creepActions.moveTo(creep, this.controller);
                             }
                         } else {
-                            const ret = buildHelper.buildIfNotExist(this.operation.flag.pos, STRUCTURE_SPAWN);
-                            if (ret === OK) {
-                                creep.suicide();
+                            // const ret = buildHelper.buildIfNotExist(this.operation.flag.pos, STRUCTURE_SPAWN);
+                            if (this.room.memory.structures) {
+                                if (this.room.memory.structures.spawn) {
+                                    const ret = buildHelper.buildIfNotExist(roomHelper.deserializeRoomPosition(_.head(this.room.memory.structures.spawn)), STRUCTURE_SPAWN);
+                                    if (ret === OK) {
+                                        creep.suicide();
+                                    }
+                                }
                             }
                         }
                     }
@@ -96,10 +101,12 @@ export class ClaimMission extends Mission {
                         continue;
                     }
                     case STRUCTURE_STORAGE: {
-                        continue;
+                        if (s.store.getUsedCapacity() > 10000)
+                            continue;
                     }
                     case STRUCTURE_TERMINAL: {
-                        continue;
+                        if (s.store.getUsedCapacity() > 10000)
+                            continue;
                     }
                     default: {
                         if (s instanceof OwnedStructure) {

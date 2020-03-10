@@ -42,4 +42,5 @@ export enum RoomClass {
 
 export const BUNKER_VALID_MAX: number = 20;
 export const PLAN_SEGMENT: number = 1;
+export const MAX_PLAN_SEGMENTS: number = 4;
 export const BUNKER_RADIUS: number = 5;

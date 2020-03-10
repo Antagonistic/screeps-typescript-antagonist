@@ -1,4 +1,6 @@
-import { PLAN_SEGMENT, RoomClass } from "config/Constants";
+import { PLAN_SEGMENT, RoomClass, MAX_PLAN_SEGMENTS } from "config/Constants";
+import { roomHelper } from "rooms/roomHelper";
+import { ifError } from "assert";
 
 export class RoomLayout {
     public data: RoomPlannerLayout;
@@ -9,8 +11,12 @@ export class RoomLayout {
         if (empty) {
             this.data = this.getEmpty();
         } else {
-            this.data = this.loadDataFromSegment(PLAN_SEGMENT);
+            this.data = this.loadDataFromSegment(this.getSegment());
         }
+    }
+
+    protected getSegment() {
+        return PLAN_SEGMENT + (roomHelper.getRoomUUID(this.roomName) % MAX_PLAN_SEGMENTS);
     }
 
     protected getEmpty(): RoomPlannerLayout {
@@ -39,7 +45,7 @@ export class RoomLayout {
                 data = JSON.parse(_data);
             }
             catch {
-                console.log(`ROOMPLANNER: ${this.roomName} uninitialized segment`);
+                console.log(`ROOMPLANNER: ${this.roomName} uninitialized segment ${segment}`);
             }
             data[this.roomName] = this.data;
             RawMemory.segments[segment] = JSON.stringify(data);
@@ -71,7 +77,10 @@ export class RoomLayout {
             const remotes = Object.values(this.data.remotes);
             if (remotes.length > 0) {
                 for (const r of remotes) {
-                    this.applyRoomStructurePos(mem.structures, r.core, RCL);
+                    const rmem = Memory.rooms[r.name];
+                    if (rmem && rmem.active) {
+                        this.applyRoomStructurePos(mem.structures, r.core, RCL);
+                    }
                 }
             }
         }

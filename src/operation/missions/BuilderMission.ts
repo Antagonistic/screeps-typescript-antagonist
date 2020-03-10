@@ -116,6 +116,7 @@ export class BuilderMission extends Mission {
                     } else {
                         this.memory.nextBuildSite = Game.time + wait * 5;
                     }
+                    buildHelper.runIterativeDismantle(this.room);
                 }
             }
         }

@@ -16,7 +16,6 @@ import { MarketManager } from "market/MarketManager";
 import { LogisticsManager } from "operation/LogisticsManager";
 import { buildHelper } from "rooms/buildHelper";
 import { defenceHelper } from "rooms/defenceHelper";
-import { layoutManager } from "rooms/layoutManager";
 import { RoomPlanner } from "layout/RoomPlanner";
 import { RoomClass } from "config/Constants";
 import { Traveler } from "utils/Traveler";
@@ -113,6 +112,7 @@ export const commandConsole = {
     const room = getRoom(roomName);
     if (room) {
       if (runOnce) {
+        buildHelper.runIterativeDismantle(room);
         buildHelper.runIterativeBuild(room, getSpawnRoom(roomName));
       }
       else {
@@ -125,10 +125,6 @@ export const commandConsole = {
     const spawnRoom = getSpawnRoom(roomName);
     if (room && global.emp.spawnRooms[roomName]) {
       // return getLogistics(roomName).buildRoads();
-      if (secondary) {
-        layoutManager.applySecondaryRoads(room, spawnRoom.logistics.getDestinations(), room.storage?.pos || _.head(room.find(FIND_MY_SPAWNS)).pos);
-        console.log('BUILD: Secondaries: ' + room.memory.secondaryRoads?.length || 0);
-      }
       return buildHelper.runIterativeBuildRoad(room, getSpawnRoom(roomName), secondary);
     } else {
       console.log('Could not find logistics for ' + roomName);
@@ -162,16 +158,6 @@ export const commandConsole = {
       return 1;
     }
   },
-  visual(roomName: string = defaultRoom, withCost: boolean = false) {
-    if (global.emp.spawnRooms[roomName]) {
-      if (withCost) { this.showCost(roomName); }
-      return getLogistics(roomName).getRoads();
-    } else {
-      console.log('Could not find logistics for ' + roomName);
-      console.log('Valid options: ' + Object.keys(global.emp.spawnRooms));
-    }
-    return 0;
-  },
   sellEnergy(roomName: string = defaultRoom, amount: number = -1) {
     if (amount === -1) {
       const room = Game.rooms[roomName];
@@ -182,9 +168,6 @@ export const commandConsole = {
       amount = room.terminal!.store.energy * 0.8;
     }
     return Game.market.createOrder({ type: ORDER_SELL, resourceType: RESOURCE_ENERGY, price: 0.003, totalAmount: amount, roomName });
-  },
-  layoutCoord(roomName: string, x: number, y: number) {
-    return JSON.stringify(layoutManager.layoutCoord(getRoom(roomName), x, y));
   },
   marketBuyEnergy(roomName: string) {
     const logistic = getLogistics(roomName);
@@ -270,9 +253,9 @@ export const commandConsole = {
     if (!Memory.rooms[roomName]) {
       return "no room";
     }
-    Memory.rooms[roomName].visual = Game.time + 20;
+    Memory.rooms[roomName].visual = Game.time + 50;
     const room = getRoom(roomName);
-    if (room) { layoutManager.applyLayouts(room); }
+    // if (room) { layoutManager.applyLayouts(room); }
     // room.memory.visual = true;
     return "success";
   },
@@ -330,14 +313,18 @@ export const commandConsole = {
     for (const sR in global.emp.spawnRooms) {
       const room = getRoom(sR);
       if (room.memory.layout && _.any(room.memory.layout, x => x.name === "sealed")) {
-        // const plan = new RoomPlanner(sR, RoomClass.SQUARE, true);
+        const plan = new RoomPlanner(sR, RoomClass.SQUARE, true);
+        plan.applyLayout();
         console.log(`CONSOLE: ${room.print} is type ${RoomClass.SQUARE}`);
         room.memory.roomClass = RoomClass.SQUARE;
       } else if (room.memory.layout && _.any(room.memory.layout, x => x.name === "square")) {
-        // const plan = new RoomPlanner(sR, RoomClass.SQUARE, true);
+        const plan = new RoomPlanner(sR, RoomClass.SQUARE, true);
+        plan.applyLayout();
         console.log(`CONSOLE: ${room.print} is type ${RoomClass.SQUARE}`);
         room.memory.roomClass = RoomClass.SQUARE;
       } else if (room.memory.layout && _.any(room.memory.layout, x => x.name === "snake")) {
+        const plan = new RoomPlanner(sR, RoomClass.SNAKE, true);
+        plan.applyLayout();
         console.log(`CONSOLE: ${room.print} is type ${RoomClass.SNAKE}`);
         room.memory.roomClass = RoomClass.SNAKE;
       }

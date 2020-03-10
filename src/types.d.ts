@@ -122,15 +122,6 @@ interface RoomMemory {
   controllerBattery?: Id<StructureContainer | StructureStorage | StructureLink>;
   avoid?: number;
 
-  // snake layout variables
-  snakeInit?: boolean;
-  snakeRoad1?: UnserializedRoomPosition[];
-  snakeRoad2?: UnserializedRoomPosition[];
-  snakeExt1?: UnserializedRoomPosition[];
-  snakeExt2?: UnserializedRoomPosition[];
-  snakeStorage?: UnserializedRoomPosition;
-  snakeSpawn?: UnserializedRoomPosition;
-
   structures?: RoomStructurePositions;
   secondaryRoads?: UnserializedRoomPosition[];
   layoutTime?: number;
@@ -154,6 +145,7 @@ interface RoomMemory {
   cLink?: Id<StructureLink>;
   links?: Id<StructureLink>[];
   owner?: string;
+  active?: boolean;
 }
 
 type RoomStructurePositions = { [key in BuildableStructureConstant]?: UnserializedRoomPosition[] };

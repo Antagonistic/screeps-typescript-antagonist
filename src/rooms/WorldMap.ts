@@ -2,8 +2,9 @@ import { TerminalNetwork } from "market/TerminalNetwork";
 import { profile } from "Profiler";
 import { roomHelper } from "rooms/roomHelper";
 import { Traveler } from "utils/Traveler";
-import { layoutManager } from "./layoutManager";
 import { SpawnRoom } from "./SpawnRoom";
+import { RoomLayout } from "layout/RoomLayout";
+import { RoomPlanner } from "layout/RoomPlanner";
 
 @profile
 export class WorldMap implements WorldMap {
@@ -105,14 +106,18 @@ export class WorldMap implements WorldMap {
       if (room.controller && room.controller.my) {
         // Owned room
         // if (room.memory.layoutTime && Game.time >= room.memory.layoutTime) {
-        layoutManager.applyLayouts(room);
+        let layout = new RoomLayout(room.name);
+        if (!layout.data.valid) {
+          layout = new RoomPlanner(room.name);
+        }
+        if (layout.data.valid) {
+          layout.applyLayout();
+        } else {
+          console.log(`ROOMPLANNER: No valid layout for ${room.print} core room!`);
+        }
+        // layoutManager.applyLayouts(room);
         if (room.memory.dest && room.memory.dest.length > 0) {
           const center = room.storage || _.head(room.find(FIND_MY_SPAWNS));
-          if (center) {
-            layoutManager.applySecondaryRoads(room, roomHelper.deserializeRoomPositions(room.memory.dest), center.pos);
-          } else {
-            console.log('LAYOUT: Cant find center for room ' + room.print);
-          }
         }
         // }
         room.memory.dest = undefined;

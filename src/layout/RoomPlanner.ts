@@ -17,20 +17,20 @@ export class RoomPlanner extends RoomLayout {
     public visible: boolean;
     public room?: Room;
     public mem?: RoomMemory;
-    constructor(roomName: string, classType: RoomClass, visual: boolean = false) {
+    constructor(roomName: string, classType?: RoomClass, visual: boolean = false) {
         super(roomName, true);
         this.roomName = roomName;
-        this.classType = classType;
         this.room = Game.rooms[roomName];
         this.visible = !!this.room;
         this.layoutCost = {};
         this.layoutCost[roomName] = LayoutPath.LayoutCostMatrix(roomName) || new PathFinder.CostMatrix();
         this.mem = Memory.rooms[roomName];
+        this.classType = classType || this.mem.roomClass || RoomClass.SQUARE;
         if (this.mem) {
             this.planRoom();
             if (visual) {
                 this.visual();
-                this.saveToSegment(PLAN_SEGMENT);
+                this.saveToSegment(this.getSegment());
             }
         }
         else {

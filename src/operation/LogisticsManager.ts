@@ -10,7 +10,6 @@ import { UpgradeMission } from "./missions/UpgradeMission";
 import { Empire } from "Empire";
 import { TerminalNetwork } from "market/TerminalNetwork";
 import { HUD } from "rooms/HUD";
-import { layoutManager } from "rooms/layoutManager";
 import { roadHelper } from "rooms/roadHelper";
 import { roomHelper } from "rooms/roomHelper";
 import { EnergyState, EnergyStateString } from "config/Constants";
@@ -92,43 +91,6 @@ export class LogisticsManager {
         return dest;
     }
 
-    public getRoads(): RoomPosition[] {
-        let controllerOp = null;
-        for (const op of this.operations) {
-            if (op instanceof ControllerOperation) {
-                controllerOp = op;
-                break;
-            }
-        }
-        let roads: RoomPosition[] = [];
-        if (controllerOp) {
-            const center = controllerOp.flag.pos;
-            roads = roads.concat(layoutManager.getRoads(this.room));
-            const destinations = this.getDestinations();
-            for (const d of destinations) {
-                const road = roadHelper.pavePath(d, center, 3);
-                const _road = _.filter(road, { roomName: this.room.name })
-                this.room.visual.poly(_road);
-
-                roads = roads.concat(road);
-            }
-        }
-        roads = _.uniq(roads);
-        return roads;
-    }
-
-    public buildRoads() {
-        const roads = this.getRoads();
-        const construct = roadHelper.getUnbuiltRoads(roads);
-        if (construct.length > 0) {
-            if (Object.keys(Game.constructionSites).length < 60) {
-                for (const r of construct) {
-                    r.createConstructionSite(STRUCTURE_ROAD);
-                }
-            }
-        }
-    }
-
     public getTerminalEnergyFloat() {
         if (!this.room.storage || !this.room.terminal) { return 0; }
         if (this.room.storage.store.energy <= 15000) { return 1000; }
@@ -143,7 +105,8 @@ export class LogisticsManager {
 
     public energy() {
         if (!this._energy) {
-            const controllerEnergy = (this.room.memory.controllerBattery ? Game.getObjectById(this.room.memory.controllerBattery)?.store.energy : 0) ?? 0;
+            const controllerBattery = this.room.memory.controllerBattery ? Game.getObjectById(this.room.memory.controllerBattery) : null;
+            const controllerEnergy = (controllerBattery && (controllerBattery.structureType !== STRUCTURE_STORAGE) ? controllerBattery.store.energy : 0) ?? 0;
             const energy = this.E + (this.storage?.store.energy || 0) + (this.terminal?.store.energy || 0) + controllerEnergy;
             this.room.memory.lastEnergy = this._energy = energy;
         }
@@ -166,7 +129,7 @@ export class LogisticsManager {
 
     public getEstimatedUpgraderWork() {
         if (this.spawnRoom.rclLevel === 8) { return 15; }
-        let work = this.sources * 8 + this.remoteSources * 4;
+        let work = this.sources * 6 + this.remoteSources * 3;
         //if (this.storage && this.isLowEnergy()) { work = work / 2; }
         //if (this.storage && this.storage.store.energy < 5000) { work = work / 2; }
         if (this.room.energyState === EnergyState.LOW) { work = work / 2; }
