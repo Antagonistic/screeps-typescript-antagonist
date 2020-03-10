@@ -332,11 +332,14 @@ export const commandConsole = {
       if (room.memory.layout && _.any(room.memory.layout, x => x.name === "sealed")) {
         // const plan = new RoomPlanner(sR, RoomClass.SQUARE, true);
         console.log(`CONSOLE: ${room.print} is type ${RoomClass.SQUARE}`);
+        room.memory.roomClass = RoomClass.SQUARE;
       } else if (room.memory.layout && _.any(room.memory.layout, x => x.name === "square")) {
         // const plan = new RoomPlanner(sR, RoomClass.SQUARE, true);
         console.log(`CONSOLE: ${room.print} is type ${RoomClass.SQUARE}`);
+        room.memory.roomClass = RoomClass.SQUARE;
       } else if (room.memory.layout && _.any(room.memory.layout, x => x.name === "snake")) {
         console.log(`CONSOLE: ${room.print} is type ${RoomClass.SNAKE}`);
+        room.memory.roomClass = RoomClass.SNAKE;
       }
 
     }

@@ -149,6 +149,7 @@ interface RoomMemory {
   center?: UnserializedRoomPosition;
   queueReaction?: LabReaction[];
   energyState?: import("./config/Constants").EnergyState;
+  roomClass?: import("./config/Constants").RoomClass;
   sLink?: Id<StructureLink>;
   cLink?: Id<StructureLink>;
   links?: Id<StructureLink>[];

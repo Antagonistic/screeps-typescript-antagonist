@@ -29,9 +29,16 @@ export class ClaimMission extends Mission {
         ;
     }
     public spawn(): void {
-        const needClaimer = () => this.controller && !this.controller.my && this.room!.dangerousHostiles.length === 0 && this.spawnRoom.availableSpawnEnergy >= 650 ? 1 : 0;
-        this.claimers = this.spawnRole("claim", needClaimer, this.claimBody);
+        this.claimers = this.spawnRole("claim", () => this.maxClaimers(), this.claimBody);
     }
+
+    public maxClaimers() {
+        if (Game.cpu.bucket < 9000) { return 0; }
+        if (!this.controller || this.controller.my) { return 0; }
+        if (this.room!.dangerousHostiles.length === 0 && this.spawnRoom.availableSpawnEnergy >= 650) { return 1; }
+        return 0;
+    }
+
     public work(): void {
         if (this.controller) {
             for (const creep of this.claimers) {

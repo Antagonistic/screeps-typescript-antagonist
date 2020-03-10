@@ -122,6 +122,7 @@ export class BuilderMission extends Mission {
     }
 
     public needMason() {
+        if (Game.cpu.bucket < 9000) { return false; }
         if (this.spawnRoom.room.energyState === EnergyState.CRITICAL) { return false; }
         if (this.memory.needMasonTimer && this.memory.needMasonTimer > Game.time) {
             if (this.memory.needMason === undefined) { this.memory.needMasonTimer = undefined; return false; }

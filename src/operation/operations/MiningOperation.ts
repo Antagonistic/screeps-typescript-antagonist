@@ -24,6 +24,7 @@ export class MiningOperation extends Operation {
     }
 
     public getActive() {
+        if (Game.cpu.bucket < 9000) { return false; }
         if (this.memory.active === false) { return false; }
         if (!this.spawnRoom || this.spawnRoom.rclLevel < 4) { return false; }
         if (this.spawnRoom.room.memory.noRemote) { return false; }

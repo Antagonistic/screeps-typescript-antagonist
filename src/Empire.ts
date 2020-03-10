@@ -6,7 +6,7 @@ import { WorldMap } from "./rooms/WorldMap";
 // export let empire: Empire;
 
 @profile
-export class Empire implements Empire {
+export class Empire {
   public defaultSpawn: SpawnRoom;
   public spawnRooms: { [roomName: string]: SpawnRoom } = {};
   public map: WorldMap;
@@ -34,12 +34,12 @@ export class Empire implements Empire {
     if (this.spawnRooms[roomName]) {
       return this.spawnRooms[roomName];
     }
-    if (Game.rooms[roomName] && Game.rooms[roomName].memory.spawnRoom && Game.time % 1000 !== 60) {
-      const memSpawn = Game.rooms[roomName].memory.spawnRoom!;
+    if (Memory.rooms[roomName] && Memory.rooms[roomName].spawnRoom && (Game.time % 1000 !== 60)) {
+      const memSpawn = Memory.rooms[roomName].spawnRoom!;
       if (this.spawnRooms[memSpawn]) {
         return this.spawnRooms[memSpawn];
       } else {
-        Game.rooms[roomName].memory.spawnRoom = undefined;
+        Memory.rooms[roomName].spawnRoom = undefined;
       }
     }
     let minroomdist = 999;
@@ -56,7 +56,11 @@ export class Empire implements Empire {
         retSpawn = this.spawnRooms[sp];
       }
     }
-    if (Game.rooms[roomName]) { Game.rooms[roomName].memory.spawnRoom = retSpawn.room.name; }
+    if (Memory.rooms[roomName] && Memory.rooms[roomName].spawnRoom != retSpawn.room.name) {
+      console.log(`EMPIRE: Spawnroom for ${roomName} is set to ${retSpawn.room.print}`);
+    }
+    Memory.rooms[roomName].spawnRoom = retSpawn.room.name;
+
     return retSpawn;
   }
 }

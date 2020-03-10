@@ -18,6 +18,7 @@ export class InvaderOperation extends Operation {
     }
 
     public getActive(): boolean {
+        if (Game.cpu.bucket < 9000) { return false; }
         if (this.getToHomeRange() > 2) { return false; }
         if (this.spawnRoom.room.energyState === EnergyState.CRITICAL) { return false; }
         if (this.level > 0) { return false; }

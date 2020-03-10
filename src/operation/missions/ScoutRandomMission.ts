@@ -16,7 +16,17 @@ export class ScoutRandomMission extends Mission {
         super(operation, "scoutSurround");
         this.roomName = this.operation.roomName;
         this.nextSpawn = this.memory.nextSpawn || 0;
-        this.active = this.spawnRoom.rclLevel >= 3 && this.operation.stableOperation && Game.time >= this.nextSpawn && this.energyState() !== EnergyState.CRITICAL;
+        this.active = this.isActive();
+    }
+
+
+    public isActive() {
+        if (Game.cpu.bucket < 9000) { return false; }
+        if (this.spawnRoom.rclLevel < 3) { return false; }
+        if (!this.operation.stableOperation) { return false; }
+        if (Game.time < this.nextSpawn) { return false; }
+        if (this.energyState() === EnergyState.CRITICAL) { return false; }
+        return true;
     }
 
     public initMission(): void {

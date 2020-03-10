@@ -165,13 +165,13 @@ export abstract class Operation {
     // } else {
     if (!creepActions.actionGetEnergyCache(creep, false)) {
       if (!this.initGetEnergy) {
-        if (creep.store.energy < 50) {
+        /*if (creep.store.energy < 50) {
           const hauler = creep.room.find(FIND_MY_CREEPS, { filter: x => x.memory.target === creep.id && x.store.energy > 10 });
           if (hauler && hauler.length > 0) {
             creep.setTarget(hauler[0], TargetAction.MOVETO);
             return true;
           }
-        }
+        }*/
         this.droppedEnergy = creep.room.find(FIND_DROPPED_RESOURCES, { filter: x => x.resourceType === RESOURCE_ENERGY && x.amount >= 10 });
         this.tombStones = creep.room.find(FIND_TOMBSTONES, { filter: x => x.store.energy >= 10 });
         this.ruins = creep.room.find(FIND_RUINS, { filter: x => x.store.energy >= 10 });
@@ -213,7 +213,7 @@ export abstract class Operation {
         this.initGetEnergy = true;
       }
       let t;
-      if (priority) { // Hijack a nearby hauler
+      /*if (priority) { // Hijack a nearby hauler
         const hauler = creep.pos.findInRange(FIND_MY_CREEPS, 5, { filter: x => x.memory.role === "hauler" && x.memory.working && x.carry.energy > 50 });
         if (hauler && hauler.length > 0) {
           hauler[0].say("HiJack");
@@ -221,7 +221,7 @@ export abstract class Operation {
           creep.setTarget(hauler[0], TargetAction.MOVETO);
           return true;
         }
-      }
+      }*/
       if (scavange) {
         if (this.droppedEnergy.length > 0) {
           t = creep.pos.findClosestByRange(this.droppedEnergy);
