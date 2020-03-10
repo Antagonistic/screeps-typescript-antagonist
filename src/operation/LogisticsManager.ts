@@ -189,7 +189,7 @@ export class LogisticsManager {
             ControllerOperation.initNewControllerOperation(this.room, this.spawnRoom.spawns[0].pos);
         }
         if (Game.cpu.bucket > 3000) {
-            new HUD().runControlledRoom(this.room);
+            // new HUD().runControlledRoom(this.room);
             if ((Game.time + this.room.UUID) % 30 === 0 && this.terminal) {
                 this.terminalNetwork.runTerminal(this.terminal);
             }
@@ -201,55 +201,34 @@ export class LogisticsManager {
     }
 
     public updateEnergyState() {
-        if (this.spawnRoom.rclLevel <= 4 && !this.storage) { this.room.energyState = EnergyState.NORMAL; }
-        if (this.spawnRoom.rclLevel >= 6 && !this.storage) { this.room.energyState = EnergyState.CRITICAL; }
+        if (this.spawnRoom.rclLevel <= 4 && !this.storage) { this.room.energyState = EnergyState.NORMAL; return; }
+        if (this.spawnRoom.rclLevel >= 6 && !this.storage) { this.room.energyState = EnergyState.CRITICAL; return; }
         const prevState = this.room.energyState;
         switch (prevState) {
             case EnergyState.UNKNOWN: {
                 if (this.energy() < 5000) { this.room.energyState = EnergyState.CRITICAL; break; }
-                if (this.storage) {
-                    if (this.energy() < 15000 || this.S < 5000) { this.room.energyState = EnergyState.LOW; break; }
-                } else {
-                    if (this.energy() < 15000) { this.room.energyState = EnergyState.LOW; break; }
-                }
+                if (this.energy() < 15000) { this.room.energyState = EnergyState.LOW; break; }
                 if (this.energy() > 700000) { this.room.energyState = EnergyState.EXCESS; break; }
                 this.room.energyState = EnergyState.NORMAL; break;
             }
             case EnergyState.CRITICAL: {
-                if (this.storage) {
-                    if (this.energy() > 15000 && this.S > 5000) { this.room.energyState = EnergyState.LOW; break; }
-                } else {
-                    if (this.energy() > 15000) { this.room.energyState = EnergyState.LOW; break; }
-                }
+                if (this.energy() > 20000) { this.room.energyState = EnergyState.LOW; break; }
             }
             case EnergyState.LOW: {
-                if (this.storage) {
-                    if (this.energy() < 10000 && this.S < 5000) { this.room.energyState = EnergyState.CRITICAL; break; }
-                    if (this.energy() > 50000 && this.S > 20000) { this.room.energyState = EnergyState.NORMAL; break; }
-                } else {
-                    if (this.energy() < 10000) { this.room.energyState = EnergyState.CRITICAL; break; }
-                    if (this.energy() > 50000) { this.room.energyState = EnergyState.NORMAL; break; }
-                }
+
+                if (this.energy() < 10000) { this.room.energyState = EnergyState.CRITICAL; break; }
+                if (this.energy() > 50000) { this.room.energyState = EnergyState.NORMAL; break; }
             }
             case EnergyState.NORMAL: {
-                if (this.storage) {
-                    if (this.energy() < 30000 && this.S < 10000) { this.room.energyState = EnergyState.LOW; break; }
-                    if (this.energy() > 800000) { this.room.energyState = EnergyState.EXCESS; break; }
-                } else {
-                    if (this.energy() < 30000) { this.room.energyState = EnergyState.LOW; break; }
-                    if (this.energy() > 800000) { this.room.energyState = EnergyState.EXCESS; break; }
-                }
+                if (this.energy() < 30000) { this.room.energyState = EnergyState.LOW; break; }
+                if (this.energy() > 800000) { this.room.energyState = EnergyState.EXCESS; break; }
             }
             case EnergyState.EXCESS: {
-                if (this.storage) {
-                    if (this.energy() < 500000) { this.room.energyState = EnergyState.NORMAL; break; }
-                } else {
-                    if (this.energy() > 500000) { this.room.energyState = EnergyState.EXCESS; break; }
-                }
+                if (this.energy() > 500000) { this.room.energyState = EnergyState.EXCESS; break; }
             }
         }
         if (this.room.energyState !== prevState) {
-            console.log(`LOGISTICS: ${this.room.print} State moved from ${EnergyStateString[prevState]} to ${EnergyStateString[this.room.energyState]}`);
+            console.log(`LOGISTICS: ${this.room.print} State moved from ${EnergyStateString[prevState]} to ${EnergyStateString[this.room.energyState]} - energy: ${this.energy()}/${this.S}`);
         }
     }
 

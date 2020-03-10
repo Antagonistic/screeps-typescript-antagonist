@@ -4,7 +4,7 @@ import { Mission } from "./Mission";
 import { BodyFactory } from "creeps/BodyFactory";
 import * as creepActions from "creeps/creepActions";
 import { profile } from "Profiler";
-import { EnergyState } from "config/Constants";
+import { EnergyState, TargetAction } from "config/Constants";
 
 @profile
 export class ScoutRandomMission extends Mission {
@@ -18,7 +18,6 @@ export class ScoutRandomMission extends Mission {
         this.nextSpawn = this.memory.nextSpawn || 0;
         this.active = this.isActive();
     }
-
 
     public isActive() {
         if (Game.cpu.bucket < 9000) { return false; }
@@ -38,6 +37,8 @@ export class ScoutRandomMission extends Mission {
     }
     public work(): void {
         for (const creep of this.scouts) {
+            creep.actionTarget();
+            if (creep.action) { continue; }
             if (creep.memory.highCPU) {
                 console.log(`SCOUT: High CPU: ${creep.name}, suiciding!`);
                 creep.suicide();
@@ -58,6 +59,15 @@ export class ScoutRandomMission extends Mission {
                 this.memory.nextSpawn = Game.time + 20;
             }
             const exits = _.values(Game.map.describeExits(creep.room.name)) as string[];
+            const portals = creep.room.find(FIND_STRUCTURES, { filter: x => x.structureType === STRUCTURE_PORTAL }) as StructurePortal[];
+            if (portals && portals.length > 0) {
+                const t = creep.pos.findClosestByRange(portals);
+                if (t) {
+                    console.log(`SCOUT: Portal to ${JSON.stringify(t.destination)} found at ${creep.room.print}`);
+                    creep.setTarget(t, TargetAction.MOVETO);
+                    return;
+                }
+            }
             const exit = _.sample(exits);
             if (Game.map.isRoomAvailable(exit)) {
                 creep.memory.home = exit;

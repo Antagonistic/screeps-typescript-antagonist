@@ -29,7 +29,7 @@ RoomVisual.prototype.multitext = function (textLines: string[], x: number, y: nu
         color: colors.infoBoxGood,
         textstyle: false,
         textsize: speechSize,
-        textfont: 'verdana',
+        textfont: 'monospace',
         opacity: 0.7,
     });
 
